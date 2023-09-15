@@ -95,6 +95,7 @@ h6 {
   margin: 0;
   padding: 0;
   font-weight: 600;
+  text-indent: 10mm;
   -moz-text-align-last: center;
   text-align-last: center;
   font-family: "Poppins", sans-serif;
@@ -103,6 +104,7 @@ h6 {
 #header .profile h1 a,
 #header .profile h1 a:hover {
   color: #fff;
+  text-indent: 10mm;
   text-decoration: none;
 }
 
