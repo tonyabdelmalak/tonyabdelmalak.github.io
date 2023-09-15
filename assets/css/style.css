@@ -133,13 +133,13 @@ h6 {
 
 .container,
 .container-fluid {
-  padding-left: 40px;
+  padding-left: 30px;
   padding-right: 30px;
 }
 
 @media (max-width: 1199px) {
   #header {
-    left: 300px;
+    left: -300px;
   }
 
   #main {
