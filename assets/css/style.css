@@ -133,13 +133,13 @@ h6 {
 
 .container,
 .container-fluid {
-  padding-left: 30px;
+  padding-left: 40px;
   padding-right: 30px;
 }
 
 @media (max-width: 1199px) {
   #header {
-    left: -300px;
+    left: 300px;
   }
 
   #main {
@@ -175,7 +175,7 @@ h6 {
 .nav-menu a,
 .nav-menu a:focus {
   display: flex;
-  align-items: right;
+  align-items: center;
   color: #a8a9b4;
   padding: 12px 15px;
   margin-bottom: 8px;
