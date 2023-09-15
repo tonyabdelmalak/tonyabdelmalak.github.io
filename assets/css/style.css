@@ -91,7 +91,7 @@ h6 {
 }
 
 #header .profile h1 {
-  font-size: 24px;
+  font-size: 22px;
   margin: 0;
   font-weight: 600;
   -moz-text-align-last: center;
@@ -106,7 +106,7 @@ h6 {
 }
 
 #header .profile .social-links a {
-  font-size: 18px;
+  font-size: 16px;
   display: inline-block;
   background: #212431;
   color: #fff;
@@ -132,8 +132,8 @@ h6 {
 
 .container,
 .container-fluid {
-  padding-left: 30px;
-  padding-right: 30px;
+  padding-left: 50px;
+  padding-right: 20px;
 }
 
 @media (max-width: 1199px) {
