@@ -95,8 +95,8 @@ h6 {
   margin: 0;
   padding: 15px;
   font-weight: 600;
-  -moz-text-align-last: right;
-  text-align-last: right;
+  -moz-text-align-last: left;
+  text-align-last: left;
   font-family: "Poppins", sans-serif;
 }
 
