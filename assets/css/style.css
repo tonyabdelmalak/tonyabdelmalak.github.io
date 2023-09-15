@@ -44,8 +44,8 @@ h6 {
   bottom: 15px;
   z-index: 996;
   background: #149ddd;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50px;
   transition: all 0.4s;
 }
@@ -91,7 +91,7 @@ h6 {
 }
 
 #header .profile h1 {
-  font-size: 22px;
+  font-size: 24px;
   margin: 0;
   font-weight: 600;
   -moz-text-align-last: center;
@@ -132,8 +132,8 @@ h6 {
 
 .container,
 .container-fluid {
-  padding-left: 50px;
-  padding-right: 20px;
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 @media (max-width: 1199px) {
@@ -260,7 +260,7 @@ h6 {
 }
 #hero h1 {
   margin: 0 0 10px 0;
-  font-size: 66px;
+  font-size: 58px;
   font-weight: 700;
   line-height: 56px;
   color: #fff;
@@ -268,7 +268,7 @@ h6 {
 #hero p {
   color: #fff;
   margin-bottom: 50px;
-  font-size: 32px;
+  font-size: 28px;
   font-family: "Poppins", sans-serif;
 }
 #hero p span {
