@@ -44,7 +44,7 @@ h6 {
   bottom: 15px;
   z-index: 996;
   background: #149ddd;
-  width: 20px;
+  width: 40px;
   height: 40px;
   border-radius: 50px;
   transition: all 0.4s;
@@ -95,7 +95,7 @@ h6 {
   margin: 0;
   padding: 0;
   font-weight: 600;
-  -moz-text-align-last: center;
+  text-align-last: center;
   text-align-last: center;
   font-family: "Poppins", sans-serif;
 }
