@@ -930,5 +930,21 @@
 	</body>
 	
 	</html>
-	
+	<script>
+async function sendMessage() {
+    let userMessage = document.getElementById("user-input").value;
+    let response = await fetch("https://your-api-url.com/chat", { // Replace with your deployed API URL
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage })
+    });
+    let result = await response.json();
+    document.getElementById("chat-response").innerText = "Chatbot: " + result.response;
+}
+</script>
+
+<input type="text" id="user-input" placeholder="Type your message">
+<button onclick="sendMessage()">Send</button>
+<p id="chat-response"></p>
+
 
