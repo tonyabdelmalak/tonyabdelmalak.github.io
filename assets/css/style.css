@@ -44,8 +44,8 @@ h6 {
   bottom: 15px;
   z-index: 996;
   background: #149ddd;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50px;
   transition: all 0.4s;
 }
@@ -93,6 +93,7 @@ h6 {
 #header .profile h1 {
   font-size: 24px;
   margin: 0;
+  padding: 0;
   font-weight: 600;
   -moz-text-align-last: center;
   text-align-last: center;
@@ -106,7 +107,7 @@ h6 {
 }
 
 #header .profile .social-links a {
-  font-size: 16px;
+  font-size: 18px;
   display: inline-block;
   background: #212431;
   color: #fff;
@@ -115,8 +116,8 @@ h6 {
   margin-right: 4px;
   border-radius: 50%;
   text-align: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   transition: 0.3s;
 }
 
@@ -147,8 +148,8 @@ h6 {
 
   .container,
   .container-fluid {
-    padding-left: 40px;
-    padding-right: 40px;
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }
 
@@ -243,6 +244,7 @@ h6 {
   background: url("../img/hero-bg.jpg") top center;
   background-size: cover;
 }
+
 #hero:before {
   content: "";
   background: rgba(5, 13, 24, 0.3);
@@ -253,22 +255,25 @@ h6 {
   right: 0;
   z-index: 1;
 }
+
 #hero .hero-container {
-  position: right;
+  position: relative;
   z-index: 2;
   min-width: 300px;
 }
+
 #hero h1 {
   margin: 0 0 10px 0;
-  font-size: 58px;
+  font-size: 66px;
   font-weight: 700;
   line-height: 56px;
   color: #fff;
 }
+
 #hero p {
   color: #fff;
   margin-bottom: 50px;
-  font-size: 28px;
+  font-size: 18px;
   font-family: "Poppins", sans-serif;
 }
 #hero p span {
@@ -421,7 +426,7 @@ section {
 }
 
 /*--------------------------------------------------------------
-# Akills
+# Skills
 --------------------------------------------------------------*/
 .skills .progress {
   height: 60px;
@@ -525,6 +530,25 @@ section {
   margin-bottom: 30px;
 }
 
+.portfolio-item a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.portfolio-item a img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.portfolio-item a:hover img {
+  transform: scale(1.05);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
 .portfolio #portfolio-flters {
   padding: 0;
   margin: 0 auto 35px auto;
@@ -558,10 +582,23 @@ section {
 }
 
 .portfolio .portfolio-wrap {
-  transition: 0.3s;
   position: relative;
   overflow: hidden;
-  z-index: 1;
+}
+
+.portfolio-wrap a {
+  display: block;
+}
+
+.portfolio-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+}
+
+.portfolio-wrap a:hover img {
+  transform: scale(1.05); /* Slight zoom on hover */
 }
 
 .portfolio .portfolio-wrap::before {
@@ -620,12 +657,8 @@ section {
 }
 
 /*--------------------------------------------------------------
-# Portfolio Details
+# Portfolio Details Section
 --------------------------------------------------------------*/
-.portfolio-details {
-  padding-top: 40px;
-}
-
 .portfolio-details .portfolio-details-slider img {
   width: 100%;
 }
@@ -638,18 +671,17 @@ section {
 .portfolio-details .portfolio-details-slider .swiper-pagination .swiper-pagination-bullet {
   width: 12px;
   height: 12px;
-  background-color: #fff;
+  background-color: color-mix(in srgb, var(--default-color), transparent 85%);
   opacity: 1;
-  border: 1px solid #149ddd;
 }
 
 .portfolio-details .portfolio-details-slider .swiper-pagination .swiper-pagination-bullet-active {
-  background-color: #149ddd;
+  background-color: var(--accent-color);
 }
 
 .portfolio-details .portfolio-info {
   padding: 30px;
-  box-shadow: 0px 0 30px rgba(5, 13, 24, 0.08);
+  box-shadow: 0px 0 30px rgba(0, 0, 0, 0.1);
 }
 
 .portfolio-details .portfolio-info h3 {
@@ -657,7 +689,7 @@ section {
   font-weight: 700;
   margin-bottom: 20px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 85%);
 }
 
 .portfolio-details .portfolio-info ul {
@@ -682,6 +714,7 @@ section {
 
 .portfolio-details .portfolio-description p {
   padding: 0;
+  color: color-mix(in srgb, var(--default-color), transparent 30%);
 }
 
 /*--------------------------------------------------------------
