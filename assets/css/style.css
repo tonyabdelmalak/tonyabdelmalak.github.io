@@ -257,6 +257,7 @@ h6 {
 }
 
 #hero .hero-container {
+  margin-left: 300px;
   position: relative;
   z-index: 2;
   min-width: 300px;
@@ -267,6 +268,7 @@ h6 {
   font-size: 66px;
   font-weight: 700;
   line-height: 56px;
+  white-space: pre;
   color: #fff;
 }
 
@@ -303,7 +305,7 @@ h6 {
 # Sections General
 --------------------------------------------------------------*/
 section {
-  padding: 60px 0;
+  padding: 20px 0;
   overflow: hidden;
 }
 
@@ -312,14 +314,14 @@ section {
 }
 
 .section-title {
-  padding-bottom: 30px;
+  padding-bottom: 20px;
 }
 
 .section-title h2 {
   font-size: 32px;
   font-weight: bold;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
   position: relative;
   color: #173b6c;
 }
