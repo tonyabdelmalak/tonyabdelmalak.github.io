@@ -236,16 +236,16 @@ h6 {
 }
 
 /*--------------------------------------------------------------
-# Hero Section
+# Home Section
 --------------------------------------------------------------*/
-#hero {
+#home {
   width: 100%;
   height: 100vh;
   background: url("../img/hero-bg.jpg") top center;
   background-size: cover;
 }
 
-#hero:before {
+#home:before {
   content: "";
   background: rgba(5, 13, 24, 0.3);
   position: absolute;
@@ -256,14 +256,14 @@ h6 {
   z-index: 1;
 }
 
-#hero .hero-container {
+#home .home-container {
   margin-left: 300px;
   position: relative;
   z-index: 2;
   min-width: 300px;
 }
 
-#hero h1 {
+#home h1 {
   margin: 0 0 10px 0;
   font-size: 66px;
   font-weight: 700;
@@ -272,29 +272,29 @@ h6 {
   color: #fff;
 }
 
-#hero p {
+#home p {
   color: #fff;
   margin-bottom: 50px;
   font-size: 18px;
   font-family: "Poppins", sans-serif;
 }
-#hero p span {
+#home p span {
   color: #fff;
   padding-bottom: 4px;
   letter-spacing: 1px;
   border-bottom: 3px solid #149ddd;
 }
 @media (min-width: 1024px) {
-  #hero {
+  #home {
     background-attachment: fixed;
   }
 }
 @media (max-width: 768px) {
-  #hero h1 {
+  #home h1 {
     font-size: 28px;
     line-height: 36px;
   }
-  #hero h2 {
+  #home h2 {
     font-size: 18px;
     line-height: 24px;
     margin-bottom: 30px;
@@ -637,7 +637,7 @@ section {
   width: 50%;
 }
 
-.portfolio .portfolio-wrap .portfolio-links a:hover {
+.portfolio .portfolio-wrap .projects-links a:hover {
   background: rgba(20, 157, 221, 0.95);
 }
 
@@ -720,13 +720,13 @@ section {
 }
 
 /*--------------------------------------------------------------
-# Services
+# Technical Skills
 --------------------------------------------------------------*/
-.services .icon-box {
+.technical-skills .icon-box {
   margin-bottom: 20px;
 }
 
-.services .icon {
+.technical-skills .icon {
   float: left;
   display: flex;
   align-items: center;
@@ -739,21 +739,21 @@ section {
   border: 1px solid #149ddd;
 }
 
-.services .icon i {
+.technical-skills .icon i {
   color: #fff;
   font-size: 24px;
   line-height: 0;
 }
 
-/* .services .icon-box:hover .icon {
+/* .technical-skills .icon-box:hover .icon {
   background: #fff;
 }
 
-.services .icon-box:hover .icon i {
+.technical-skills .icon-box:hover .icon i {
   color: #149ddd;
 } */
 
-.services .title {
+.technical-skills .title {
   margin-left: 80px;
   font-weight: 700;
   margin-bottom: 15px;
@@ -761,15 +761,15 @@ section {
   padding-top: 15px;
 }
 
-.services .title a {
+.technical-skills .title a {
   color: #343a40;
 }
 
-.services .title a:hover {
+.technical-skills .title a:hover {
   color: #149ddd;
 }
 
-.services .description {
+.technical-skills .description {
   margin-left: 80px;
   line-height: 24px;
   font-size: 14px;
