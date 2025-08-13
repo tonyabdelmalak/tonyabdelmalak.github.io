@@ -337,7 +337,7 @@
         </div>
         <!-- Project 2 -->
         <div class="col-md-4">
-          <div the="project-card">
+          <div class="project-card">
             <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview">
             <div class="project-card-body">
               <h5 class="project-card-title">Workforce Analytics Overview</h5>
@@ -398,7 +398,10 @@
         <!-- Project 6 -->
         <div class="col-md-4">
           <div class="project-card">
-            <img src="assets/img/portfolio/dashboard-6.jpg" alt="Workforce Forecasting">
+            <!-- Use the correct filename for the sixth dashboard image. The
+                 actual file on GitHub pages is named with an uppercase .JPG
+                 extension, so update the path accordingly to avoid 404 errors. -->
+            <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting">
             <div class="project-card-body">
               <h5 class="project-card-title">Workforce Forecasting</h5>
               <p class="project-card-text">
@@ -441,7 +444,7 @@
           <div>Tableau</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas a="">interactive</i></div>
+          <div class="skill-icon"><i class="fas fa-table"></i></div>
           <div>Power BI</div>
         </div>
         <div class="skill-item">
@@ -461,7 +464,7 @@
           <div>HRIS (Workday)</div>
         </div>
         <div class="skill-item">
-          <div the="skill-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
           <div>Analytics</div>
         </div>
         <div class="skill-item">
@@ -513,14 +516,13 @@
       </div>
     </div>
   </section>
+
   <!-- Contact Section -->
   <section id="contact">
     <div class="container" data-aos="fade-up">
       <div class="section-title">
         <h2>Contact</h2>
       </div>
-      <div class="row justify
-
       <div class="row justify-content-center">
         <div class="col-lg-6 text-center">
           <p>If you'd like to discuss how I can bring AI‑driven workforce insights to your organization, please get in touch.</p>
@@ -550,10 +552,7 @@
       once: true
     });
     // Initialize Typed.js for the hero typed effect
-    const typedStrings = document
-      .querySelector('.typed')
-      .getAttribute('data-typed-items')
-      .split(';');
+    const typedStrings = document.querySelector('.typed').getAttribute('data-typed-items').split(';');
     const typed = new Typed('.typed', {
       strings: typedStrings,
       typeSpeed: 40,
