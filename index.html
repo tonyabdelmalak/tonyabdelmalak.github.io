@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tony Abdelmalak | AI‑Driven People & Business Insights</title>
+  <meta name="description" content="AI‑driven HR & business analytics, dashboards, and decision support." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --ink:#0e1116; --muted:#5b6470; --bg:#f7f8fa; --card:#ffffff; --accent:#3a6ff8; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
+    header { padding: 48px 20px; background: linear-gradient(180deg,#ffffff 0%, #f7f8fa 100%); border-bottom:1px solid #eef0f3; }
+    .container { max-width: 980px; margin: 0 auto; }
+    .nav { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { font-weight:700; font-size:18px; letter-spacing:0.2px; }
+    .nav a { text-decoration:none; color:var(--ink); font-weight:600; }
+    .hero { display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding:36px 0 6px; }
+    .hero h1 { font-size:36px; line-height:1.15; margin:0 0 12px; }
+    .hero p { color:var(--muted); margin:0 0 20px; }
+    .cta { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn { display:inline-block; padding:12px 18px; border-radius:10px; font-weight:700; border:1px solid transparent; text-decoration:none; }
+    .btn.primary { background:var(--accent); color:#fff; }
+    .btn.ghost { background:#fff; border-color:#e5e7eb; color:var(--ink); }
+    .cardgrid { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; padding: 28px 0 42px; }
+    .card { background:var(--card); border:1px solid #eef0f3; border-radius:14px; padding:16px; }
+    .card h3 { margin:0 0 6px; font-size:16px; }
+    .card p { margin:0; color:var(--muted); font-size:14px; }
+    footer { padding:22px 20px; border-top:1px solid #eef0f3; color:var(--muted); font-size:14px; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns:1fr; }
+      .cardgrid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">Tony Abdelmalak</div>
+      <nav class="links">
+        <a href="./diversity-metrics.html">Diversity Metrics Dashboard</a>
+      </nav>
+    </div>
+    <div class="container hero">
+      <div>
+        <h1>AI‑Driven People & Business Insights</h1>
+        <p>Predictive dashboards, clean storytelling, and decision support across HR and operations.</p>
+        <div class="cta">
+          <a class="btn primary" href="./diversity-metrics.html">View Diversity Metrics Dashboard</a>
+          <a class="btn ghost" href="./diversity_dashboard_final.html">Open Fullscreen (Direct)</a>
+        </div>
+      </div>
+      <div class="card" style="min-height:180px;">
+        <h3>What’s inside</h3>
+        <p>Explore representation, hiring funnels, and trendlines. Built for clarity and leadership readouts.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="cardgrid">
+      <article class="card">
+        <h3>People Analytics</h3>
+        <p>Workforce modeling, segmentation, and KPI tracking.</p>
+      </article>
+      <article class="card">
+        <h3>Dashboards</h3>
+        <p>Executive‑ready visuals focused on action and outcomes.</p>
+      </article>
+      <article class="card">
+        <h3>Automation</h3>
+        <p>Pipelines and repeatable workflows that scale.</p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">© <span id="y"></span> Tony Abdelmalak</div>
+  </footer>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+</body>
+</html>
