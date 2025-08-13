@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Diversity Metrics Dashboard</title>
+  <meta name="description" content="Embedded Diversity Metrics dashboard." />
+  <style>
+    html, body { height:100%; margin:0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0b1020; }
+    .wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
+    header { color:#cdd4ff; padding:10px 14px; font-weight:700; letter-spacing:.2px; }
+    .frame { flex:1; border:0; width:100%; }
+    .fallback { color:#e6e9ff; padding:12px 14px; font-size:14px; }
+    .fallback a { color:#ffffff; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>Diversity Metrics Dashboard</header>
+    <iframe
+      class="frame"
+      src="./diversity_dashboard_final.html"
+      title="Diversity Metrics Dashboard"
+      allowfullscreen
+      loading="eager"
+      referrerpolicy="no-referrer"
+    ></iframe>
+    <noscript>
+      <div class="fallback">
+        JavaScript is disabled. Open the dashboard directly:
+        <a href="./diversity_dashboard_final.html">diversity_dashboard_final.html</a>
+      </div>
+    </noscript>
+  </div>
+</body>
+</html>
