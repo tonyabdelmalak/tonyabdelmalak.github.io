@@ -451,6 +451,53 @@
     </div><!-- end row g-4 -->
   </div><!-- end container -->
 </section>
+
+  <!-- AI Dashboards Section -->
+<section id="ai-dashboards" class="py-5">
+  <div class="container">
+    <h2 class="section-title">AI Dashboards</h2>
+    <p>Interactive analytics dashboards showcasing AI data analysis projects.</p>
+    <div class="row gy-4">
+
+      <!-- Intent Distribution Dashboard -->
+      <div class="col-md-6">
+        <h3>Intent Distribution Dashboard</h3>
+        <iframe src="https://public.tableau.com/views/AIDashboards/IntentDistribution?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=IntentDistribution" width="100%" height="500" title="Intent Distribution Dashboard"></iframe>
+        <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.</p>
+        <p><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.</p>
+        <p><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer-support resources.</p>
+      </div>
+
+      <!-- Resolution Rate Dashboard -->
+      <div class="col-md-6">
+        <h3>Resolution Rate Dashboard</h3>
+        <iframe src="https://public.tableau.com/views/AIDashboards/ResolutionRate?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=ResolutionRate" width="100%" height="500" title="Resolution Rate Dashboard"></iframe>
+        <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.</p>
+        <p><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.</p>
+        <p><strong>Impact:</strong> Highlighted low-performing intents, enabling targeted improvements to conversational flows and intent models.</p>
+      </div>
+
+      <!-- Customer Satisfaction Dashboard -->
+      <div class="col-md-6">
+        <h3>Customer Satisfaction Dashboard</h3>
+        <iframe src="https://public.tableau.com/views/AIDashboards/AverageSatisfaction?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=AverageSatisfaction" width="100%" height="500" title="Customer Satisfaction Dashboard"></iframe>
+        <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.</p>
+        <p><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.</p>
+        <p><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
+      </div>
+
+      <!-- Model Performance Dashboard -->
+      <div class="col-md-6">
+        <h3>Model Performance Dashboard</h3>
+        <iframe src="https://public.tableau.com/views/AIDashboards/ModelPerformance?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=ModelPerformance" width="100%" height="500" title="Model Performance Dashboard"></iframe>
+        <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.</p>
+        <p><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.</p>
+        <p><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
   
   <!-- Skills Section -->
   <section id="skills">
@@ -553,53 +600,6 @@
     </div>
   </section>
   
-<!-- AI Dashboards Section -->
-<section id="ai-dashboards" class="py-5">
-  <div class="container">
-    <h2 class="section-title">AI Dashboards</h2>
-    <p>Interactive analytics dashboards showcasing AI data analysis projects.</p>
-    <div class="row gy-4">
-
-      <!-- Intent Distribution Dashboard -->
-      <div class="col-md-6">
-        <h3>Intent Distribution Dashboard</h3>
-        <iframe src="https://public.tableau.com/views/AIDashboards/IntentDistribution?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=IntentDistribution" width="100%" height="500" title="Intent Distribution Dashboard"></iframe>
-        <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.</p>
-        <p><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.</p>
-        <p><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer-support resources.</p>
-      </div>
-
-      <!-- Resolution Rate Dashboard -->
-      <div class="col-md-6">
-        <h3>Resolution Rate Dashboard</h3>
-        <iframe src="https://public.tableau.com/views/AIDashboards/ResolutionRate?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=ResolutionRate" width="100%" height="500" title="Resolution Rate Dashboard"></iframe>
-        <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.</p>
-        <p><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.</p>
-        <p><strong>Impact:</strong> Highlighted low-performing intents, enabling targeted improvements to conversational flows and intent models.</p>
-      </div>
-
-      <!-- Customer Satisfaction Dashboard -->
-      <div class="col-md-6">
-        <h3>Customer Satisfaction Dashboard</h3>
-        <iframe src="https://public.tableau.com/views/AIDashboards/AverageSatisfaction?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=AverageSatisfaction" width="100%" height="500" title="Customer Satisfaction Dashboard"></iframe>
-        <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.</p>
-        <p><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.</p>
-        <p><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
-      </div>
-
-      <!-- Model Performance Dashboard -->
-      <div class="col-md-6">
-        <h3>Model Performance Dashboard</h3>
-        <iframe src="https://public.tableau.com/views/AIDashboards/ModelPerformance?:language=en-US&amp;:showVizHome=no&amp;:embed=y&amp;:toolbar=yes&amp;:sheet=ModelPerformance" width="100%" height="500" title="Model Performance Dashboard"></iframe>
-        <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.</p>
-        <p><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.</p>
-        <p><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
   <!-- Footer -->
   <footer>
     <div class="container">
