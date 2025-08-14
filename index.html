@@ -605,18 +605,27 @@
       loop: true
     });
   </script>
-<!-- Reflectiv Chat Widget -->
+<!-- Chat Widget (Tony) -->
 <style>
+  /*
+   * Chat widget styling for Tony's assistant.  The chat box is hidden until
+   * the visitor clicks the toggle button.  Both elements are positioned
+   * near the top‑right of the page so they remain visible without scrolling.
+   */
   #chat-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 320px;
+    height: 420px;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 100%;
-    max-width: 350px;
-    height: 450px;
-    display: flex;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: none;
     flex-direction: column;
     font-family: Arial, sans-serif;
-    margin: 20px auto;
+    z-index: 9999;
   }
   #conversation {
     flex: 1;
@@ -633,17 +642,35 @@
     padding: 10px;
     font-size: 14px;
   }
+  #chat-toggle {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #007bff;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
 </style>
+<!-- Toggle button to open/close the chat -->
+<div id="chat-toggle">Chat with Tony</div>
 <div id="chat-container">
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
 </div>
 <script>
+  // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
   window.ChatEndpoint = 'https://reflectiv-agent.onrender.com/chat';
   (function() {
     let sessionId = null;
     const convo = document.getElementById('conversation');
     const input = document.getElementById('user-input');
+    const chatContainer = document.getElementById('chat-container');
+    const toggleBtn = document.getElementById('chat-toggle');
     const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
     function appendMessage(sender, text) {
       const p = document.createElement('p');
@@ -665,6 +692,15 @@
         appendMessage('Agent', 'Sorry, there was an error connecting to the server.');
       }
     }
+    // Toggle chat visibility
+    toggleBtn.addEventListener('click', function() {
+      if (chatContainer.style.display === 'none' || !chatContainer.style.display) {
+        chatContainer.style.display = 'flex';
+      } else {
+        chatContainer.style.display = 'none';
+      }
+    });
+    // Handle Enter key to send messages
     input.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
         const msg = input.value.trim();
@@ -677,6 +713,6 @@
     });
   })();
 </script>
-<!-- End Reflectiv Chat Widget -->
+<!-- End Chat Widget -->
 </body>
 </html>
