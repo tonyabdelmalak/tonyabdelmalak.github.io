@@ -654,14 +654,18 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    overflow: hidden;
+    /* use background image for the avatar to avoid stretching on mobile */
+    background-image: url('tony_avatar.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     cursor: pointer;
     z-index: 10000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 </style>
-<!-- Toggle button to open/close the chat.  Uses Tony's avatar image. -->
-<img id="chat-toggle" src="tony_avatar.jpg" alt="Chat with Tony" />
+<!-- Toggle button to open/close the chat.  Uses Tony's avatar as a background on a div. -->
+<div id="chat-toggle" title="Chat with Tony"></div>
 <div id="chat-container">
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
@@ -694,11 +698,14 @@
         if (data.response) {
           appendMessage('Agent', data.response);
           // Use browser's SpeechSynthesis API to speak the agent's response.
+          // Cancel any ongoing speech to avoid overlapping utterances
+          window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(data.response);
+          // Friendly and natural tone adjustments
           utterance.pitch = 1.0;
           utterance.rate = 1.0;
           utterance.volume = 1.0;
-          speechSynthesis.speak(utterance);
+          window.speechSynthesis.speak(utterance);
         }
       } catch (err) {
         appendMessage('Agent', 'Sorry, there was an error connecting to the server.');
