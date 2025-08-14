@@ -642,22 +642,26 @@
     padding: 10px;
     font-size: 14px;
   }
+  /*
+   * Style the chat toggle as a circular avatar.  The avatar uses Tony's
+   * LinkedIn photo (tony_avatar.jpg).  Adjust width, height and offsets
+   * as needed.  The box shadow helps it stand out against the nav bar.
+   */
   #chat-toggle {
     position: fixed;
     top: 80px;
     right: 20px;
-    background: #007bff;
-    color: #fff;
-    padding: 12px 16px;
-    border-radius: 20px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
     cursor: pointer;
-    font-weight: bold;
     z-index: 10000;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 </style>
-<!-- Toggle button to open/close the chat -->
-<div id="chat-toggle">Chat with Tony</div>
+<!-- Toggle button to open/close the chat.  Uses Tony's avatar image. -->
+<img id="chat-toggle" src="tony_avatar.jpg" alt="Chat with Tony" />
 <div id="chat-container">
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
@@ -687,7 +691,15 @@
         });
         const data = await response.json();
         if (data.session_id) sessionId = data.session_id;
-        if (data.response) appendMessage('Agent', data.response);
+        if (data.response) {
+          appendMessage('Agent', data.response);
+          // Use browser's SpeechSynthesis API to speak the agent's response.
+          const utterance = new SpeechSynthesisUtterance(data.response);
+          utterance.pitch = 1.0;
+          utterance.rate = 1.0;
+          utterance.volume = 1.0;
+          speechSynthesis.speak(utterance);
+        }
       } catch (err) {
         appendMessage('Agent', 'Sorry, there was an error connecting to the server.');
       }
