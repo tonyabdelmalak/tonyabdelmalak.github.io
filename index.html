@@ -679,9 +679,7 @@
 <div id="chat-container">
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
-  <div id="chat-controls">
-    <button id="mic-button" title="Speak your question">🎤</button>
-  </div>
+  <!-- Voice controls removed: chat is now text-only -->
 </div>
 <script>
   // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
@@ -690,7 +688,8 @@
   // endpoint to enable audio playback when browser speech synthesis is not
   // reliable. Leaving it undefined will cause the chat widget to fall back
   // to client‑side speech synthesis.
-  window.TtsEndpoint = 'https://reflectiv-agent.onrender.com/speak';
+  // Voice output disabled: no server TTS endpoint configured.
+  window.TtsEndpoint = null;
   // Preload speech synthesis voices on page load. Some browsers require
   // calling getVoices() early to make voices available later.
   document.addEventListener('DOMContentLoaded', () => {
@@ -706,11 +705,11 @@
     const input = document.getElementById('user-input');
     const chatContainer = document.getElementById('chat-container');
     const toggleBtn = document.getElementById('chat-toggle');
-    const micBtn = document.getElementById('mic-button');
-    // Voice playback is always enabled. There is no separate toggle button.
-    let voiceEnabled = true;
+    // Microphone button removed; voice playback disabled by default.
+    let voiceEnabled = false;
     const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
-    const ttsEndpoint = window.TtsEndpoint || null;
+    // TTS endpoint is unused when voiceEnabled is false.
+    const ttsEndpoint = null;
     function appendMessage(sender, text) {
       const p = document.createElement('p');
       p.innerHTML = `<strong>${sender}:</strong> ${text}`;
@@ -804,31 +803,7 @@
         }
       }
     });
-    // Voice playback is always enabled; no separate toggle
-    // Microphone button click to capture speech
-    micBtn.addEventListener('click', function() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert('Speech recognition is not supported in this browser.');
-        return;
-      }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-      recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript.trim();
-        if (transcript) {
-          appendMessage('You', transcript);
-          sendMessage(transcript);
-        }
-      };
-      recognition.onerror = function(event) {
-        console.error('Speech recognition error:', event.error);
-        alert('Speech recognition error: ' + event.error);
-      };
-      recognition.start();
-    });
+    // Microphone click handler removed: speech recognition is disabled for this chat.
   })();
 </script>
 <!-- End Chat Widget -->
