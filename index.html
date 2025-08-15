@@ -674,20 +674,38 @@
     <div id="hf-input-row">
       <input id="hf-input" type="text" placeholder="Type a question..." />
       <button id="hf-send-btn" class="hf-btn">Send</button>
+      <!-- Single mic button for voice input and automatic voice output -->
       <button id="hf-speak-btn" class="hf-btn">🎤</button>
-      <button id="hf-listen-btn" class="hf-btn">🔊</button>
     </div>
   </div>
+  <!-- Load a small language model in the browser using transformers.js -->
+  <script type="module">
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0/dist/transformers.min.js';
+    // Preload a compact instruct model for free local inference without any API keys.
+    // Use an open-access model (GPT2) for text generation. GPT2 is freely
+    // accessible via transformers.js and does not require authentication.
+    const generatorPromise = pipeline('text-generation', 'Xenova/gpt2');
+    // Expose a global function for generating responses.
+    window.generateResponse = async (text) => {
+      const generator = await generatorPromise;
+      const output = await generator(text, {
+        max_new_tokens: 60,
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+      const result = output[0]?.generated_text ?? output[0];
+      return result;
+    };
+  </script>
   <script>
     (function() {
-      const HF_API_URL = 'https://api-inference.huggingface.co/models/gpt2';
+      // HF_API_URL removed: responses are generated locally via transformers.js
       const chatToggle = document.getElementById('hf-chat-toggle');
       const chatContainer = document.getElementById('hf-chat-container');
       const conversation = document.getElementById('hf-conversation');
       const input = document.getElementById('hf-input');
       const sendBtn = document.getElementById('hf-send-btn');
       const speakBtn = document.getElementById('hf-speak-btn');
-      const listenBtn = document.getElementById('hf-listen-btn');
       let lastResponse = '';
 
       function appendMessage(sender, text) {
@@ -697,28 +715,29 @@
         conversation.scrollTop = conversation.scrollHeight;
       }
 
-      async function fetchResponse(msg) {
-        try {
-          const res = await fetch(HF_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ inputs: msg, parameters: { max_new_tokens: 60 } })
-          });
-          const data = await res.json();
-          return Array.isArray(data) ? data[0].generated_text : (data.generated_text || JSON.stringify(data));
-        } catch (err) {
-          return 'Error: ' + err.message;
-        }
-      }
+      // fetchResponse removed: we no longer call out to Hugging Face for responses
+      // as we use a locally loaded model via transformers.js instead.
 
       async function sendMessage() {
         const msg = input.value.trim();
         if (!msg) return;
         appendMessage('You', msg);
         input.value = '';
-        const reply = await fetchResponse(msg);
+        // Generate the reply locally using the transformers.js pipeline defined above.
+        let reply;
+        try {
+          reply = await window.generateResponse(msg);
+        } catch (err) {
+          reply = 'Error: ' + err.message;
+        }
         appendMessage('Agent', reply);
         lastResponse = reply;
+        // Automatically speak the response using the Web Speech API
+        if (synth && lastResponse) {
+          const utterance = new SpeechSynthesisUtterance(lastResponse);
+          utterance.lang = 'en-US';
+          synth.speak(utterance);
+        }
       }
 
       chatToggle.addEventListener('click', function() {
@@ -745,12 +764,6 @@
           sendMessage();
         };
         recognizer.start();
-      });
-      listenBtn.addEventListener('click', function() {
-        if (!synth || !lastResponse) return;
-        const utterance = new SpeechSynthesisUtterance(lastResponse);
-        utterance.lang = 'en-US';
-        synth.speak(utterance);
       });
     })();
   </script>
