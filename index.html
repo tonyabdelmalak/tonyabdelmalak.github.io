@@ -607,11 +607,9 @@
   </script>
 <!-- Chat Widget (Tony) -->
 <style>
-  /*
-   * Chat widget styling for Tony's assistant.  The chat box is hidden until
-   * the visitor clicks the toggle button.  Both elements are positioned
-   * near the top‑right of the page so they remain visible without scrolling.
-   */
+  /* Chat widget styling for Tony's assistant.  The chat box is hidden until
+   * the visitor clicks the toggle button. Both elements are positioned
+   * near the top‑right of the page so they remain visible without scrolling. */
   #chat-container {
     position: fixed;
     top: 80px;
@@ -641,12 +639,28 @@
     border-top: 1px solid #ccc;
     padding: 10px;
     font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  /*
-   * Style the chat toggle as a circular avatar.  The avatar uses Tony's
-   * LinkedIn photo (tony_avatar.jpg).  Adjust width, height and offsets
-   * as needed.  The box shadow helps it stand out against the nav bar.
-   */
+  /* Controls for microphone and voice toggle */
+  #chat-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-top: 1px solid #eee;
+  }
+  #chat-controls button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  #chat-controls button.active {
+    color: #007bff;
+  }
+  /* Style the chat toggle as a circular avatar using Tony's photo. */
   #chat-toggle {
     position: fixed;
     top: 80px;
@@ -654,29 +668,30 @@
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    /* use background image for the avatar to avoid stretching on mobile */
     background-image: url('tony_avatar.jpg');
     background-size: cover;
-    /* Position the image toward the top so Tony's face isn't cut off */
     background-position: top center;
     background-repeat: no-repeat;
     cursor: pointer;
     z-index: 10000;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   }
 </style>
-<!-- Toggle button to open/close the chat.  Uses Tony's avatar as a background on a div. -->
+<!-- Toggle button to open/close the chat -->
 <div id="chat-toggle" title="Chat with Tony"></div>
 <div id="chat-container">
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
+  <div id="chat-controls">
+    <button id="voice-toggle" title="Toggle voice responses">🔈</button>
+    <button id="mic-button" title="Speak your question">🎤</button>
+  </div>
 </div>
 <script>
   // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
   window.ChatEndpoint = 'https://reflectiv-agent.onrender.com/chat';
   // Preload speech synthesis voices on page load. Some browsers require
-  // calling getVoices() early to make voices available later. Without
-  // this call, iOS Safari may never load voices and the API will fail silently.
+  // calling getVoices() early to make voices available later.
   document.addEventListener('DOMContentLoaded', () => {
     try {
       window.speechSynthesis.getVoices();
@@ -690,6 +705,11 @@
     const input = document.getElementById('user-input');
     const chatContainer = document.getElementById('chat-container');
     const toggleBtn = document.getElementById('chat-toggle');
+    const voiceToggleBtn = document.getElementById('voice-toggle');
+    const micBtn = document.getElementById('mic-button');
+    // Start with voice enabled
+    let voiceEnabled = true;
+    voiceToggleBtn.classList.add('active');
     const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
     function appendMessage(sender, text) {
       const p = document.createElement('p');
@@ -708,8 +728,6 @@
         if (data.session_id) sessionId = data.session_id;
         if (data.response) {
           appendMessage('Agent', data.response);
-          // Speak the response using the browser's SpeechSynthesis API.
-          // Cancel any ongoing speech to avoid overlapping utterances
           window.speechSynthesis.cancel();
           const speakResponse = (text) => {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -724,10 +742,10 @@
           };
           const availableVoices = window.speechSynthesis.getVoices();
           if (availableVoices && availableVoices.length > 0) {
-            speakResponse(data.response);
+            if (voiceEnabled) speakResponse(data.response);
           } else {
             window.speechSynthesis.onvoiceschanged = () => {
-              speakResponse(data.response);
+              if (voiceEnabled) speakResponse(data.response);
             };
           }
         }
@@ -743,7 +761,7 @@
         chatContainer.style.display = 'none';
       }
     });
-    // Handle Enter key to send messages
+    // Handle Enter key
     input.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
         const msg = input.value.trim();
@@ -753,6 +771,35 @@
           input.value = '';
         }
       }
+    });
+    // Voice toggle button click
+    voiceToggleBtn.addEventListener('click', function() {
+      voiceEnabled = !voiceEnabled;
+      voiceToggleBtn.classList.toggle('active', voiceEnabled);
+    });
+    // Microphone button click to capture speech
+    micBtn.addEventListener('click', function() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert('Speech recognition is not supported in this browser.');
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript.trim();
+        if (transcript) {
+          appendMessage('You', transcript);
+          sendMessage(transcript);
+        }
+      };
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+        alert('Speech recognition error: ' + event.error);
+      };
+      recognition.start();
     });
   })();
 </script>
