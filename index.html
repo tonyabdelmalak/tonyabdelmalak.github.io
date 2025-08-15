@@ -657,9 +657,6 @@
     cursor: pointer;
     font-size: 20px;
   }
-  #chat-controls button.active {
-    color: #007bff;
-  }
   /* Style the chat toggle as a circular avatar using Tony's photo. */
   #chat-toggle {
     position: fixed;
@@ -683,7 +680,6 @@
   <div id="conversation"></div>
   <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
   <div id="chat-controls">
-    <button id="voice-toggle" title="Toggle voice responses">🔈</button>
     <button id="mic-button" title="Speak your question">🎤</button>
   </div>
 </div>
@@ -710,11 +706,9 @@
     const input = document.getElementById('user-input');
     const chatContainer = document.getElementById('chat-container');
     const toggleBtn = document.getElementById('chat-toggle');
-    const voiceToggleBtn = document.getElementById('voice-toggle');
     const micBtn = document.getElementById('mic-button');
-    // Start with voice enabled
+    // Voice playback is always enabled. There is no separate toggle button.
     let voiceEnabled = true;
-    voiceToggleBtn.classList.add('active');
     const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
     const ttsEndpoint = window.TtsEndpoint || null;
     function appendMessage(sender, text) {
@@ -810,11 +804,7 @@
         }
       }
     });
-    // Voice toggle button click
-    voiceToggleBtn.addEventListener('click', function() {
-      voiceEnabled = !voiceEnabled;
-      voiceToggleBtn.classList.toggle('active', voiceEnabled);
-    });
+    // Voice playback is always enabled; no separate toggle
     // Microphone button click to capture speech
     micBtn.addEventListener('click', function() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
