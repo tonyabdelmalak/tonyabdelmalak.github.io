@@ -605,207 +605,156 @@
       loop: true
     });
   </script>
-<!-- Chat Widget (Tony) -->
-<style>
-  /* Chat widget styling for Tony's assistant.  The chat box is hidden until
-   * the visitor clicks the toggle button. Both elements are positioned
-   * near the top‑right of the page so they remain visible without scrolling. */
-  #chat-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    width: 320px;
-    height: 420px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    display: none;
-    flex-direction: column;
-    font-family: Arial, sans-serif;
-    z-index: 9999;
-  }
-  #conversation {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-  }
-  #conversation p {
-    margin: 4px 0;
-    line-height: 1.4;
-  }
-  #user-input {
-    border: none;
-    border-top: 1px solid #ccc;
-    padding: 10px;
-    font-size: 14px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  /* Controls for microphone and voice toggle */
-  #chat-controls {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-top: 1px solid #eee;
-  }
-  #chat-controls button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-  }
-  /* Style the chat toggle as a circular avatar using Tony's photo. */
-  #chat-toggle {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-image: url('tony_avatar.jpg');
-    background-size: cover;
-    background-position: top center;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    z-index: 10000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-</style>
-<!-- Toggle button to open/close the chat -->
-<div id="chat-toggle" title="Chat with Tony"></div>
-<div id="chat-container">
-  <div id="conversation"></div>
-  <input id="user-input" type="text" placeholder="Type your question..." autocomplete="off" />
-  <!-- Voice controls removed: chat is now text-only -->
-</div>
-<script>
-  // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
-  window.ChatEndpoint = 'https://reflectiv-agent.onrender.com/chat';
-  // Endpoint for server‑side text‑to‑speech. Set this to your server's /speak
-  // endpoint to enable audio playback when browser speech synthesis is not
-  // reliable. Leaving it undefined will cause the chat widget to fall back
-  // to client‑side speech synthesis.
-  // Voice output disabled: no server TTS endpoint configured.
-  window.TtsEndpoint = null;
-  // Preload speech synthesis voices on page load. Some browsers require
-  // calling getVoices() early to make voices available later.
-  document.addEventListener('DOMContentLoaded', () => {
-    try {
-      window.speechSynthesis.getVoices();
-    } catch (e) {
-      // ignore errors
+
+  <!-- Free Chat & Voice Widget (Hugging Face + Web Speech API) -->
+  <style>
+    #hf-chat-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #007BFF;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 10001;
+      font-size: 24px;
     }
-  });
-  (function() {
-    let sessionId = null;
-    const convo = document.getElementById('conversation');
-    const input = document.getElementById('user-input');
-    const chatContainer = document.getElementById('chat-container');
-    const toggleBtn = document.getElementById('chat-toggle');
-    // Microphone button removed; voice playback disabled by default.
-    let voiceEnabled = false;
-    const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
-    // TTS endpoint is unused when voiceEnabled is false.
-    const ttsEndpoint = null;
-    function appendMessage(sender, text) {
-      const p = document.createElement('p');
-      p.innerHTML = `<strong>${sender}:</strong> ${text}`;
-      convo.appendChild(p);
-      convo.scrollTop = convo.scrollHeight;
+    #hf-chat-container {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 350px;
+      max-height: 400px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none;
+      flex-direction: column;
+      z-index: 10000;
     }
-    async function sendMessage(msg) {
-      try {
-        const response = await fetch(chatEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: msg, session_id: sessionId })
-        });
-        const data = await response.json();
-        if (data.session_id) sessionId = data.session_id;
-        if (data.response) {
-          appendMessage('Agent', data.response);
-          // Speak the response if voice is enabled. Use server‑side TTS if
-          // configured; otherwise fall back to browser speech synthesis.
-          if (voiceEnabled) {
-            if (ttsEndpoint) {
-              try {
-                const ttsResp = await fetch(ttsEndpoint, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ text: data.response })
-                });
-                const ttsData = await ttsResp.json();
-                if (ttsData.audio) {
-                  const audio = new Audio('data:audio/mp3;base64,' + ttsData.audio);
-                  audio.play();
-                }
-              } catch (err) {
-                console.error('TTS playback error:', err);
-              }
-            } else {
-              try {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(data.response);
-                utterance.lang = 'en-US';
-                const voices = window.speechSynthesis.getVoices();
-                // Try to select a male English voice from the available voices by
-                // matching common male names. If none are found, fall back to
-                // the first English voice.
-                const maleNames = ['john','mike','harry','jack','mason','daniel','ajit','oran','felix','alex','david'];
-                let selectedVoice = null;
-                if (voices && voices.length > 0) {
-                  selectedVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en') && maleNames.some(n => v.name && v.name.toLowerCase().includes(n)));
-                  if (!selectedVoice) {
-                    selectedVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-                  }
-                }
-                if (selectedVoice) utterance.voice = selectedVoice;
-                // Make the voice faster than default; leave pitch neutral.
-                utterance.pitch = 1.0;
-                utterance.rate = 1.25;
-                utterance.volume = 1.0;
-                if (voices && voices.length > 0) {
-                  window.speechSynthesis.speak(utterance);
-                } else {
-                  window.speechSynthesis.onvoiceschanged = () => {
-                    window.speechSynthesis.speak(utterance);
-                  };
-                }
-              } catch (err) {
-                console.error('Browser TTS error:', err);
-              }
-            }
-          }
+    #hf-conversation {
+      padding: 10px;
+      flex: 1;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    #hf-input-row {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    #hf-input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      font-size: 14px;
+    }
+    #hf-input:focus {
+      outline: none;
+    }
+    .hf-btn {
+      border: none;
+      background: #007BFF;
+      color: #fff;
+      padding: 8px 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-left: 4px;
+      border-radius: 4px;
+    }
+  </style>
+  <div id="hf-chat-toggle">💬</div>
+  <div id="hf-chat-container">
+    <div id="hf-conversation"></div>
+    <div id="hf-input-row">
+      <input id="hf-input" type="text" placeholder="Type a question..." />
+      <button id="hf-send-btn" class="hf-btn">Send</button>
+      <button id="hf-speak-btn" class="hf-btn">🎤</button>
+      <button id="hf-listen-btn" class="hf-btn">🔊</button>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const HF_API_URL = 'https://api-inference.huggingface.co/models/gpt2';
+      const chatToggle = document.getElementById('hf-chat-toggle');
+      const chatContainer = document.getElementById('hf-chat-container');
+      const conversation = document.getElementById('hf-conversation');
+      const input = document.getElementById('hf-input');
+      const sendBtn = document.getElementById('hf-send-btn');
+      const speakBtn = document.getElementById('hf-speak-btn');
+      const listenBtn = document.getElementById('hf-listen-btn');
+      let lastResponse = '';
+
+      function appendMessage(sender, text) {
+        const p = document.createElement('p');
+        p.innerHTML = '<strong>' + sender + ':</strong> ' + text;
+        conversation.appendChild(p);
+        conversation.scrollTop = conversation.scrollHeight;
+      }
+
+      async function fetchResponse(msg) {
+        try {
+          const res = await fetch(HF_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inputs: msg, parameters: { max_new_tokens: 60 } })
+          });
+          const data = await res.json();
+          return Array.isArray(data) ? data[0].generated_text : (data.generated_text || JSON.stringify(data));
+        } catch (err) {
+          return 'Error: ' + err.message;
         }
-      } catch (err) {
-        appendMessage('Agent', 'Sorry, there was an error connecting to the server.');
       }
-    }
-    // Toggle chat visibility
-    toggleBtn.addEventListener('click', function() {
-      if (chatContainer.style.display === 'none' || !chatContainer.style.display) {
-        chatContainer.style.display = 'flex';
-      } else {
-        chatContainer.style.display = 'none';
-      }
-    });
-    // Handle Enter key
-    input.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter') {
+
+      async function sendMessage() {
         const msg = input.value.trim();
-        if (msg) {
-          appendMessage('You', msg);
-          sendMessage(msg);
-          input.value = '';
-        }
+        if (!msg) return;
+        appendMessage('You', msg);
+        input.value = '';
+        const reply = await fetchResponse(msg);
+        appendMessage('Agent', reply);
+        lastResponse = reply;
       }
-    });
-    // Microphone click handler removed: speech recognition is disabled for this chat.
-  })();
-</script>
-<!-- End Chat Widget -->
+
+      chatToggle.addEventListener('click', function() {
+        chatContainer.style.display = chatContainer.style.display === 'flex' ? 'none' : 'flex';
+      });
+      sendBtn.addEventListener('click', sendMessage);
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendMessage();
+      });
+
+      // Web Speech API
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const synth = window.speechSynthesis;
+      speakBtn.addEventListener('click', function() {
+        if (!SpeechRecognition) {
+          alert('Speech recognition not supported in this browser.');
+          return;
+        }
+        const recognizer = new SpeechRecognition();
+        recognizer.lang = 'en-US';
+        recognizer.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          input.value = transcript;
+          sendMessage();
+        };
+        recognizer.start();
+      });
+      listenBtn.addEventListener('click', function() {
+        if (!synth || !lastResponse) return;
+        const utterance = new SpeechSynthesisUtterance(lastResponse);
+        utterance.lang = 'en-US';
+        synth.speak(utterance);
+      });
+    })();
+  </script>
+  <!-- End Free Chat & Voice Widget -->
+
 </body>
 </html>
