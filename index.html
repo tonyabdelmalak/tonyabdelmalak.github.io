@@ -690,6 +690,11 @@
 <script>
   // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
   window.ChatEndpoint = 'https://reflectiv-agent.onrender.com/chat';
+  // Endpoint for server‑side text‑to‑speech. Set this to your server's /speak
+  // endpoint to enable audio playback when browser speech synthesis is not
+  // reliable. Leaving it undefined will cause the chat widget to fall back
+  // to client‑side speech synthesis.
+  window.TtsEndpoint = 'https://reflectiv-agent.onrender.com/speak';
   // Preload speech synthesis voices on page load. Some browsers require
   // calling getVoices() early to make voices available later.
   document.addEventListener('DOMContentLoaded', () => {
@@ -711,6 +716,7 @@
     let voiceEnabled = true;
     voiceToggleBtn.classList.add('active');
     const chatEndpoint = window.ChatEndpoint || 'https://reflectiv-agent.onrender.com/chat';
+    const ttsEndpoint = window.TtsEndpoint || null;
     function appendMessage(sender, text) {
       const p = document.createElement('p');
       p.innerHTML = `<strong>${sender}:</strong> ${text}`;
@@ -728,25 +734,46 @@
         if (data.session_id) sessionId = data.session_id;
         if (data.response) {
           appendMessage('Agent', data.response);
-          window.speechSynthesis.cancel();
-          const speakResponse = (text) => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'en-US';
-            const voices = window.speechSynthesis.getVoices();
-            const english = voices.find(v => v.lang && v.lang.startsWith('en'));
-            if (english) utterance.voice = english;
-            utterance.pitch = 1.0;
-            utterance.rate = 1.0;
-            utterance.volume = 1.0;
-            window.speechSynthesis.speak(utterance);
-          };
-          const availableVoices = window.speechSynthesis.getVoices();
-          if (availableVoices && availableVoices.length > 0) {
-            if (voiceEnabled) speakResponse(data.response);
-          } else {
-            window.speechSynthesis.onvoiceschanged = () => {
-              if (voiceEnabled) speakResponse(data.response);
-            };
+          // Speak the response if voice is enabled. Use server‑side TTS if
+          // configured; otherwise fall back to browser speech synthesis.
+          if (voiceEnabled) {
+            if (ttsEndpoint) {
+              try {
+                const ttsResp = await fetch(ttsEndpoint, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ text: data.response })
+                });
+                const ttsData = await ttsResp.json();
+                if (ttsData.audio) {
+                  const audio = new Audio('data:audio/mp3;base64,' + ttsData.audio);
+                  audio.play();
+                }
+              } catch (err) {
+                console.error('TTS playback error:', err);
+              }
+            } else {
+              try {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(data.response);
+                utterance.lang = 'en-US';
+                const voices = window.speechSynthesis.getVoices();
+                const english = voices.find(v => v.lang && v.lang.startsWith('en'));
+                if (english) utterance.voice = english;
+                utterance.pitch = 1.0;
+                utterance.rate = 1.0;
+                utterance.volume = 1.0;
+                if (voices && voices.length > 0) {
+                  window.speechSynthesis.speak(utterance);
+                } else {
+                  window.speechSynthesis.onvoiceschanged = () => {
+                    window.speechSynthesis.speak(utterance);
+                  };
+                }
+              } catch (err) {
+                console.error('Browser TTS error:', err);
+              }
+            }
           }
         }
       } catch (err) {
