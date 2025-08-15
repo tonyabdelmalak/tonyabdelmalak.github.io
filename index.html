@@ -674,6 +674,16 @@
 <script>
   // Endpoint for chat requests.  Change this URL if your backend is hosted elsewhere.
   window.ChatEndpoint = 'https://reflectiv-agent.onrender.com/chat';
+  // Preload speech synthesis voices on page load. Some browsers require
+  // calling getVoices() early to make voices available later. Without
+  // this call, iOS Safari may never load voices and the API will fail silently.
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      window.speechSynthesis.getVoices();
+    } catch (e) {
+      // ignore errors
+    }
+  });
   (function() {
     let sessionId = null;
     const convo = document.getElementById('conversation');
@@ -698,17 +708,28 @@
         if (data.session_id) sessionId = data.session_id;
         if (data.response) {
           appendMessage('Agent', data.response);
-          // Use browser's SpeechSynthesis API to speak the agent's response.
+          // Speak the response using the browser's SpeechSynthesis API.
           // Cancel any ongoing speech to avoid overlapping utterances
           window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(data.response);
-          // Specify language explicitly to improve cross‑device voice
-          utterance.lang = 'en-US';
-          // Friendly and natural tone adjustments
-          utterance.pitch = 1.0;
-          utterance.rate = 1.0;
-          utterance.volume = 1.0;
-          window.speechSynthesis.speak(utterance);
+          const speakResponse = (text) => {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            const voices = window.speechSynthesis.getVoices();
+            const english = voices.find(v => v.lang && v.lang.startsWith('en'));
+            if (english) utterance.voice = english;
+            utterance.pitch = 1.0;
+            utterance.rate = 1.0;
+            utterance.volume = 1.0;
+            window.speechSynthesis.speak(utterance);
+          };
+          const availableVoices = window.speechSynthesis.getVoices();
+          if (availableVoices && availableVoices.length > 0) {
+            speakResponse(data.response);
+          } else {
+            window.speechSynthesis.onvoiceschanged = () => {
+              speakResponse(data.response);
+            };
+          }
         }
       } catch (err) {
         appendMessage('Agent', 'Sorry, there was an error connecting to the server.');
