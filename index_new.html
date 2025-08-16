@@ -80,6 +80,92 @@
   <footer>
     <div class="container">© <span id="y"></span> Tony Abdelmalak</div>
   </footer>
-  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
+  <script>document.getElementById('y').textCont
+    <!-- Chat widget -->
+  <style>
+    #hf-chat-wrapper {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      z-index: 9999;
+    }
+    #hf-chat-toggle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    #hf-chat-toggle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #hf-chat-label {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #000;
+    }
+    #hf-chat-container {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      width: 300px;
+      height: 400px;
+      display: none;
+      flex-direction: column;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 9999;
+    }
+    #hf-conversation {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    #hf-input-row {
+      display: flex;
+      border-top: 1px solid #eee;
+    }
+    #hf-input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      font-size: 14px;
+    }
+    #hf-input:focus {
+      outline: none;
+    }
+    #hf-send-btn {
+      border: none;
+      background: #007bff;
+      color: #fff;
+      padding: 0 16px;
+      cursor: pointer;
+    }
+  </style>
+  <div id="hf-chat-wrapper">
+    <div id="hf-chat-toggle">
+      <img src="tony_avatar.jpg" alt="Tony Avatar">
+    </div>
+    <div id="hf-chat-label">Chat with Tony</div>
+  </div>
+  <div id="hf-chat-container">
+    <div id="hf-conversation"></div>
+    <div id="hf-input-row">
+      <input id="hf-input" type="text" placeholder="Type a question..." />
+      <button id="hf-send-btn">Send</button>
+    </div>
+  </div>
+<script src="assets/js/chat-widget.js"></script>
+<script>document.getElementById('y').textContent = new Date().getFullYear();</sc>ript
+
 </body>
 </html>
