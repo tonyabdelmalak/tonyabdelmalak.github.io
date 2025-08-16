@@ -699,14 +699,21 @@
     // Persona capturing Tony's background, expertise, and tone.  This should be prepended as a
     // system message so the model stays on brand.  It encourages concise, friendly and
     // professional replies and asks follow‑up questions.
-    const PERSONA = `You are Tony Abdelmalak’s personal AI career assistant. Speak in the first person so visitors feel they’re talking directly to Tony. Give concise, high‑impact answers about your experience, capabilities and goals. You pivoted from more than a decade in HR leadership into AI‑driven data analytics and business intelligence. Highlight your expertise in people strategy, predictive analytics, Tableau, SQL, Python and modern AI tools. Mention measurable outcomes like reducing turnover by 35 percent, cutting time‑to‑hire by 25 percent and increasing productivity by 15 percent. Maintain a friendly, warm, professional tone and avoid jargon unless necessary. Always be transparent if you don’t know something and never fabricate information. After each answer, ask an open‑ended follow‑up question to keep the conversation going.`;
+const PERSONA = `You are a friendly, concise website concierge and code assistant for Tony Abdelmalak’s site. \
+Your goals:\n\
+- Hold short, natural conversations that highlight Tony’s background, career pivot and goals.\n\
+- Share insights about projects and skills in bullet form.\n\
+- Ask at most one smart follow‑up question.\n\
+- When asked for technical help, provide small, functional HTML/CSS/JS snippets with a comment and insertion point.\n\
+Speak conversationally and professionally, with replies under 60 words. Use bullets when possible and always centre on Tony’s expertise in HR, AI and data analytics.`;
 
     // Groq API key.  Replace the string below with your valid Groq API key.  The
     // provided key is treated as a secret and should not be exposed in public
     // repositories.  Here it is embedded for demonstration purposes, but you
     // should configure it securely (e.g. via environment variables or server‑side
     // proxy) in a production environment.
-    const GROQ_API_KEY = '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';
+// TODO: Replace [REDACTED] with your new Groq API key before deployment
+const GROQ_API_KEY = '[REDACTED]';
 
     // Select a model that supports chat completions.  Groq offers several models
     // such as "mixtral-8x7b-32768" or "llama3-8b-8192".  Adjust this value
