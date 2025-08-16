@@ -627,13 +627,13 @@
       background-image: url('tony_avatar.jpg');
       /* Ensure the avatar is centred within the circle */
       background-size: cover;
-      background-position: center;
+      background-position: top center;
       cursor: pointer;
     }
     #hf-chat-label {
       margin-top: 4px;
       font-size: 12px;
-      color: var(--primary-color);
+      color: #fff;
       font-weight: 600;
     }
     #hf-chat-container {
@@ -784,7 +784,6 @@ const GROQ_API_KEY = '[REDACTED]';
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + GROQ_API_KEY
             },
             body: JSON.stringify({
               model: MODEL,
