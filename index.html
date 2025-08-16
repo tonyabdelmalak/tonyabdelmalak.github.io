@@ -609,14 +609,20 @@
   <!-- Free Chat & Voice Widget (Hugging Face + Web Speech API) -->
   <style>
     #hf-chat-toggle {
+      /* Position the chat toggle near the top right of the page. */
       position: fixed;
-      bottom: 20px;
+      top: 60px;
       right: 20px;
-      width: 50px;
-      height: 50px;
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
-      background-color: #007BFF;
-      color: #fff;
+      border: 2px solid #ccc;
+      /* Use Tony's avatar as the background of the toggle. */
+      background-image: url('tony_avatar.jpg');
+      background-size: cover;
+      background-position: center;
+      /* Remove default icon colour styling */
+      color: transparent;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -625,8 +631,9 @@
       font-size: 24px;
     }
     #hf-chat-container {
+      /* Position the chat container under the avatar toggle at the top right. */
       position: fixed;
-      bottom: 80px;
+      top: 140px;
       right: 20px;
       width: 350px;
       max-height: 400px;
@@ -668,7 +675,8 @@
       border-radius: 4px;
     }
   </style>
-  <div id="hf-chat-toggle">💬</div>
+  <!-- Chat toggle is empty since the avatar background image is applied via CSS -->
+  <div id="hf-chat-toggle"></div>
   <div id="hf-chat-container">
     <div id="hf-conversation"></div>
     <div id="hf-input-row">
@@ -681,20 +689,32 @@
   <!-- Load a small language model in the browser using transformers.js -->
   <script type="module">
     import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.6.0/dist/transformers.min.js';
-    // Preload a compact instruct model for free local inference without any API keys.
-    // Use an open-access model (GPT2) for text generation. GPT2 is freely
-    // accessible via transformers.js and does not require authentication.
-    const generatorPromise = pipeline('text-generation', 'Xenova/gpt2');
-    // Expose a global function for generating responses.
+    // Preload an instruction‑tuned model (Phi-2) for free local inference.
+    // Phi-2 is a compact transformer from Microsoft trained with instruction data and supported by transformers.js.
+    const generatorPromise = pipeline('text-generation', 'Xenova/phi2');
+    // Define Tony's persona used to shape the assistant's responses.  This persona summarises
+    // Tony's career pivot, expertise and communication style and will be prepended to every prompt.
+    const PERSONA = `Hello, I’m Tony’s personal AI career assistant. I speak in the first person so visitors feel they’re talking directly to Tony. My mission is to give concise, high‑impact answers about my experience, capabilities and goals as I pivot from a long career in human‑resources leadership into AI‑driven data analytics and business intelligence. I spent more than a decade leading HR operations and people strategy for major brands and start‑ups before intentionally shifting into technology. Now I pair deep people‑strategy expertise with strong technical skills in Tableau, SQL, Python and modern AI tools, transforming complex data into clear, actionable strategies. My work has delivered measurable impact: predictive analytics that reduced turnover by 35 %, recruitment dashboards that cut time‑to‑hire by 25 %, and workforce planning insights that increased productivity by 15 %. After my short answers, I ask open‑ended follow‑up questions to keep the conversation going. I keep the tone friendly, warm and professional with human‑like variations in pitch, rate and style. I avoid jargon unless necessary, and I’m transparent when I don’t know something. I never fabricate information.`;
+    // Maintain a simple conversation history to provide additional context.  This history string
+    // accumulates pairs of user and assistant messages separated by newline markers.
+    let conversationHistory = "";
+    // Expose a global function for generating responses.  It builds a prompt from the persona,
+    // previous dialogue history and the user's latest question, then generates a continuation.
     window.generateResponse = async (text) => {
       const generator = await generatorPromise;
-      const output = await generator(text, {
-        max_new_tokens: 60,
+      // Build the prompt: persona + past dialogue + current user input.
+      const prompt = `${PERSONA}\n\n${conversationHistory}User: ${text}\nAssistant:`;
+      const output = await generator(prompt, {
+        max_new_tokens: 80,
         temperature: 0.7,
         top_p: 0.9,
       });
-      const result = output[0]?.generated_text ?? output[0];
-      return result;
+      // Extract only the new generated portion by removing the prompt prefix.
+      const full = output[0]?.generated_text ?? output[0];
+      const reply = full.slice(prompt.length).trim();
+      // Update the conversation history for subsequent turns.
+      conversationHistory += `User: ${text}\nAssistant: ${reply}\n`;
+      return reply;
     };
   </script>
   <script>
