@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HR Attrition Dashboard</title>
+  <!-- Pull in Plotly from CDN to keep this file lightweight. -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .kpi-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+    .kpi {
+      flex: 1 1 200px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .kpi h2 {
+      margin: 0;
+      font-size: 2em;
+      color: #007bff;
+    }
+    .charts-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .chart {
+      flex: 1 1 300px;
+      min-width: 280px;
+      height: 320px;
+    }
+    #trend-chart, #heatmap-chart {
+      width: 100%;
+      height: 400px;
+      margin-top: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: #fff;
+    }
+    tbody tr:nth-child(odd) {
+      background: #f0f5ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>HR Attrition Dashboard</h1>
+  <div class="kpi-container">
+    <div class="kpi">
+      <h2 id="attrition-rate"></h2>
+      <p>Attrition Rate</p>
+    </div>
+    <div class="kpi">
+      <h2 id="total-attrition"></h2>
+      <p>Total Attritions</p>
+    </div>
+    <div class="kpi">
+      <h2 id="current-employees"></h2>
+      <p>Current Employees</p>
+    </div>
+  </div>
+  <div class="charts-row">
+    <div id="dept-chart" class="chart"></div>
+    <div id="job-chart" class="chart"></div>
+    <div id="gender-chart" class="chart"></div>
+    <div id="age-chart" class="chart"></div>
+    <div id="edu-chart" class="chart"></div>
+  </div>
+  <div id="trend-chart"></div>
+  <div id="heatmap-chart"></div>
+  <h3>Recent Attritions</h3>
+  <table>
+    <thead>
+      <tr><th>Employee ID</th><th>Department</th><th>Job Role</th><th>Termination Date</th><th>Tenure</th></tr>
+    </thead>
+    <tbody id="recent-table-body"></tbody>
+  </table>
+
+  <script>
+    // Embedded summary data calculated from the clean dataset.
+    const data = {
+      n_employees: 200,
+      attrition_count: 46,
+      current_count: 154,
+      attrition_rate: 0.23,
+      department_counts: {"Finance":32,"Engineering":30,"HR":27,"Marketing":26,"Sales":22,"Operations":17},
+      job_counts: {"Research Director":23,"Human Resources":18,"Sales Representative":18,"Research Scientist":18,"Laboratory Technician":17},
+      gender_counts: {"Male":54,"Female":50,"Non-binary":50},
+      age_counts: {"25-34":34,"35-44":32,"45-54":46,"55+":26,"<25":16},
+      edu_counts: {"High School":38,"Bachelor's Degree":36,"Master's Degree":27,"Doctoral Degree":27,"Associate's Degree":26},
+      trend: {"2020-12":1,"2021-01":1,"2021-07":2,"2022-05":1,"2022-08":1,"2023-01":2,"2023-02":1,"2023-03":1,"2023-04":1,"2023-05":1,"2023-06":1,"2023-07":2,"2023-08":2,"2023-12":1,"2024-01":1,"2024-04":1,"2024-05":1,"2024-06":1,"2024-07":1,"2024-08":2,"2024-09":1,"2024-12":2,"2025-01":5,"2025-02":1,"2025-05":6,"2025-06":1,"2025-07":5},
+      heatmap_data: {
+        "25-34": {"Engineering":66.27,"Finance":81.66,"HR":64.45,"Marketing":70.86,"Operations":75.85,"Sales":64.74},
+        "35-44": {"Engineering":79.04,"Finance":74.07,"HR":85.31,"Marketing":83.60,"Operations":78.69,"Sales":72.70},
+        "45-54": {"Engineering":75.95,"Finance":77.52,"HR":72.40,"Marketing":78.35,"Operations":72.69,"Sales":74.12},
+        "55+": {"Engineering":77.78,"Finance":76.66,"HR":72.16,"Marketing":70.99,"Operations":70.84,"Sales":81.60},
+        "<25": {"Engineering":84.65,"Finance":72.81,"HR":75.90,"Marketing":74.77,"Operations":98.42,"Sales":80.14}
+      },
+      recent_table: [
+        {"EmployeeID":"E0042","Department":"Finance","JobRole":"Sales Executive","TerminationDate":"2025-07-31","Tenure":1.10},
+        {"EmployeeID":"E0015","Department":"Finance","JobRole":"Sales Executive","TerminationDate":"2025-07-26","Tenure":5.69},
+        {"EmployeeID":"E0163","Department":"Operations","JobRole":"Research Scientist","TerminationDate":"2025-07-17","Tenure":4.91},
+        {"EmployeeID":"E0134","Department":"Finance","JobRole":"Human Resources","TerminationDate":"2025-07-11","Tenure":0.79},
+        {"EmployeeID":"E0123","Department":"Marketing","JobRole":"Research Director","TerminationDate":"2025-07-05","Tenure":0.62},
+        {"EmployeeID":"E0020","Department":"Finance","JobRole":"Research Director","TerminationDate":"2025-06-13","Tenure":0.24},
+        {"EmployeeID":"E0076","Department":"Engineering","JobRole":"Laboratory Technician","TerminationDate":"2025-05-30","Tenure":0.32},
+        {"EmployeeID":"E0046","Department":"Sales","JobRole":"Healthcare Representative","TerminationDate":"2025-05-26","Tenure":0.98},
+        {"EmployeeID":"E0083","Department":"Marketing","JobRole":"Healthcare Representative","TerminationDate":"2025-05-26","Tenure":1.20},
+        {"EmployeeID":"E0071","Department":"HR","JobRole":"Research Scientist","TerminationDate":"2025-05-20","Tenure":0.38}
+      ]
+    };
+
+    // Populate KPI values
+    document.getElementById('attrition-rate').textContent = (data.attrition_rate * 100).toFixed(1) + '%';
+    document.getElementById('total-attrition').textContent = data.attrition_count;
+    document.getElementById('current-employees').textContent = data.current_count;
+
+    // Department donut chart
+    const deptLabels = Object.keys(data.department_counts);
+    const deptValues = Object.values(data.department_counts);
+    const deptData = [{
+      type: 'pie',
+      labels: deptLabels,
+      values: deptValues,
+      hole: 0.4,
+      textinfo: 'label+percent',
+      textposition: 'inside'
+    }];
+    const deptLayout = {
+      title: 'Current Employees by Department',
+      showlegend: true
+    };
+    Plotly.newPlot('dept-chart', deptData, deptLayout);
+
+    // Top job roles horizontal bar chart
+    const jobLabels = Object.keys(data.job_counts);
+    const jobValues = Object.values(data.job_counts);
+    // Reverse order to have the largest bar at top
+    const jobData = [{
+      type: 'bar',
+      x: jobValues.slice().reverse(),
+      y: jobLabels.slice().reverse(),
+      orientation: 'h',
+      marker: {color: '#007bff'}
+    }];
+    const jobLayout = {
+      title: 'Top Job Roles (Current Employees)',
+      margin: {l: 150, r: 30, t: 40, b: 40}
+    };
+    Plotly.newPlot('job-chart', jobData, jobLayout);
+
+    // Gender donut chart
+    const genderLabels = Object.keys(data.gender_counts);
+    const genderValues = Object.values(data.gender_counts);
+    const genderData = [{
+      type: 'pie',
+      labels: genderLabels,
+      values: genderValues,
+      hole: 0.4,
+      textinfo: 'label+percent',
+      textposition: 'inside'
+    }];
+    const genderLayout = { title: 'Gender Distribution (Current)' };
+    Plotly.newPlot('gender-chart', genderData, genderLayout);
+
+    // Age group bar chart
+    const ageLabels = Object.keys(data.age_counts);
+    const ageValues = Object.values(data.age_counts);
+    const ageData = [{
+      type: 'bar',
+      x: ageLabels,
+      y: ageValues,
+      marker: {color: '#28a745'}
+    }];
+    const ageLayout = { title: 'Age Group Distribution (Current)', xaxis: {title: ''}, yaxis: {title: 'Count'} };
+    Plotly.newPlot('age-chart', ageData, ageLayout);
+
+    // Education bar chart
+    const eduLabels = Object.keys(data.edu_counts);
+    const eduValues = Object.values(data.edu_counts);
+    const eduData = [{
+      type: 'bar',
+      x: eduLabels,
+      y: eduValues,
+      marker: {color: '#ffc107'}
+    }];
+    const eduLayout = { title: 'Education Level Distribution (Current)', xaxis: {title: ''}, yaxis: {title: 'Count'}, margin: {b: 100} };
+    Plotly.newPlot('edu-chart', eduData, eduLayout);
+
+    // Attrition trend bar chart
+    const trendLabels = Object.keys(data.trend);
+    const trendValues = Object.values(data.trend);
+    const trendData = [{
+      type: 'bar',
+      x: trendLabels,
+      y: trendValues,
+      marker: {color: '#dc3545'}
+    }];
+    const trendLayout = { title: 'Attritions Over Time', xaxis: {title: 'Month'}, yaxis: {title: 'Attritions'} };
+    Plotly.newPlot('trend-chart', trendData, trendLayout);
+
+    // Engagement score heatmap
+    const heatY = Object.keys(data.heatmap_data);
+    const heatX = Object.keys(data.heatmap_data[heatY[0]]);
+    // Build 2D z values
+    const zValues = heatY.map(row => heatX.map(col => data.heatmap_data[row][col]));
+    const heatData = [{
+      type: 'heatmap',
+      x: heatX,
+      y: heatY,
+      z: zValues,
+      colorscale: 'Blues',
+      colorbar: {title: 'Engagement Score'}
+    }];
+    const heatLayout = { title: 'Average Engagement Score by Department & Age Group', xaxis: {title: 'Department'}, yaxis: {title: 'Age Group'}, margin: {l: 100, r: 50, t: 50, b: 50} };
+    Plotly.newPlot('heatmap-chart', heatData, heatLayout);
+
+    // Populate recent attrition table
+    const tbody = document.getElementById('recent-table-body');
+    data.recent_table.forEach(row => {
+      const tr = document.createElement('tr');
+      ['EmployeeID','Department','JobRole','TerminationDate','Tenure'].forEach(key => {
+        const td = document.createElement('td');
+        td.textContent = row[key];
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  </script>
+</body>
+</html>
