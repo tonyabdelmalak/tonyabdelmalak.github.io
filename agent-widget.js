@@ -1,0 +1,133 @@
+(function(){
+  // dataset arrays
+  const attritionData = [
+    {department:'Sales', attrition:'Yes'},
+    {department:'HR', attrition:'No'},
+    {department:'Sales', attrition:'No'},
+    {department:'IT', attrition:'Yes'},
+    {department:'IT', attrition:'No'}
+  ];
+  const ticketsData = [
+    {section:'A', tickets:120},
+    {section:'B', tickets:90},
+    {section:'A', tickets:110},
+    {section:'C', tickets:70}
+  ];
+
+  // create style
+  const style = document.createElement('style');
+  style.textContent = `
+#agent-chat-toggle {
+position: fixed; bottom: 20px; right: 20px; z-index: 99999; 
+background: #007bff; color: #fff; padding: 10px 15px; border-radius: 50%;
+cursor: pointer; font-weight:bold; font-size:16px; border:none;
+}
+#agent-chat-container {
+position: fixed; bottom: 80px; right: 20px; width: 350px; height: 400px;
+background: #fff; border: 1px solid #ccc; border-radius: 5px;
+display: none; z-index: 99999; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+font-family: sans-serif; overflow: hidden;
+}
+#agent-chat-header { background: #f7f7f7; padding: 8px; border-bottom: 1px solid #ccc; font-weight: bold; font-size:14px; }
+#agent-chat-messages { padding: 8px; height: 240px; overflow-y: auto; font-size: 14px; }
+#agent-chat-input { width: 100%; border: none; border-top: 1px solid #ccc; padding: 8px; box-sizing: border-box; font-size: 14px; outline: none;}
+#agent-chat-datasets { padding:8px; border-top:1px solid #ccc; background:#fafafa; font-size:13px; display:none; height:80px; overflow-y:auto;}
+`;
+  document.head.appendChild(style);
+
+  // create elements
+  const chatToggle = document.createElement('button');
+  chatToggle.id='agent-chat-toggle';
+  chatToggle.textContent='Ask';
+  const chatContainer=document.createElement('div');
+  chatContainer.id='agent-chat-container';
+  chatContainer.innerHTML = `
+<div id="agent-chat-header">Chat with Tony’s AI<br><small>This is a demo. Do not upload confidential data.</small></div>
+<div id="agent-chat-messages"></div>
+<div id="agent-chat-datasets"></div>
+<input id="agent-chat-input" placeholder="Type a question..."/>
+`;
+  document.body.appendChild(chatToggle);
+  document.body.appendChild(chatContainer);
+
+  const chatMessages=chatContainer.querySelector('#agent-chat-messages');
+  const chatInput=chatContainer.querySelector('#agent-chat-input');
+  const chatDatasets=chatContainer.querySelector('#agent-chat-datasets');
+
+  chatToggle.addEventListener('click',()=>{
+    chatContainer.style.display=chatContainer.style.display==='none'||chatContainer.style.display===''?'block':'none';
+  });
+
+  function appendMessage(text,isUser=false){
+    const div=document.createElement('div');
+    div.style.marginBottom='6px';
+    div.innerHTML=(isUser?'<strong>You:</strong> ':'<strong>AI:</strong> ')+text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop=chatMessages.scrollHeight;
+  }
+
+  function groupCounts(data,key){
+    const result={};
+    data.forEach(row=>{
+      const k=row[key];
+      result[k]=(result[k]||0)+1;
+    });
+    return result;
+  }
+
+  function showChart(labels,values,label){
+    const canvas=document.createElement('canvas');
+    canvas.style.height='150px';
+    chatMessages.appendChild(canvas);
+    new Chart(canvas, {
+      type:'bar',
+      data:{ labels: labels, datasets:[ { label: label, data: values } ] },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{ legend:{ display:false } }
+      }
+    });
+    chatMessages.scrollTop=chatMessages.scrollHeight;
+  }
+
+  function handleQuery(q){
+    const lower=q.toLowerCase();
+    if(lower.includes('datasets')){
+      appendMessage('We have attrition_demo.csv (HR attrition data) and tickets_demo.csv (sports ticket sales).');
+      chatDatasets.style.display='block';
+      chatDatasets.innerHTML='<strong>Datasets:</strong><br>- attrition_demo.csv: HR attrition sample<br>- tickets_demo.csv: Sports ticket sales sample';
+      return;
+    }
+    if(lower.includes('attrition') && lower.includes('department')){
+      appendMessage('Here is attrition count by department (demo data):');
+      const grouped=groupCounts(attritionData.filter(d=>d.attrition==='Yes'),'department');
+      const labels=Object.keys(grouped);
+      const values=Object.values(grouped);
+      showChart(labels,values,'Attrition Count');
+      return;
+    }
+    if(lower.includes('tickets') || lower.includes('sales')){
+      appendMessage('Here is total ticket sales by section (demo data):');
+      const grouped={};
+      ticketsData.forEach(row=>{
+        grouped[row.section]=(grouped[row.section]||0)+row.tickets;
+      });
+      const labels=Object.keys(grouped);
+      const values=Object.values(grouped);
+      showChart(labels,values,'Ticket Sales');
+      return;
+    }
+    appendMessage('Sorry, I can answer only basic questions about our demo datasets. Try asking about datasets or attrition by department or ticket sales.');
+  }
+
+  chatInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && chatInput.value.trim()){
+      const q=chatInput.value.trim();
+      appendMessage(q,true);
+      chatInput.value='';
+      setTimeout(()=>handleQuery(q),500);
+    }
+  });
+
+})();
