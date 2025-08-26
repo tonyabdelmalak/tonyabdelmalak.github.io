@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     // Predefined answer: attrition by department
     if (lastUserMsg.includes('attrition') && lastUserMsg.includes('department')) {
       const content =
-        '• Attrition rates by department: HR 8%, Engineering 12%, Sales 9%, Marketing 7%, Finance 10%.\n' +
-        '• These figures highlight high-turnover areas and guide retention strategies.';
+        'Attrition rates by department: HR 8%, Engineering 12%, Sales 9%, Marketing 7%, Finance 10%.\n' +
+        'These figures highlight high-turnover areas and guide retention strategies.';
       return res.status(200).json({
         choices: [{ message: { role: 'assistant', content } }],
       });
@@ -30,8 +30,8 @@ export default async function handler(req, res) {
       (lastUserMsg.includes('ticket') && (lastUserMsg.includes('sales') || lastUserMsg.includes('sold')))
     ) {
       const content =
-        '• Ticket sales: Concerts 5k, Sports 4k, Theatre 3k, Conferences 2k.\n' +
-        '• This data informs marketing focus and capacity planning.';
+        'Ticket sales: Concerts 5k, Sports 4k, Theatre 3k, Conferences 2k.\n' +
+        'This data informs marketing focus and capacity planning.';
       return res.status(200).json({
         choices: [{ message: { role: 'assistant', content } }],
       });
@@ -40,8 +40,8 @@ export default async function handler(req, res) {
     // Predefined answer: Tony’s career pivot
     if (lastUserMsg.includes('pivot') || (lastUserMsg.includes('career') && lastUserMsg.includes('analytics'))) {
       const content =
-        '• Tony pivoted from HR operations to AI‑driven analytics, leveraging Tableau, SQL and Python.\n' +
-        '• He now translates HR and business data into executive-ready insights and predictive models.';
+        'Tony pivoted from HR operations to AI‑driven analytics, leveraging Tableau, SQL and Python.\n' +
+        'He now translates HR and business data into executive-ready insights and predictive models.';
       return res.status(200).json({
         choices: [{ message: { role: 'assistant', content } }],
       });
@@ -50,8 +50,8 @@ export default async function handler(req, res) {
     // Predefined answer: workforce forecasting impact
     if (lastUserMsg.includes('forecast') && (lastUserMsg.includes('impact') || lastUserMsg.includes('project'))) {
       const content =
-        '• Workforce forecasting improved budgeting and capacity planning accuracy by 25%.\n' +
-        '• It provided scenario‑based projections, enabling proactive hiring and reducing overtime costs.';
+        'Workforce forecasting improved budgeting and capacity planning accuracy by 25%.\n' +
+        'It provided scenario‑based projections, enabling proactive hiring and reducing overtime costs.';
       return res.status(200).json({
         choices: [{ message: { role: 'assistant', content } }],
       });
