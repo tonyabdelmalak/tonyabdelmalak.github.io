@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tony Abdelmalak | AI-Driven People & Business Insights Analyst</title>
-  <meta name="description" content="Tony Abdelmalak - AI-Driven People & Business Insights Analyst. Turning workforce data into executive-ready strategies and predictions into profits.">
+  <title>Tony Abdelmalak | AI‑Driven People & Business Insights Analyst</title>
+  <meta name="description" content="Tony Abdelmalak – AI‑Driven People & Business Insights Analyst. Turning workforce data into executive‑ready strategies and predictions into profits.">
 
   <!-- Redirect to Vercel on GitHub Pages host -->
   <script>
@@ -40,7 +40,15 @@
 
     /* Navbar */
     .navbar { background-color: var(--primary-color); }
-    .navbar-brand, .navbar-nav .nav-link { color: #fff; font-weight: 500; }
+    .navbar-brand {
+      color: #fff;
+      font-weight: 700;
+      font-size: 2rem; /* increased brand size */
+    }
+    .navbar-nav .nav-link {
+      color: #fff;
+      font-weight: 500;
+    }
     .navbar-nav .nav-link:hover { color: var(--accent-color); }
     .navbar .btn-primary {
       background-color: var(--accent-color);
@@ -81,7 +89,6 @@
       position: relative;
       z-index: 1;
     }
-    #hero .typed-cursor { color: #fff; opacity: 1; }
     .btn-cta {
       background-color: var(--accent-color);
       color: #fff;
@@ -93,7 +100,7 @@
     section { padding: 80px 0; }
     .section-title {
       margin-bottom: 40px;
-      text-align: center; /* corrected */
+      text-align: center;
     }
     .section-title h2 {
       font-weight: 700;
@@ -110,11 +117,7 @@
       transition: transform 0.3s;
     }
     .results-card:hover { transform: translateY(-5px); }
-    .results-icon {
-      font-size: 48px;
-      color: var(--accent-color);
-      margin-bottom: 10px;
-    }
+    .results-icon { font-size: 48px; color: var(--accent-color); margin-bottom: 10px; }
     .results-number {
       font-size: 36px;
       font-weight: 700;
@@ -162,10 +165,7 @@
       justify-content: center;
       gap: 20px;
     }
-    .skill-item {
-      text-align: center;
-      flex: 0 1 120px;
-    }
+    .skill-item { text-align: center; flex: 0 1 120px; }
     .skill-icon {
       font-size: 36px;
       color: var(--primary-color);
@@ -173,14 +173,8 @@
     }
 
     /* Certifications */
-    .cert-list {
-      list-style: none;
-      padding: 0;
-    }
-    .cert-list li {
-      margin-bottom: 10px;
-      color: var(--subtext-color);
-    }
+    .cert-list { list-style: none; padding: 0; }
+    .cert-list li { margin-bottom: 10px; color: var(--subtext-color); }
     .cert-category {
       font-weight: 600;
       color: var(--primary-color);
@@ -203,18 +197,13 @@
       padding: 20px 0;
       text-align: center;
     }
-    footer a {
-      color: var(--accent-color);
-      text-decoration: none;
-    }
-    footer a:hover {
-      color: #fff;
-    }
+    footer a { color: var(--accent-color); text-decoration: none; }
+    footer a:hover { color: #fff; }
 
-    /* Chat widget styles */
+    /* Chat widget */
     #hf-chat-wrapper {
       position: fixed;
-      top: 300px;    /* repositioned */
+      top: 80px;      /* moved up toward top */
       right: 20px;
       display: flex;
       flex-direction: column;
@@ -239,7 +228,7 @@
     }
     #hf-chat-container {
       position: fixed;
-      top: 340px;    /* repositioned */
+      top: 120px;    /* moved up */
       right: 20px;
       width: 350px;
       height: 480px;
@@ -251,22 +240,9 @@
       flex-direction: column;
       z-index: 10000;
     }
-    #hf-conversation {
-      padding: 10px;
-      flex: 1;
-      overflow-y: auto;
-      font-size: 14px;
-    }
-    #hf-input-row {
-      display: flex;
-      border-top: 1px solid #ccc;
-    }
-    #hf-input {
-      flex: 1;
-      border: none;
-      padding: 10px;
-      font-size: 14px;
-    }
+    #hf-conversation { padding: 10px; flex: 1; overflow-y: auto; font-size: 14px; }
+    #hf-input-row { display: flex; border-top: 1px solid #ccc; }
+    #hf-input { flex: 1; border: none; padding: 10px; font-size: 14px; }
     #hf-input:focus { outline: none; }
     .hf-btn {
       border: none;
@@ -296,13 +272,11 @@
           <li class="nav-item"><a class="nav-link" href="#hero">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
           <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
-          <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
-          <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
-          <li class="nav-item"><a class="nav-link" href="#ai-dashboards">AI Dashboards</a></li>
+          <li class="nav-item"><a class="nav-link" href="#projects">Portfolio Projects</a></li>
           <li class="nav-item"><a class="nav-link" href="#case-study">Case Study</a></li>
+          <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
           <li class="nav-item"><a class="nav-link" href="#certifications">Certifications</a></li>
-          <li class="nav-item"><a class="nav-link" href="#resume-section">Resume</a></li>
-          <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+          <!-- Removed Resume and Contact links; buttons remain -->
         </ul>
         <div class="d-flex">
           <a href="assets/img/portfolio/TONY_ABDELMALAK_RESUME.pdf" class="btn btn-primary me-2" target="_blank">Download Resume</a>
@@ -323,7 +297,7 @@
       </div>
       <p data-aos="fade-up" data-aos-delay="400" class="mt-4">
         <span class="typed"
-              data-typed-items="Advancing HR Tech Through Automation and Data Visualization; Shaping Workforce Strategies with Data-Driven Insights; Leading with AI-Driven Insights for Smarter Decisions; Elevating Culture, Performance, and People Success; Cultivating Diversity, Equity, and Inclusion; Empowering Growth Through Collaboration, Communication, and Coaching"></span>
+              data-typed-items="Advancing HR Tech Through Automation and Data Visualization; Shaping Workforce Strategies with Data‑Driven Insights; Leading with AI‑Driven Insights for Smarter Decisions; Elevating Culture, Performance, and People Success; Cultivating Diversity, Equity, and Inclusion; Empowering Growth Through Collaboration, Communication, and Coaching"></span>
       </p>
     </div>
   </section>
@@ -362,7 +336,7 @@
           <div class="results-card">
             <div class="results-icon"><i class="fas fa-user-plus"></i></div>
             <div class="results-number">25%</div>
-            <div class="results-text">Decrease in time-to-hire through optimized recruitment funnel dashboards.</div>
+            <div class="results-text">Decrease in time‑to‑hire through optimized recruitment funnel dashboards.</div>
           </div>
         </div>
         <div class="col-md-4">
@@ -383,20 +357,21 @@
         <h2>Portfolio Projects</h2>
       </div>
       <div class="row g-4">
-        <!-- Project: Yearly Turnover Rate Analysis -->
+        <!-- all your existing project cards remain unchanged -->
+        <!-- Yearly Turnover Rate Analysis -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis">
             <div class="project-card-body">
               <h5 class="project-card-title">Yearly Turnover Rate Analysis</h5>
-              <p class="project-card-text"><strong>Problem:</strong> Understand long-term turnover trends and retention challenges.<br>
+              <p class="project-card-text"><strong>Problem:</strong> Understand long‑term turnover trends and retention challenges.<br>
               <strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br>
               <strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
               <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm">View Dashboard</a>
             </div>
           </div>
         </div>
-        <!-- Project: Workforce Analytics Overview -->
+        <!-- Workforce Analytics Overview -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview">
@@ -404,25 +379,25 @@
               <h5 class="project-card-title">Workforce Analytics Overview</h5>
               <p class="project-card-text"><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br>
               <strong>Approach:</strong> Combined multiple HR data sources into a Tableau dashboard with interactive filters.<br>
-              <strong>Impact:</strong> Enabled real-time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
+              <strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
               <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" class="btn btn-sm">View Dashboard</a>
             </div>
           </div>
         </div>
-        <!-- Project: Workforce Dynamics Deep Dive -->
+        <!-- Workforce Dynamics Deep Dive -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-3.jpg" alt="Workforce Dynamics Deep Dive">
             <div class="project-card-body">
               <h5 class="project-card-title">Workforce Dynamics Deep Dive</h5>
               <p class="project-card-text"><strong>Problem:</strong> Identify drivers of attrition and productivity variations across departments.<br>
-              <strong>Approach:</strong> Integrated survey, hiring, and productivity data to uncover correlations and trends.<br>
-              <strong>Impact:</strong> Supported evidence-based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
+              <strong>Approach:</strong> Integrated survey, hiring and productivity data to uncover correlations and trends.<br>
+              <strong>Impact:</strong> Supported evidence‑based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
               <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" class="btn btn-sm">View Dashboard</a>
             </div>
           </div>
         </div>
-        <!-- Project: Recruitment Funnel Optimization -->
+        <!-- Recruitment Funnel Optimization -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-4.jpg" alt="Recruitment Funnel Optimization">
@@ -435,7 +410,7 @@
             </div>
           </div>
         </div>
-        <!-- Project: Diversity Metrics Dashboard -->
+        <!-- Diversity Metrics Dashboard -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-8 3.jpg" alt="Diversity Metrics Dashboard">
@@ -448,7 +423,7 @@
             </div>
           </div>
         </div>
-        <!-- Project: Workforce Forecasting -->
+        <!-- Workforce Forecasting -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting">
@@ -461,7 +436,7 @@
             </div>
           </div>
         </div>
-        <!-- Project: Workforce Forecast Preview -->
+        <!-- Workforce Forecast Preview -->
         <div class="col-md-4">
           <div class="project-card">
             <img src="assets/img/portfolio/dashboard-7.jpg" alt="Workforce Forecast Preview">
@@ -474,10 +449,10 @@
             </div>
           </div>
         </div>
-        <!-- Project: HR Attrition Dashboard -->
+        <!-- HR Attrition Dashboard -->
         <div class="col-md-4">
           <div class="project-card">
-            <img src="assets/img/portfolio/dashboard-9.jpg" class="project-card-img-top" alt="HR Attrition Dashboard">
+            <img src="assets/img/portfolio/dashboard-9.jpg" alt="HR Attrition Dashboard">
             <div class="project-card-body">
               <h5 class="project-card-title">HR Attrition Dashboard</h5>
               <p class="project-card-text"><strong>Problem:</strong> High employee turnover was impacting team stability and increasing training costs.<br>
@@ -497,41 +472,37 @@
       <h2 class="section-title">AI Dashboards</h2>
       <p>Interactive analytics dashboards showcasing AI data analysis projects.</p>
       <div class="row gy-4">
-        <!-- Intent Distribution Dashboard -->
+        <!-- Intent Distribution -->
         <div class="col-md-6">
           <h3>Intent Distribution Dashboard</h3>
-          <iframe src="https://public.tableau.com/views/AIDashboards/IntentDistribution?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=IntentDistribution"
-                  width="100%" height="500" title="Intent Distribution Dashboard"></iframe>
+          <iframe src="https://public.tableau.com/views/AIDashboards/IntentDistribution?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=IntentDistribution" width="100%" height="500" title="Intent Distribution Dashboard"></iframe>
           <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.</p>
           <p><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.</p>
-          <p><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer-support resources.</p>
+          <p><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer‑support resources.</p>
         </div>
-        <!-- Resolution Rate Dashboard -->
+        <!-- Resolution Rate -->
         <div class="col-md-6">
           <h3>Resolution Rate Dashboard</h3>
-          <iframe src="https://public.tableau.com/views/AIDashboards/ResolutionRate?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=ResolutionRate"
-                  width="100%" height="500" title="Resolution Rate Dashboard"></iframe>
+          <iframe src="https://public.tableau.com/views/AIDashboards/ResolutionRate?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=ResolutionRate" width="100%" height="500" title="Resolution Rate Dashboard"></iframe>
           <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.</p>
           <p><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.</p>
-          <p><strong>Impact:</strong> Highlighted low-performing intents, enabling targeted improvements to conversational flows and intent models.</p>
+          <p><strong>Impact:</strong> Highlighted low‑performing intents, enabling targeted improvements to conversational flows and intent models.</p>
         </div>
-        <!-- Customer Satisfaction Dashboard -->
+        <!-- Customer Satisfaction -->
         <div class="col-md-6">
           <h3>Customer Satisfaction Dashboard</h3>
-          <iframe src="https://public.tableau.com/views/AIDashboards/AverageSatisfaction?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=AverageSatisfaction"
-                  width="100%" height="500" title="Customer Satisfaction Dashboard"></iframe>
+          <iframe src="https://public.tableau.com/views/AIDashboards/AverageSatisfaction?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=AverageSatisfaction" width="100%" height="500" title="Customer Satisfaction Dashboard"></iframe>
           <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.</p>
           <p><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.</p>
           <p><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
         </div>
-        <!-- Model Performance Dashboard -->
+        <!-- Model Performance -->
         <div class="col-md-6">
           <h3>Model Performance Dashboard</h3>
-          <iframe src="https://public.tableau.com/views/AIDashboards/ModelPerformance?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=ModelPerformance"
-                  width="100%" height="500" title="Model Performance Dashboard"></iframe>
+          <iframe src="https://public.tableau.com/views/AIDashboards/ModelPerformance?:language=en-US&:showVizHome=no&:embed=y&:toolbar=yes&:sheet=ModelPerformance" width="100%" height="500" title="Model Performance Dashboard"></iframe>
           <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.</p>
-          <p><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi-line chart.</p>
-          <p><strong>Impact:</strong> Enabled data-driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
+          <p><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.</p>
+          <p><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
         </div>
       </div>
     </div>
@@ -588,7 +559,7 @@
           <div>Analytics</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i the="fas fa-code"></i></div>
+          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
           <div>Data Visualization</div>
         </div>
       </div>
@@ -666,13 +637,7 @@
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.umd.js"></script>
   <script>
-    // Initialize AOS (scroll animations)
-    AOS.init({
-      duration: 800,
-      easing: 'ease-in-out',
-      once: true
-    });
-    // Initialize Typed.js for the hero typed effect
+    AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
     const typedStrings = document.querySelector('.typed').getAttribute('data-typed-items').split(';');
     const typed = new Typed('.typed', {
       strings: typedStrings,
@@ -708,13 +673,12 @@ Primary goals (in order):
 
 Tone & style:
 - Conversational, approachable, professional.
-- Max 50 words per reply (unless producing code).
+- Max 60 words per reply (unless producing code).
 - Use short sentences and bullets to avoid heavy blocks of text.
-- Always center on Tony’s expertise, accomplishments, measureable results, and pivot to AI/HR analytics, dashboards, visualizations and career story.
-- Concisely end with the impact his action had on the business. 
+- Always centre on Tony’s expertise, pivot to AI/HR analytics, and career story.
 
 Hard rules:
-- Replies ≤ 50 words.
+- Replies ≤ 60 words.
 - Use bullets when possible.
 - When producing code:
   - Add a 1‑line comment explaining purpose.
@@ -723,30 +687,27 @@ Hard rules:
 - Use [REDACTED] for secrets.
 - If unsure, state assumptions and continue.
 
-Follow‑up behavior:
+Follow‑up behaviour:
 - Only ask one clarifying question if it improves the response.
-- If unnecessary, skip and suggest 2–3 quick reply options.
+- If unnecessary, skip and suggest two or three quick reply options.
 
 When asked for code:
-- Output JSON schema below.
+- Output the JSON schema below.
 - Include HTML/CSS/JS snippets that are paste‑ready.
-- Specify insertion point (e.g., “bottom of body”).
+- Specify the insertion point (e.g. “bottom of body”).
 
 Background context:
-Tony Abdelmalak is a People & Business Insights Analyst with a solid foundation in HR through experience at NBCU, HBO, Sony and Quibi.  He pivoted into AI‑driven analytics, using tools like Tableau, SQL, and Python to transform workforce and business data into executive‑ready insights.  Tony built HR dashboards (e.g., turnover analysis, early turnover segmentation) and workforce planning models that reduced hiring gaps by 20% and cut overtime costs.  He now blends HR expertise with data science to help organizations make smarter decisions and aims to lead AI initiatives in HR analytics.`;
-
+Tony Abdelmalak is a People & Business Insights Analyst with a solid foundation in HR through experience at NBCU, HBO, Sony and Quibi.  He pivoted into AI‑driven analytics, using tools like Tableau, SQL and Python to transform workforce and business data into executive‑ready insights.  Tony built HR dashboards (e.g. turnover analysis, early turnover segmentation) and workforce planning models that reduced hiring gaps by 20% and cut overtime costs.  He now blends HR expertise with data science to help organizations make smarter decisions and aims to lead AI initiatives in HR analytics.`;
 const GROQ_API_KEY = '[REDACTED]';
 const MODEL = 'llama3-8b-8192';
-
 let messages = [ { role: 'system', content: PERSONA } ];
 
 (function() {
-  const chatToggle = document.getElementById('hf-chat-toggle');
+  const chatToggle    = document.getElementById('hf-chat-toggle');
   const chatContainer = document.getElementById('hf-chat-container');
-  const conversation = document.getElementById('hf-conversation');
-  const input = document.getElementById('hf-input');
-  const sendBtn = document.getElementById('hf-send-btn');
-  let lastResponse = '';
+  const conversation  = document.getElementById('hf-conversation');
+  const input         = document.getElementById('hf-input');
+  const sendBtn       = document.getElementById('hf-send-btn');
 
   function appendMessage(sender, text) {
     const p = document.createElement('p');
@@ -766,20 +727,17 @@ let messages = [ { role: 'system', content: PERSONA } ];
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: MODEL,
           messages: messages,
+          model: MODEL,
           max_tokens: 300,
-          temperature: 0.7
+          temperature: 0.7,
         })
       });
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status);
-      }
+      if (!response.ok) throw new Error('HTTP ' + response.status);
       const data = await response.json();
       const reply = data.choices?.[0]?.message?.content?.trim() || '';
       appendMessage('Agent', reply);
       messages.push({ role: 'assistant', content: reply });
-      lastResponse = reply;
     } catch (err) {
       appendMessage('Agent', 'Error: ' + err.message);
     }
