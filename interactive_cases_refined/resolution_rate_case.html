@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Resolution Rate</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+body {font-family: Arial, sans-serif; margin:20px; background-color:#f8f9fa; color:#333;}
+h1 {color:#1a2f58;}
+.card {background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:20px;}
+.footnote {font-size:12px; font-style:italic; margin-top:10px;}
+.insight {background-color:#1a2f58; color:#fff; padding:10px; border-radius:8px; margin-top:20px;}
+</style>
+</head>
+<body>
+<h1>Interactive Case Study: Resolution Rate</h1>
+<p>This dashboard presents resolution rates by intent. Higher bars indicate a higher percentage of resolved interactions.</p>
+<div class="card">
+<div id="chart"></div>
+<div class="footnote">* Sample data shows resolution percentages across intents.</div>
+</div>
+<div class="insight">Key Insight: Resolution is lowest for Technical Support, suggesting targeted improvements can boost overall customer satisfaction.</div>
+<script>
+var data=[{x:['Billing','Cancellation','Feedback','Order Status','Other','Technical Support'], y:[0.82,0.84,0.76,0.75,0.68,0.79], type:'bar', marker:{color:'#008080'}}];
+var layout={title:'Resolution Rate by Intent', xaxis:{title:'Intent'}, yaxis:{title:'Resolution Rate', tickformat:'0%'}};
+Plotly.newPlot('chart', data, layout);
+</script>
+</body>
+</html>
