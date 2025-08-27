@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Attrition Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1E3A8A;
+            --accent-color: #149DDD;
+            --background-color: #F3F4F6;
+            --text-color: #111827;
+            --subtext-color: #374151;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: var(--background-color);
+            color: var(--text-color);
+        }
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .insight {
+            background: #E0F2FE;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .footnote {
+            font-size: 12px;
+            color: var(--subtext-color);
+            margin-top: 20px;
+            text-align: center;
+        }
+        .cta {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .cta a {
+            display: inline-block;
+            background: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .cta a:hover {
+            background: #0e77b8;
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Predictive Attrition Dashboard</h1>
+    </header>
+    <section>
+        <div class="card">
+            <h2>Feature Importance</h2>
+            <p>This bar chart displays the relative importance of the top factors contributing to voluntary attrition, as identified by the random forest model.</p>
+            <div id="feature-chart"></div>
+        </div>
+        <div class="insight">
+            <strong>Key insight:</strong> Tenure and engagement scores were the most significant predictors of attrition risk. Focusing on early‑career employees and those with declining engagement can maximize intervention impact.
+        </div>
+        <div class="card">
+            <h2>Risk Distribution</h2>
+            <p>This bar chart shows the distribution of employees across predicted risk levels.</p>
+            <div id="risk-chart"></div>
+        </div>
+        <div class="footnote">
+            Note: Sample data for demonstration purposes.
+        </div>
+        <div class="cta">
+            <a href="../predictive_attrition_case_study.html">Read Full Case Study</a>
+        </div>
+    </section>
+    <script>
+        var featureData = [{
+            x: ['Tenure','Engagement','Performance','Compensation','Promotion','Absence'],
+            y: [30,25,20,15,7,3],
+            type: 'bar'
+        }];
+        var featureLayout = {
+            margin: {t: 30},
+            xaxis: {title: 'Features'},
+            yaxis: {title: 'Importance (%)'},
+        };
+        Plotly.newPlot('feature-chart', featureData, featureLayout);
+
+        var riskData = [{
+            x: ['High','Medium','Low'],
+            y: [50,120,300],
+            type: 'bar'
+        }];
+        var riskLayout = {
+            margin: {t: 30},
+            xaxis: {title: 'Risk Level'},
+            yaxis: {title: 'Number of Employees'},
+        };
+        Plotly.newPlot('risk-chart', riskData, riskLayout);
+    </script>
+</body>
+</html>
