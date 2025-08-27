@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reducing 90‑Day Attrition with Predictive + Prescriptive Analytics</title>
+  <style>
+    :root {
+      --primary-color: #1E3A8A;
+      --accent-color: #14B8A6;
+      --background-color: #F3F4F6;
+      --text-color: #111827;
+      --subtext-color: #374151;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      background-color: var(--background-color);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: var(--primary-color);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .snapshot {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    .snapshot-card {
+      background: white;
+      flex: 1 1 250px;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    .snapshot-card h2 {
+      color: var(--primary-color);
+      font-size: 48px;
+      margin: 0 0 10px 0;
+    }
+    .snapshot-card p {
+      color: var(--subtext-color);
+      font-size: 16px;
+      margin: 0;
+    }
+    section {
+      margin-bottom: 60px;
+    }
+    section h2 {
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+    section p {
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    ul {
+      margin-left: 20px;
+    }
+    .cta {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .cta a {
+      display: inline-block;
+      background-color: var(--accent-color);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 4px;
+      text-decoration: none;
+      margin: 5px;
+    }
+    .cta a:hover {
+      background-color: #0e9880;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Reducing 90‑Day Attrition with Predictive + Prescriptive Analytics</h1>
+  </header>
+  <div class="container">
+    <!-- Snapshot metrics -->
+    <section class="snapshot-section">
+      <div class="snapshot">
+        <div class="snapshot-card">
+          <h2>28%</h2>
+          <p>Reduction in early attrition</p>
+        </div>
+        <div class="snapshot-card">
+          <h2>40%</h2>
+          <p>Decrease in manual reporting effort</p>
+        </div>
+        <div class="snapshot-card">
+          <h2>17%</h2>
+          <p>Increase in new‑hire ramp‑up</p>
+        </div>
+      </div>
+    </section>
+    <!-- Introduction / Executive summary -->
+    <section id="introduction">
+      <h2>Executive Summary</h2>
+      <p>After rapid hiring, our organization saw a spike in early attrition during the first 90 days. Recruiting targets were met, but hand‑offs and onboarding quality varied by site and manager. Leadership faced a critical question: <strong>where should we invest our limited budget—onboarding redesign, manager training or incentives—to maximize retention and time‑to‑productivity?</strong></p>
+      <p>Using a comprehensive workforce data foundation spanning HRIS, ATS, LMS, surveys and scheduling, we blended predictive and prescriptive analytics to guide this decision. The result: targeted investments that cut early attrition by 28%, automated manual reporting by ~40% and improved new‑hire ramp‑up by 17%.</p>
+    </section>
+    <!-- Problem & Context -->
+    <section id="challenge">
+      <h2>Problem & Context</h2>
+      <p><strong>Early attrition challenge:</strong> Variation in onboarding quality, mis‑aligned hand‑offs and inconsistent manager support led to high turnover within the first 90 days. This created lost productivity and rising recruiting costs.</p>
+      <p><strong>Leadership question:</strong> With limited resources, should we redesign onboarding, invest in manager enablement, offer incentives—or some combination—to maximize retention and ramp‑up?</p>
+    </section>
+    <!-- Data & Methods -->
+    <section id="methods">
+      <h2>Data & Methods</h2>
+      <p>We assembled a <strong>data foundation</strong> from HRIS, ATS, LMS, survey and scheduling systems, joining these sources into a governed, secure dataset with PII masking, role‑based access and small‑cell suppression. Key fields included demographics (age, gender, ethnicity), job details (job family, level, location), onboarding signals (mentor assigned, schedule adherence, training hours, LMS completion), engagement and early performance.</p>
+      <p><strong>Predictive models:</strong> We used survival analysis (Cox proportional hazards) to model time‑to‑attrition and identify when risk peaks for different cohorts. Gradient boosting classification models with SHAP values surfaced the top drivers of early attrition, such as first‑week schedule adherence, mentor assignment and pay band mis‑alignment.</p>
+      <p><strong>Uplift modeling:</strong> A T‑learner uplift model estimated the causal impact of interventions—mentor assignment, structured day‑1 plan and manager enablement—on retention for each segment.</p>
+      <p><strong>Prescriptive optimization:</strong> We formulated a linear programming problem to allocate budget across sites and cohorts, maximizing expected retained‑days while respecting cost and fairness constraints.</p>
+    </section>
+    <!-- Solution & Implementation -->
+    <section id="solution">
+      <h2>Solution & Implementation</h2>
+      <p>The analytics revealed that assigning mentors and implementing a structured day‑1 plan would deliver the highest uplift for early‑career cohorts at sites A and C, while targeted manager enablement was most effective for managers at site B. The optimization recommended allocating ~60% of the budget to onboarding redesign at the highest‑risk cohorts and 40% to manager training.</p>
+      <p>Leadership approved a 90‑day onboarding redesign and funded manager enablement based on these insights. We operationalized alerts and subscriptions for managers and HR business partners, ensuring timely interventions and adoption tracking.</p>
+    </section>
+    <!-- Results -->
+    <section id="results">
+      <h2>Results & Impact</h2>
+      <p>Within one quarter of launching the redesigned onboarding and targeted manager enablement:</p>
+      <ul>
+        <li>Early attrition fell by <strong>28%</strong> across the pilot groups.</li>
+        <li>Manual reporting time dropped by <strong>~40%</strong> thanks to automated pipelines and scorecards.</li>
+        <li>New‑hire ramp‑up improved by <strong>17%</strong> as measured by productivity KPIs.</li>
+        <li>Executives gained clarity on where to invest, boosting confidence in HR analytics and paving the way for continued data‑driven decision making.</li>
+      </ul>
+    </section>
+    <!-- Conclusion & CTA -->
+    <section id="conclusion">
+      <h2>Conclusion & Next Steps</h2>
+      <p>This case study illustrates how combining survival analysis, SHAP explainability, uplift modeling and prescriptive optimization can turn workforce analytics into actionable decision intelligence. By tying insights to investments, we delivered measurable improvements in retention and productivity while building trust in AI‑driven HR analytics.</p>
+      <p>Explore the full repository and interactive dashboards for more details, or contact me to discuss how I can help your organization apply data science to your workforce challenges.</p>
+      <div class="cta">
+        <a href="https://github.com/tonyabdelmalak/workforce-attrition-prescriptive-case" target="_blank">View Full Repository</a>
+        <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank">View Interactive Dashboards</a>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
