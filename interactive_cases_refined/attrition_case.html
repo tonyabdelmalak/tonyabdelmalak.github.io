@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Predict Employee Attrition</title>
+  <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; color: #333; }
+    h1 { color: #1a2f58; }
+    .card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    .footnote { font-style: italic; font-size: 0.85em; margin-top: 10px; color: #555; }
+    .insight { background-color: #1a2f58; color: #fff; padding: 15px; border-radius: 6px; font-size: 1.0em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Interactive Case Study: Predict Employee Attrition</h1>
+  <p>This simplified dashboard illustrates how a predictive model might visualise attrition risk by age.  Points are coloured by overtime status (teal=Yes, navy=No) and sized by monthly income.</p>
+  <div class="card">
+    <div id="scatter_plot"></div>
+    <div class="footnote">*Marker size represents monthly income. Colours indicate overtime status.</div>
+  </div>
+  <div class="card">
+    <div id="feature_importance"></div>
+    <div class="footnote">*Example importance values from a logistic regression model.</div>
+  </div>
+  <div class="insight">Key Insight: Younger employees with overtime tend to have higher attrition risk.  Focusing on work‑life balance could reduce turnover.</div>
+  <script>
+    // Scatter plot data
+    var scatterData = [
+      {
+        x: [25,30,45,55,35,40],
+        y: [0.32,0.15,0.50,0.10,0.25,0.45],
+        mode: 'markers',
+        type: 'scatter',
+        marker: {
+          size: [20,25,30,35,28,22],
+          color: ['#008080','#1a2f58','#008080','#1a2f58','#008080','#1a2f58'],
+          opacity: 0.8
+        },
+        text: ['Engineering (OT)','Finance','HR (OT)','Engineering','Marketing (OT)','Product Dev'],
+        hovertemplate: 'Age: %{x}<br>Pred. Attrition: %{y}<br>%{text}<extra></extra>'
+      }
+    ];
+    var scatterLayout = {
+      title: 'Predicted Attrition Probability by Age',
+      xaxis: { title: 'Age (years)' },
+      yaxis: { title: 'Predicted Attrition Probability' },
+      margin: { t: 40 }
+    };
+    Plotly.newPlot('scatter_plot', scatterData, scatterLayout, {responsive: true});
+
+    // Feature importance bar chart
+    var barData = [
+      {
+        type: 'bar',
+        x: [0.35,0.28,0.25,0.20,0.18,0.15,0.10],
+        y: ['Monthly Income','Job Satisfaction','Age','Years Since Last Promotion','Engagement Score','Performance Rating','Years at Company'],
+        orientation: 'h',
+        marker: { color: '#008080' }
+      }
+    ];
+    var barLayout = {
+      title: 'Top Factors Influencing Attrition (Example)',
+      xaxis: { title: 'Importance (arbitrary units)' },
+      yaxis: { title: 'Feature' },
+      margin: { l: 120, t: 40 }
+    };
+    Plotly.newPlot('feature_importance', barData, barLayout, {responsive: true});
+  </script>
+</body>
+</html>
