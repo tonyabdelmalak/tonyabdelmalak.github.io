@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Optimize Workforce Planning</title>
+  <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; color: #333; }
+    h1 { color: #1a2f58; }
+    .card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #1a2f58; color: #fff; }
+    .footnote { font-style: italic; font-size: 0.85em; margin-top: 10px; color: #555; }
+    .insight { background-color: #1a2f58; color: #fff; padding: 15px; border-radius: 6px; font-size: 1.0em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Interactive Case Study: Optimize Workforce Planning</h1>
+  <p>This simplified simulation shows headcount projections over 12 months under two scenarios.  Scenario&nbsp;A assumes reduced attrition and increased hiring, while Scenario&nbsp;B assumes base attrition and hiring rates.</p>
+  <div class="card">
+    <div id="line_chart"></div>
+    <div class="footnote">*Scenario A: Attrition 0.8×, Hiring 1.2×. Scenario B: Attrition 1.0×, Hiring 1.0×.</div>
+  </div>
+  <div class="card">
+    <h3>Current Workforce Summary</h3>
+    <table>
+      <tr><th>Department</th><th>Headcount</th><th>Attrition Rate</th><th>Time to Fill (days)</th><th>Cost per Hire</th><th>Growth Target</th></tr>
+      <tr><td>HR</td><td>50</td><td>0.10</td><td>45</td><td>$5,000</td><td>0.05</td></tr>
+      <tr><td>Finance</td><td>40</td><td>0.08</td><td>50</td><td>$6,500</td><td>0.06</td></tr>
+      <tr><td>Engineering</td><td>70</td><td>0.12</td><td>35</td><td>$4,500</td><td>0.08</td></tr>
+    </table>
+    <div class="footnote">*Example data for demonstration purposes only.</div>
+  </div>
+  <div class="insight">Key Insight: Under Scenario&nbsp;A, Engineering headcount grows significantly faster than other departments.  Proactive hiring plans can help meet future staffing needs.</div>
+  <script>
+    var months = ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'];
+    var scenarioA = [50,52,54,56,58,60,62,64,66,68,70,72];
+    var scenarioB = [50,49,48,47,46,45,44,43,42,41,40,39];
+    var data = [
+      { x: months, y: scenarioA, type: 'scatter', mode: 'lines+markers', name: 'Scenario A', line: { color: '#008080' } },
+      { x: months, y: scenarioB, type: 'scatter', mode: 'lines+markers', name: 'Scenario B', line: { color: '#1a2f58' } }
+    ];
+    var layout = {
+      title: 'Projected Headcount (HR Department)',
+      xaxis: { title: 'Month' },
+      yaxis: { title: 'Headcount' },
+      margin: { t: 40 }
+    };
+    Plotly.newPlot('line_chart', data, layout, {responsive: true});
+  </script>
+</body>
+</html>
