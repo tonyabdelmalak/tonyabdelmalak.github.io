@@ -589,41 +589,116 @@ case-study
     </div>
   </secction>
 
-    <!-- Featured Case Studies Section -->
-    <section id="featured-case-studies" class="py-5">
-      <div class="container">
-      <h2 class="section-title">Featured Case Studies</h2>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="project-card">
-              <div class="project-card-body">
-                <h5 class="project-card-title">Recruitment Funnel Analytics</h5>
-                <p class="project-card-text">Discover how data ‑driven funnel analytics cut time‑to‑hire by 24 % and boosted offer acceptance by 8 %.</p>
-                <a class="btn" href="recruitment_case_study.html">Explore Case Study</a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="project-card">
-              <div class="project-card-body">
-                <h5 class="project-card-title">AI‑Powered Attrition Model</h5>
-                <p class="project-card-text">Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28 %.</p>
-                <a class="btn" href="predictive_attrition_case_study.html">Explore Case Study</a>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="project-card">
-              <div class="project-card-body">
-                <h5 class="project-card-title">Reducing 90‑Day Attrition</h5>
-                <p class="project-card-text">See how predictive and prescriptive analytics can cut early attrition through targeted interventions.</p>
-                <a class="btn" href="attrition_case_study.html">Explore Case Study</a>
-              </div>
-            </div>
-          </div>
-        </div>
+<!-- Featured Case Studies Section -->
+<section id="featured-case-studies" class="featured-case-studies">
+  <h2>Featured Case Studies</h2>
+  <div class="case-study-cards">
+    <!-- Recruitment Funnel card -->
+    <div class="case-study-card">
+      <h3>Recruitment Funnel Analytics</h3>
+      <p>
+        Discover how data‑driven funnel analytics cut time‑to‑hire by 24 % and
+        boosted offer acceptance by 8 %.
+      </p>
+      <div class="cta-buttons">
+        <a href="interactive_cases_refined/recruitment_case.html" class="btn">Explore Dashboard</a>
+        <a href="recruitment_case_study.html" class="btn btn-secondary">Read Case Study</a>
       </div>
-    </section>
+    </div>
+
+    <!-- AI‑Powered Attrition card -->
+    <div class="case-study-card">
+      <h3>AI‑Powered Attrition Model</h3>
+      <p>
+        Learn how a predictive model helped identify employees at risk and
+        reduced voluntary attrition by 28 %.
+      </p>
+      <div class="cta-buttons">
+        <a href="interactive_cases_refined/predictive_attrition_case.html" class="btn">Explore Dashboard</a>
+        <a href="predictive_attrition_case_study.html" class="btn btn-secondary">Read Case Study</a>
+      </div>
+    </div>
+
+    <!-- 90‑Day Attrition card -->
+    <div class="case-study-card">
+      <h3>Reducing 90‑Day Attrition</h3>
+      <p>
+        See how predictive and prescriptive analytics can cut early attrition
+        through targeted interventions.
+      </p>
+      <div class="cta-buttons">
+        <a href="interactive_cases_refined/attrition_case.html" class="btn">Explore Dashboard</a>
+        <a href="attrition_case_study.html" class="btn btn-secondary">Read Case Study</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Layout container for case-study cards */
+  #featured-case-studies .case-study-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+  /* Individual case-study card styling */
+  .case-study-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    max-width: 32%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .case-study-card h3 {
+    margin-top: 0;
+  }
+  /* Container for CTA buttons */
+  .case-study-card .cta-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  /* Primary CTA button */
+  .case-study-card .btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background-color: var(--accent-color, #149DDD);
+    color: #fff;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+  /* Secondary CTA button */
+  .case-study-card .btn.btn-secondary {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: transparent;
+    border: 2px solid var(--accent-color, #149DDD);
+    color: var(--accent-color, #149DDD);
+    font-size: 0.9rem;
+  }
+  /* Optional hover styles */
+  .case-study-card .btn:hover {
+    opacity: 0.9;
+  }
+  .case-study-card .btn.btn-secondary:hover {
+    background-color: var(--accent-color, #149DDD);
+    color: #fff;
+  }
+  /* Responsive adjustment: stack cards on small screens */
+  @media (max-width: 800px) {
+    .case-study-card {
+      max-width: 100%;
+    }
+  }
+</style>
 
   <!-- Skills Section -->
  <section id="skills">
