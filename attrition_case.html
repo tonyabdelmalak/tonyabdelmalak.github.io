@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Predict Employee Attrition</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .chart { margin-bottom: 30px; }
+    .footnote { font-size: 0.8em; font-style: italic; }
+    .insight { background: #1a2f58; color: #fff; padding: 10px; border-radius: 5px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Predict Employee Attrition</h2>
+  <p>This interactive demo shows how employee attributes relate to attrition risk.</p>
+  <div id="scatter" class="chart"></div>
+  <div id="bar" class="chart"></div>
+  <p class="footnote">*Sample dataset with fictitious values; marker size corresponds to monthly income; colors indicate overtime status.</p>
+  <div class="insight">Insight: Overtime and low satisfaction drive attrition. Improving work-life balance could reduce turnover.</div>
+  <script>
+    var scatterData = [{
+      x: [25,30,35,40,45,50,55],
+      y: [0.2,0.15,0.3,0.4,0.35,0.25,0.2],
+      mode: 'markers',
+      marker: {
+        size: [10,12,15,18,14,16,12],
+        color: ['red','blue','blue','red','blue','red','blue']
+      },
+      text: ['Overtime','No Overtime','No Overtime','Overtime','No Overtime','Overtime','No Overtime']
+    }];
+    var scatterLayout = {
+      title: 'Age vs Predicted Attrition Probability',
+      xaxis: { title: 'Age (years)' },
+      yaxis: { title: 'Predicted Attrition Probability' }
+    };
+    Plotly.newPlot('scatter', scatterData, scatterLayout);
+
+    var barData = [{
+      x: ['OverTime','MonthlyIncome','Age','YearsAtCompany'],
+      y: [0.4,0.3,0.2,0.1],
+      type: 'bar',
+      marker: { color: ['#3366cc','#dc3912','#ff9900','#109618'] }
+    }];
+    var barLayout = {
+      title: 'Feature Importance',
+      xaxis: { title: 'Feature' },
+      yaxis: { title: 'Importance' }
+    };
+    Plotly.newPlot('bar', barData, barLayout);
+  </script>
+</body>
+</html>
