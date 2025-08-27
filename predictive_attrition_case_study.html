@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicting Turnover: AI‑Driven Attrition Risk Analysis</title>
+    <style>
+        :root {
+            --primary-color: #1E3A8A;
+            --accent-color: #149DDD;
+            --background-color: #F3F4F6;
+            --text-color: #111827;
+            --subtext-color: #374151;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .snapshot {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .snapshot-card {
+            flex: 1 1 250px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .snapshot-card h2 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+        .snapshot-card p {
+            margin: 0;
+            color: var(--subtext-color);
+        }
+        section {
+            margin-bottom: 40px;
+        }
+        section h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        section p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .cta {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .cta a {
+            display: inline-block;
+            background: var(--accent-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .cta a:hover {
+            background: #0e77b8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Predicting Turnover: AI‑Driven Attrition Risk Analysis</h1>
+    </header>
+    <div class="container">
+        <!-- Snapshot Cards -->
+        <div class="snapshot">
+            <div class="snapshot-card">
+                <h2>↓28% </h2>
+                <p>Reduction in Voluntary Attrition</p>
+            </div>
+            <div class="snapshot-card">
+                <h2>0.72</h2>
+                <p>Model F1‑Score</p>
+            </div>
+            <div class="snapshot-card">
+                <h2>0.81</h2>
+                <p>Model AUC</p>
+            </div>
+        </div>
+        <!-- Sections -->
+        <section>
+            <h2>Executive Summary</h2>
+            <p>High turnover was draining institutional knowledge and driving up costs. To address this, I built a predictive attrition model that identifies employees at risk of voluntary departure and enables HR teams to intervene early. Using anonymized HRIS data and machine‑learning techniques, we achieved a 28 % reduction in voluntary attrition while establishing a repeatable framework for retention analysis.</p>
+        </section>
+        <section>
+            <h2>Problem &amp; Context</h2>
+            <p>Employee turnover is costly and disruptive. Exit interviews and internal metrics revealed patterns that signaled who might leave. As an HR professional turned data scientist, I sought to blend empathy with algorithms—using data to augment, not replace, human judgment.</p>
+        </section>
+        <section>
+            <h2>Data &amp; Methodology</h2>
+            <p><strong>Data sources:</strong> Anonymized HRIS data including tenure, performance ratings, compensation bands, engagement survey scores, promotion history and absence patterns. Personal identifiers were removed to protect privacy.</p>
+            <p><strong>Preprocessing:</strong> I cleaned missing values, normalized numeric features, encoded categorical variables and engineered signals like time since last promotion to capture disengagement.</p>
+            <p><strong>Model selection:</strong> After testing logistic regression, random forests and gradient‑boosting machines, I selected a random forest classifier for its balance of accuracy and interpretability. Cross‑validation and a held‑out test set estimated performance.</p>
+            <p><strong>Evaluation:</strong> The final model achieved an F1‑score of 0.72 and an AUC of 0.81—strong enough to signal risk without triggering too many false alarms. Feature importances were reviewed to ensure reliance on legitimate drivers.</p>
+        </section>
+        <section>
+            <h2>Ethical Considerations</h2>
+            <p>Predictive models can magnify bias. I excluded sensitive attributes (e.g., age, gender, ethnicity) and audited the model for disparate impact across demographic groups. Risk scores were presented as part of a broader retention conversation rather than deterministic decisions. Employees were informed that anonymized data was used to improve retention programs, and I partnered with legal and privacy teams to ensure compliance.</p>
+        </section>
+        <section>
+            <h2>Results &amp; Impact</h2>
+            <p>After deploying the model, HR teams targeted stay interviews and development opportunities toward those flagged as high risk. Within six months, voluntary attrition dropped by 28 % compared with the previous year. Managers reported greater awareness of retention drivers—like stalled promotions or stagnating salaries—and were able to intervene earlier. The model also surfaced systemic issues, such as a lack of mentoring, that informed broader cultural initiatives.</p>
+        </section>
+        <section>
+            <h2>Lessons Learned</h2>
+            <p><strong>Data quality matters:</strong> Incomplete or inconsistent data can skew predictions. Building a robust pipeline for clean, timely data was critical.</p>
+            <p><strong>Collaboration is key:</strong> Success depended on HR business partners, data engineers and leadership working together. Analytics is most effective when people trust and understand the results.</p>
+            <p><strong>Models should evolve:</strong> Turnover drivers change over time. I scheduled regular model retraining and monitoring to keep the tool relevant.</p>
+        </section>
+        <section>
+            <h2>Conclusion &amp; Next Steps</h2>
+            <p>This case study demonstrates that predictive analytics, when paired with ethical safeguards and human judgment, can reduce attrition and support employees’ needs. The next phase is to integrate these insights into talent‑management processes and to explore more advanced techniques like survival analysis for early attrition signals.</p>
+        </section>
+        <div class="cta">
+            <a href="interactive_cases_refined/predictive_attrition_case.html">Explore Interactive Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>
