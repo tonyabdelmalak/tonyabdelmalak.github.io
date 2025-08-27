@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Engagement Impact Analysis</title>
+  <script src="https://cdn.plot.ly/plotly-3.0.1.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; color: #333; }
+    h1 { color: #1a2f58; }
+    .card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    .footnote { font-style: italic; font-size: 0.85em; margin-top: 10px; color: #555; }
+    .insight { background-color: #1a2f58; color: #fff; padding: 15px; border-radius: 6px; font-size: 1.0em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Interactive Case Study: Engagement Impact</h1>
+  <p>This simplified dashboard explores the relationship between engagement scores and productivity. Each point represents a department; colours differentiate departments and marker size reflects average tenure.</p>
+  <div class="card">
+    <div id="engagement_scatter"></div>
+    <div class="footnote">*Engagement measured on a 1–5 scale; productivity on a 0–100 scale. Marker size reflects average tenure.</div>
+  </div>
+  <div class="card">
+    <div id="turnover_chart"></div>
+    <div class="footnote">*Turnover rate represents voluntary separations per 100 employees.</div>
+  </div>
+  <div class="insight">Key Insight: Departments with higher engagement scores generally exhibit higher productivity and lower turnover.  Investments in engagement initiatives yield measurable performance gains.</div>
+  <script>
+    // Scatter plot for engagement vs productivity
+    var scatterData = [
+      {
+        x: [4.2, 3.8, 4.0, 3.5, 3.2, 4.5, 4.3, 3.0],
+        y: [80, 70, 75, 60, 65, 85, 78, 55],
+        mode: 'markers',
+        type: 'scatter',
+        marker: {
+          size: [12, 10, 11, 9, 9, 13, 12, 8],
+          color: ['#1a2f58','#008080','#1a2f58','#008080','#1a2f58','#008080','#1a2f58','#008080'],
+          opacity: 0.8
+        },
+        text: ['Engineering','Finance','HR','Marketing','Product','Sales','IT','Operations'],
+        hovertemplate: '%{text}<br>Engagement: %{x}<br>Productivity: %{y}<extra></extra>'
+      }
+    ];
+    var scatterLayout = {
+      title: 'Engagement vs Productivity by Department',
+      xaxis: { title: 'Engagement Score' },
+      yaxis: { title: 'Productivity' },
+      margin: { t: 40 }
+    };
+    Plotly.newPlot('engagement_scatter', scatterData, scatterLayout, {responsive: true});
+
+    // Line chart for turnover trends
+    var months = ['Jan','Feb','Mar','Apr','May','Jun'];
+    var hr = [10,9,8,7,6,6];
+    var finance = [12,11,10,9,9,8];
+    var marketing = [8,8,7,6,6,5];
+    var turnoverData = [
+      { x: months, y: hr, type:'scatter', mode:'lines+markers', name:'HR', line:{color:'#1a2f58'} },
+      { x: months, y: finance, type:'scatter', mode:'lines+markers', name:'Finance', line:{color:'#008080'} },
+      { x: months, y: marketing, type:'scatter', mode:'lines+markers', name:'Marketing', line:{color:'#D97706'} }
+    ];
+    var turnoverLayout = {
+      title: 'Turnover Rate Over Time',
+      xaxis: { title:'Month' },
+      yaxis: { title:'Turnover Rate (per 100 employees)' },
+      margin: { t: 40 }
+    };
+    Plotly.newPlot('turnover_chart', turnoverData, turnoverLayout, {responsive:true});
+  </script>
+</body>
+</html>
