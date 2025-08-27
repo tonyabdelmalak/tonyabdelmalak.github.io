@@ -872,12 +872,19 @@ let messages = [ { role: 'system', content: PERSONA } ];
     });
   </script>
 
-    <!-- Place this just before the closing </body> tag -->
-<script>
-  document.querySelectorAll('a').forEach(function(anchor) {
-    if (anchor.href && anchor.href.includes('tonyabdelmalak.github.io')) {
-      const url = new URL(anchor.href);
-      anchor.href = 'https://tonyabdelmalak-github-io.vercel.app' + url.pathname + url.search + url.hash;
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const featuredSection = document.getElementById('featured-case-studies');
+    if (featuredSection) {
+      const btns = featuredSection.querySelectorAll('.btn');
+      if (btns.length >= 3) {
+        btns[0].href = 'interactive_cases_refined/recruitment_case.html';
+        btns[1].href = 'interactive_cases_refined/predictive_attrition_case.html';
+        btns[2].href = 'interactive_cases_refined/attrition_case.html';
+        btns[0].textContent = 'Explore Dashboard';
+        btns[1].textContent = 'Explore Dashboard';
+        btns[2].textContent = 'Explore Dashboard';
+      }
     }
   });
 </script>
