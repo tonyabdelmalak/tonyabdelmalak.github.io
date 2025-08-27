@@ -465,6 +465,7 @@ case-study
         <div class="carousel-track" id="projects-track">
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            
             <h4>Yearly Turnover Rate Analysis</h4>
             <p><strong>Problem:</strong> Understand long‑term turnover trends and retention challenges.<br><strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br><strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
             <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
@@ -606,7 +607,7 @@ promote fairness and transparency.            <a href="https://www.tmi.org/blogs
               <div class="project-card-body">
                 <h5 class="project-card-title">Recruitment Funnel Analytics</h5>
                 <p class="project-card-text">Discover how data ‑driven funnel analytics cut time‑to‑hire by 24 % and boosted offer acceptance by 8 %.</p>
-                <a class="btn" href="https://tonyabdelmalak.github.io/recruitment_case_study.html">Explore Case Study</a>
+                <a class="btn" href="recruitment_case_study.html">Explore Case Study</a>
               </div>
             </div>
           </div>
@@ -615,7 +616,7 @@ promote fairness and transparency.            <a href="https://www.tmi.org/blogs
               <div class="project-card-body">
                 <h5 class="project-card-title">AI‑Powered Attrition Model</h5>
                 <p class="project-card-text">Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28 %.</p>
-                <a class="btn" href="https://tonyabdelmalak.github.io/predictive_attrition_case_study.html">Explore Case Study</a>
+                <a class="btn" href="predictive_attrition_case_study.html">Explore Case Study</a>
               </div>
             </div>
           </div>
@@ -624,7 +625,7 @@ promote fairness and transparency.            <a href="https://www.tmi.org/blogs
               <div class="project-card-body">
                 <h5 class="project-card-title">Reducing 90‑Day Attrition</h5>
                 <p class="project-card-text">See how predictive and prescriptive analytics can cut early attrition through targeted interventions.</p>
-                <a class="btn" href="https://tonyabdelmalak.github.io/attrition_case_study.html">Explore Case Study</a>
+                <a class="btn" href="attrition_case_study.html">Explore Case Study</a>
               </div>
             </div>
           </div>
@@ -878,6 +879,16 @@ let messages = [ { role: 'system', content: PERSONA } ];
       setupCarousel('insights-track', 'insights-prev', 'insights-next');
     });
   </script>
+
+    <!-- Place this just before the closing </body> tag -->
+<script>
+  document.querySelectorAll('a').forEach(function(anchor) {
+    if (anchor.href && anchor.href.includes('tonyabdelmalak.github.io')) {
+      const url = new URL(anchor.href);
+      anchor.href = 'https://tonyabdelmalak-github-io.vercel.app' + url.pathname + url.search + url.hash;
+    }
+  });
+</script>
 
 </body>
 </html>
