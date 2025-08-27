@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Funnel Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #1E3A8A;
+            --accent-color: #149DDD;
+            --background-color: #F3F4F6;
+            --text-color: #111827;
+            --subtext-color: #374151;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: var(--background-color);
+            color: var(--text-color);
+        }
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        section {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .insight {
+            background: #E0F2FE;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .footnote {
+            font-size: 12px;
+            color: var(--subtext-color);
+            margin-top: 20px;
+            text-align: center;
+        }
+        .cta {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .cta a {
+            display: inline-block;
+            background: var(--accent-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .cta a:hover {
+            background: #0e77b8;
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-3.1.1.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Recruitment Funnel Dashboard</h1>
+    </header>
+    <section>
+        <div class="card">
+            <h2>Average Time in Each Stage</h2>
+            <p>This bar chart visualizes the average number of days candidates spend in each stage of the recruitment funnel. It reveals where delays are most pronounced.</p>
+            <div id="stage-chart"></div>
+        </div>
+        <div class="insight">
+            <strong>Key insight:</strong> The interview stage accounts for the largest share of the hiring timeline. Automating scheduling and improving interviewer availability can significantly shorten time‑to‑hire.
+        </div>
+        <div class="card">
+            <h2>Time‑to‑Hire Trend</h2>
+            <p>This line chart tracks the average time‑to‑hire across six months, illustrating the impact of process improvements.</p>
+            <div id="trend-chart"></div>
+        </div>
+        <div class="footnote">
+            Note: Sample data for demonstration purposes.
+        </div>
+        <div class="cta">
+            <a href="../recruitment_case_study.html">Read Full Case Study</a>
+        </div>
+    </section>
+    <script>
+        var stageData = [{
+            x: ['Sourcing','Screening','Interviewing','Offer','Acceptance'],
+            y: [10,7,15,5,4],
+            type: 'bar'
+        }];
+        var stageLayout = {
+            margin: {t: 30},
+            xaxis: {title: 'Funnel Stage'},
+            yaxis: {title: 'Average Days'},
+        };
+        Plotly.newPlot('stage-chart', stageData, stageLayout);
+
+        var trendData = [{
+            x: ['Month 1','Month 2','Month 3','Month 4','Month 5','Month 6'],
+            y: [55,52,47,45,42,40],
+            type: 'scatter',
+            mode: 'lines+markers'
+        }];
+        var trendLayout = {
+            margin: {t: 30},
+            xaxis: {title: 'Month'},
+            yaxis: {title: 'Average Time‑to‑Hire (days)'},
+        };
+        Plotly.newPlot('trend-chart', trendData, trendLayout);
+    </script>
+</body>
+</html>
