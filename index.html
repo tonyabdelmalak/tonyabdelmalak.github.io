@@ -911,7 +911,21 @@ let messages = [ { role: 'system', content: PERSONA } ];
     });
   </script>
 
-  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ensure the 90‑Day Attrition card links to the prescriptive dashboard
+    document
+      .querySelectorAll('#featured-case-studies .cta-buttons a')
+      .forEach(function(a) {
+        if (a.getAttribute('href') === 'interactive_cases_refined/attrition_case.html') {
+          a.setAttribute(
+            'href',
+            'interactive_cases_refined/prescriptive_attrition_case.html'
+          );
+        }
+      });
+  });
+</script>
 
 </body>
 </html>
