@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI‑Powered Attrition Model Dashboard</title>
+  <!-- Include Plotly for interactive charts -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    /* Maintain a consistent look and feel with the other dashboards */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background: #f8f9fa;
+      color: #333;
+    }
+    h1 {
+      color: #1a2f58;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    .insight {
+      background: #1a2f58;
+      color: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 1.1em;
+      margin-top: 20px;
+    }
+    .footnote {
+      font-style: italic;
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Case Study: AI‑Powered Attrition Model</h1>
+  <p>
+    This dashboard showcases a predictive model trained on synthetic HR data. The scatter
+    plot illustrates employees’ attrition risk against monthly income and job
+    satisfaction. The bar chart ranks feature importance based on model coefficients.
+  </p>
+
+  <div class="card">
+    <h2>Attrition Risk by Monthly Income &amp; Satisfaction</h2>
+    <div id="attrition-scatter"></div>
+    <p class="footnote">*Marker size reflects years at company. Points are colored by overtime status.</p>
+    <div class="insight">Key insight: Employees working overtime with low satisfaction and lower income show the highest attrition risk.</div>
+  </div>
+
+  <div class="card">
+    <h2>Top Feature Importance</h2>
+    <div id="importance-bar"></div>
+    <p class="footnote">*Importance values are normalized absolute coefficients from a logistic regression model.</p>
+  </div>
+
+  <script>
+    // Synthetic data for the attrition scatter plot
+    var scatterData = {
+      x: [3000, 4200, 5000, 3500, 4800, 5200, 6000, 4100, 3000, 6200, 2800, 4700],
+      y: [0.20, 0.15, 0.05, 0.30, 0.10, 0.08, 0.12, 0.25, 0.32, 0.05, 0.35, 0.20],
+      text: [
+        'Low satisfaction',
+        'Medium satisfaction',
+        'High satisfaction',
+        'Low satisfaction',
+        'Medium satisfaction',
+        'High satisfaction',
+        'High satisfaction',
+        'Low satisfaction',
+        'Low satisfaction',
+        'High satisfaction',
+        'Low satisfaction',
+        'Medium satisfaction'
+      ],
+      mode: 'markers',
+      marker: {
+        size: [5, 7, 6, 8, 5, 7, 7, 9, 4, 6, 9, 5],
+        color: [
+          '#1a2f58',
+          '#008080',
+          '#008080',
+          '#1a2f58',
+          '#008080',
+          '#1a2f58',
+          '#008080',
+          '#1a2f58',
+          '#1a2f58',
+          '#1a2f58',
+          '#008080',
+          '#1a2f58'
+        ],
+        opacity: 0.8
+      }
+    };
+    var scatterLayout = {
+      margin: { t: 30 },
+      xaxis: { title: 'Monthly Income ($)' },
+      yaxis: { title: 'Predicted Attrition Risk' }
+    };
+    Plotly.newPlot('attrition-scatter', [scatterData], scatterLayout);
+
+    // Feature importance bar chart data
+    var importanceData = {
+      x: ['OverTime', 'Job Satisfaction', 'Monthly Income', 'Years at Company', 'Environment Satisfaction', 'Age'],
+      y: [0.35, 0.25, 0.15, 0.12, 0.08, 0.05],
+      type: 'bar',
+      marker: { color: '#149ddd' }
+    };
+    var importanceLayout = {
+      margin: { t: 30 },
+      xaxis: { title: 'Feature' },
+      yaxis: { title: 'Relative Importance' }
+    };
+    Plotly.newPlot('importance-bar', [importanceData], importanceLayout);
+  </script>
+</body>
+</html>
