@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Recruitment Funnel Analytics Dashboard</title>
+  <!-- Load Plotly for interactive charts -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    /* Basic styling similar to other case study pages */
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    h1 {
+      color: #1a2f58;
+    }
+    .card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+    .insight {
+      background-color: #1a2f58;
+      color: #fff;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 1.1em;
+      margin-top: 20px;
+    }
+    .footnote {
+      font-style: italic;
+      font-size: 0.9em;
+      margin-top: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive Case Study: Recruitment Funnel Analytics</h1>
+  <p>This dashboard demonstrates how candidates move through the recruitment funnel. The bar chart shows the number of candidates at each stage, and the line chart displays the conversion rate between stages.</p>
+
+  <div class="card">
+    <h2>Candidate Counts by Stage</h2>
+    <div id="funnel-chart"></div>
+    <p class="footnote">*Stages include Application, Phone Screen, Interview, Offer and Hire.</p>
+    <div class="insight">
+      Key insight: Most drop‑off occurs between the interview and offer stages. Streamlining interviews could improve conversion by 8 %.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Conversion Rate by Stage</h2>
+    <div id="conversion-chart"></div>
+    <p class="footnote">*Conversion rate is the percentage of candidates who progress to the next stage.</p>
+  </div>
+
+  <script>
+    // Data for candidate counts by stage
+    var stageData = {
+      x: ['Application', 'Phone Screen', 'Interview', 'Offer', 'Hire'],
+      y: [200, 120, 80, 50, 30],
+      type: 'bar',
+      marker: {
+        color: ['#1e3a8a', '#149ddd', '#14b8a6', '#f59e0b', '#ec4899']
+      }
+    };
+    var stageLayout = {
+      margin: { t: 30 },
+      xaxis: { title: 'Recruitment Stage' },
+      yaxis: { title: 'Number of Candidates' }
+    };
+    Plotly.newPlot('funnel-chart', [stageData], stageLayout);
+
+    // Data for conversion rates between stages (in percentage)
+    var convData = {
+      x: [
+        'Application→Screen',
+        'Screen→Interview',
+        'Interview→Offer',
+        'Offer→Hire'
+      ],
+      y: [60, 67, 62, 60],
+      type: 'scatter',
+      mode: 'lines+markers',
+      marker: { color: '#e11d48' }
+    };
+    var convLayout = {
+      margin: { t: 30 },
+      xaxis: { title: 'Stage Transition' },
+      yaxis: { title: 'Conversion Rate (%)' }
+    };
+    Plotly.newPlot('conversion-chart', [convData], convLayout);
+  </script>
+</body>
+</html>
