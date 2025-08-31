@@ -3,26 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <title>Customer Satisfaction</title>
-<<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-body {font-family: Arial, sans-serif; margin:20px; background-color:#f8f9fa; color:#333;}
-h1 {color:#1a2f58;}
-.card {background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px; margin-bottom:20px;}
-.footnote {font-size:12px; font-style:italic; margin-top:10px;}
-.insight {background-color:#1a2f58; color:#fff; padding:10px; border-radius:8px; margin-top:20px;}
+
+<!-- Load Plotly.js -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<!-- Page Styles -->
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+
+  h1 {
+    color: #1a2f58;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .footnote {
+    font-size: 12px;
+    font-style: italic;
+    margin-top: 10px;
+  }
+
+  .insight {
+    background-color: #1a2f58;
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+  }
 </style>
 </head>
+
 <body>
 <h1>Interactive Case Study: Customer Satisfaction</h1>
 <p>This dashboard explores average satisfaction scores per intent. Higher values indicate better customer sentiment.</p>
+
 <div class="card">
-<div id="chart"></div>
-<div class="footnote">* Satisfaction scores are on a 1-5 scale.</div>
+  <div id="chart"></div>
+  <div class="footnote">* Satisfaction scores are on a 1–5 scale.</div>
 </div>
-<div class="insight">Key Insight: Feedback and Technical Support show higher satisfaction levels than Billing or Cancellation.</div>
+
+<div class="insight">
+  Key Insight: Feedback and Technical Support show higher satisfaction levels than Billing or Cancellation.
+</div>
+
+<!-- Plotting Script -->
 <script>
-var data=[{x:['Billing','Cancellation','Feedback','Order Status','Other','Technical Support'], y:[2.3,2.7,3.4,2.8,2.5,3.5], type:'bar', marker:{color:'#008080'}}];
-var layout={title:'Average Satisfaction by Intent', xaxis:{title:'Intent'}, yaxis:{title:'Average Satisfaction', range:[1,5]}};
-Plotly.newPlot('chart', data, layout);
+  var data = [
+    {
+      x: ['Billing', 'Cancellation', 'Feedback', 'Order Status', 'Other', 'Technical Support'],
+      y: [2.3, 2.7, 3.4, 2.8, 2.5, 3.5],
+      type: 'bar',
+      marker: { color: '#008080' }
+    }
+  ];
+
+  var layout = {
+    title: 'Average Satisfaction by Intent',
+    xaxis: { title: 'Intent' },
+    yaxis: { title: 'Average Satisfaction', range: [1, 5] }
+  };
+
+  Plotly.newPlot('chart', data, layout);
 </script>
 </body>
 </html>
