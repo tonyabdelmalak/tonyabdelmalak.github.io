@@ -313,19 +313,20 @@ case-study
     #projects-track {
       padding-left: 0.25rem;
     }
-    .carousel-card {
-      flex: 0 0 280px;
-      margin-right: 1rem;
-      scroll-snap-align: start;
-              display: flex;
-        flex-direction: column;
-      background: #fff;
-      border-left: 4px solid var(--primary-color);
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      transition: transform 0.2s ease;
-    }
+.carousel-card {
+  flex: 0 0 280px;
+  margin-right: 1rem;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+  border-left: 4px solid var(--primary-color);
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
     .carousel-card:hover {
       transform: translateY(-5px);
     }
