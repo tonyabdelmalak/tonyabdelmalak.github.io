@@ -63,30 +63,21 @@
     removeDuplicateChat();
     const toggle   = document.getElementById('hf-chat-toggle');
     const container = document.getElementById('hf-chat-container');
-    const form     = document.getElementById('hf-chat-form');
     const input    = document.getElementById('hf-input');
     const sendBtn  = document.getElementById('hf-send-btn');
-    if (!toggle || !container || !form || !input || !sendBtn) {
+    if (!toggle || !container || !input || !sendBtn) {
       console.error('[chat] missing DOM elements');
       return;
     }
     toggle.addEventListener('click', () => {
-      if (container.style.display === 'none' || !container.style.display) {
-        container.style.display = 'flex';
-      } else {
-        container.style.display = 'none';
-      }
-    });
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      sendMessage();
+      container.style.display = (container.style.display === 'none' || !container.style.display) ? 'flex' : 'none';
     });
     sendBtn.addEventListener('click', (e) => {
       e.preventDefault();
       sendMessage();
     });
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter') {
         e.preventDefault();
         sendMessage();
       }
