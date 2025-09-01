@@ -890,7 +890,7 @@ let messages = [ { role: 'system', content: PERSONA } ];
     input.value = '';
     messages.push({ role: 'user', content: msg });
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat-proxy',{-
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
