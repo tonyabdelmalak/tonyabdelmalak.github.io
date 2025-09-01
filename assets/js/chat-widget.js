@@ -26,9 +26,9 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  cconst MODEL = 'llama3-8b-8192';
+  const MODEL = 'llama3-8b-8192';
   const messages = [];
-  cconst proxyUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
+  const proxyUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
 
   async function sendMessage() {
     const input = document.getElementById('hf-input');
