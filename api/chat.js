@@ -105,6 +105,20 @@ export default async function handler(req, res) {
         ],
       });
     }
+        // Guard against missing API key; return a friendly message instead of error
+    if (!process.env.GROQ_API_KEY) {
+      return res.status(200).json({
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'Sorry, the assistant is not available at the moment.',
+            },
+          },
+        ],
+      });
+    }
+
 const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
