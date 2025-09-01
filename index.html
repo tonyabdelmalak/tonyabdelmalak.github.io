@@ -817,19 +817,22 @@ font-weight: 600;
   </script>
 
   <!-- Chat markup -->
-  <div id="hf-chat-wrapper">
-    <div id="hf-chat-toggle"></div>
-    <div id="hf-chat-label">Chat with Tony</div>
+<div id="hf-chat-wrapper">
+  <div id="hf-chat-toggle"></div>
+  <div id="hf-chat-label">Chat with Tony</div>
+</div>
+<div id="hf-chat-container">
+  <div id="hf-conversation"></div>
+  <div id="hf-input-row">
+    <input id="hf-input" type="text" placeholder="Type a question..." />
+    <button id="hf-send-btn" class="hf-btn">Send</button>
   </div>
-  <div id="hf-chat-container">
-    <div id="hf-conversation"></div>
-    <div id="hf-input-row">
-      <input id="hf-input" type="text" placeholder="Type a question..." />
-      <button id="hf-send-btn" class="hf-btn">Send</button>
-    </div>
-  </div>
+</div>
 
-  <!-- Persona and chat logic -->
+<!-- Load the external chat widget -->
+<script src="/assets/js/chat-widget.js" defer></script>
+
+<!-- Persona and chat logic -->
   <script>
 const PERSONA = `You are: a friendly, concise website concierge and code assistant for tonyabdelmalak.github.io.
 
