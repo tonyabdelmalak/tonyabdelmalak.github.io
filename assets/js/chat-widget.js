@@ -2,7 +2,7 @@
    Deduplicates the chat DOM, sends messages to the Vercel proxy, and renders replies.
 */
 (function() {
-  // Remove duplicate widget instances
+  // Remove any duplicate widget instances
   function removeDuplicateChat() {
     const kill = (sel) => {
       const nodes = document.querySelectorAll(sel);
@@ -28,7 +28,8 @@
 
   const MODEL = 'llama3-8b-8192';
   const messages = [];
-  const proxyUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
+  // Call your Vercel API (which implements /api/chat) directly
+  const apiUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat';
 
   async function sendMessage() {
     const input = document.getElementById('hf-input');
@@ -38,10 +39,15 @@
     messages.push({ role: 'user', content: msg });
     input.value = '';
     try {
-      const response = await fetch(proxyUrl, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, model: MODEL, max_tokens: 300, temperature: 0.7 }),
+        body: JSON.stringify({
+          messages,
+          model: MODEL,
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
       });
       if (!response.ok) throw new Error('HTTP ' + response.status);
       const data = await response.json();
@@ -55,11 +61,11 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     removeDuplicateChat();
-    const toggle = document.getElementById('hf-chat-toggle');
+    const toggle   = document.getElementById('hf-chat-toggle');
     const container = document.getElementById('hf-chat-container');
-    const form = document.getElementById('hf-chat-form');
-    const input = document.getElementById('hf-input');
-    const sendBtn = document.getElementById('hf-send-btn');
+    const form     = document.getElementById('hf-chat-form');
+    const input    = document.getElementById('hf-input');
+    const sendBtn  = document.getElementById('hf-send-btn');
     if (!toggle || !container || !form || !input || !sendBtn) {
       console.error('[chat] missing DOM elements');
       return;
