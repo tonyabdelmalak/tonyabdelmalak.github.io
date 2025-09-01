@@ -28,7 +28,7 @@
 
   const MODEL = 'gpt-3.5-turbo';
   const messages = [];
-  const proxyUrl = 'https://tonyabdelmalak-github' +'io.vercel.app/api/chat-proxy';
+  const proxyUr'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
 
   async function sendMessage() {
     const input = document.getElementById('hf-input');
