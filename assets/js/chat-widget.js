@@ -26,9 +26,9 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  const MODEL = 'gpt-3.5-turbo';
+  cconst MODEL = 'llama3-8b-8192';
   const messages = [];
-  const proxyUr'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
+  cconst proxyUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy';
 
   async function sendMessage() {
     const input = document.getElementById('hf-input');
