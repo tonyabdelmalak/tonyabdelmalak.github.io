@@ -1,81 +1,101 @@
 /*
  Chat widget script for Tony Abdelmalak's website.
- Rewritten to use a proxy base URL from a JSON config (#hf-chat-config).
- It attaches listeners after DOM load, opens/closes the chat panel,
- sends messages to the proxy, and renders replies.
+ Updated to send messages and maintain persona context via proxy.
 */
 
-(function () {
+(function() {
+  const PERSONA = `You are: a friendly, concise website concierge and code assistant for tonyabdelmalak.github.io.
+
+Primary goals (in order):
+- Hold short, natural conversations that highlight Tony’s background, career pivot, and goals.
+- Share insights about projects and skills in a way that feels like a real chat.
+- Ask at most one smart follow‑up question.
+- When asked for technical help, output code snippets (HTML/CSS/JS) with clear instructions.
+
+Tone & style:
+- Conversational, approachable, professional.
+- Max 60 words per reply (unless producing code).
+- Use short sentences and bullets to avoid heavy blocks of text.
+- Always centre on Tony’s expertise, pivot to AI/HR analytics, and career story.
+
+Hard rules:
+- Replies ≤ 60 words.
+- Use bullets when possible.
+- When producing code:
+  - Add a 1‑line comment explaining purpose.
+  - Show exactly where to paste it.
+  - Keep snippets small and functional.
+- Use [REDACTED] for secrets.
+- If unsure, state assumptions and continue.
+
+Follow‑up behaviour:
+- Only ask one clarifying question if it improves the response.
+- If unnecessary, skip and suggest two or three quick reply options.
+
+When asked for code:
+- Output the JSON schema below.
+- Include HTML/CSS/JS snippets that are paste‑ready.
+- Specify the insertion point (e.g. “bottom of body”).
+
+Background context:
+Tony Abdelmalak is a People & Business Insights Analyst with a solid foundation in HR through experience at NBCU, HBO, Sony and Quibi.  He pivoted into AI‑driven analytics, using tools like Tableau, SQL and Python to transform workforce and business data into executive‑ready insights.  Tony built HR dashboards (e.g. turnover analysis, early turnover segmentation) and workforce planning models that reduced hiring gaps by 20% and cut overtime costs.  He now blends HR expertise with data science to help organizations make smarter decisions and aims to lead AI initiatives in HR analytics.`;
+
+  const MODEL = 'gpt-3.5-turbo';
+  let messages = [ { role: 'system', content: PERSONA } ];
+
   function $id(id) { return document.getElementById(id); }
 
-  function readConfig() {
+  function appendMessage(sender, text) {
+    const p = document.createElement('p');
+    p.innerHTML = '<strong>' + sender + ':</strong> ' + text;
+    const conversation = $id('hf-conversation');
+    conversation.appendChild(p);
+    conversation.scrollTop = conversation.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const input = $id('hf-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+    appendMessage('You', msg);
+    input.value = '';
+    messages.push({ role: 'user', content: msg });
     try {
-      const raw = document.getElementById('hf-chat-config')?.textContent || '{}';
-      return JSON.parse(raw);
-    } catch (e) {
-      console.error('[chat] bad config JSON', e);
-      return {};
+      const response = await fetch('https://tonyabdelmalak-github-io.vercel.app/api/chat-proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: messages,
+          model: MODEL,
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content?.trim() || '';
+      appendMessage('Agent', reply);
+      messages.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      appendMessage('Agent', 'Error: ' + err.message);
     }
   }
 
   function init() {
-    const wrapper = $id('hf-chat-wrapper');
-    const toggle  = $id('hf-chat-toggle');
-    const panel   = $id('hf-chat-container');
-    const form    = $id('hf-chat-form');
-    const input   = $id('hf-input');
-    const log     = $id('hf-conversation');
-    if (!wrapper || !toggle || !panel || !form || !input || !log) {
-      console.error('[chat] missing one or more widget elements');
+    const chatToggle = $id('hf-chat-toggle');
+    const chatContainer = $id('hf-chat-container');
+    const sendBtn = $id('hf-send-btn');
+    const input = $id('hf-input');
+    if (!chatToggle || !chatContainer || !sendBtn || !input) {
+      console.error('[chat] missing elements');
       return;
     }
-
-    // Open/close panel on toggle click
-    toggle.addEventListener('click', function () {
-      const open = panel.style.display !== 'none';
-      panel.style.display = open ? 'none' : 'block';
+    chatToggle.addEventListener('click', () => {
+      chatContainer.style.display = chatContainer.style.display === 'flex' ? 'none' : 'flex';
     });
-
-    const cfg  = readConfig();
-    const BASE = (cfg.proxyBaseUrl || 'https://reflectiv-agent.onrender.com').replace(/\/+$/, '');
-
-    function say(role, text) {
-      const div = document.createElement('div');
-      div.style.margin = '6px 0';
-      div.textContent = role === 'user' ? `You: ${text}` : text;
-      log.appendChild(div);
-      log.scrollTop = log.scrollHeight;
-    }
-
-    async function sendToProxy(message) {
-      const res = await fetch(`${BASE}/chat`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ message })
-      });
-      if (!res.ok) throw new Error(`Proxy ${res.status}`);
-      return res.json();
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
-      say('user', text);
-      const btn = form.querySelector('button[type="submit"]');
-      if (btn) btn.disabled = true;
-      try {
-        const data = await sendToProxy(text);
-        const reply = data?.reply || data?.choices?.[0]?.message?.content || '[no reply]';
-        say('ai', reply);
-      } catch (err) {
-        console.error(err);
-        say('ai', 'Sorry—cannot reach the server.');
-      } finally {
-        if (btn) btn.disabled = false;
-        input.focus();
-      }
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') sendMessage();
     });
   }
 
