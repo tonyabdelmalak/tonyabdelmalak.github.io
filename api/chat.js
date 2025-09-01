@@ -92,7 +92,20 @@ export default async function handler(req, res) {
     }
 
     // Otherwise, forward the request to Groq with all messages
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    
+        if (!process.env.GROQ_API_KEY) {
+      return res.status(200).json({
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: 'Sorry, the assistant is not available at the moment.',
+            },
+          },
+        ],
+      });
+    }
+const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
