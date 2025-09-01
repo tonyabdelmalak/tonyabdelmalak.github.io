@@ -1,5 +1,5 @@
 /* Chat widget script for Tony Abdelmalak's website.
-   Deduplicates the chat DOM, sends messages to the Vercel proxy, and renders replies.
+   Deduplicates the chat DOM, uses local responses for demonstration, and renders replies.
 */
 (function() {
   // Remove any duplicate widget instances
@@ -26,10 +26,34 @@
     log.scrollTop = log.scrollHeight;
   }
 
-  const MODEL = 'llama3-8b-8192';
+  // Local response generator
+  function getLocalResponse(message) {
+    const text = message.toLowerCase();
+    if (text.includes('attrition')) {
+      return 'Attrition refers to employees leaving the company. It is measured as the percentage of departing employees relative to the total workforce over a period.';
+    }
+    if (text.includes('ticket') && text.includes('sales')) {
+      return 'Ticket sales represent revenue from ticket purchases; analyzing them helps forecast demand and guide marketing.';
+    }
+    if (text.includes('pivot')) {
+      return 'A pivot is a significant change in business strategy to test a new approach.';
+    }
+    if (text.includes('forecast')) {
+      return 'A forecast is an estimate of future outcomes based on historical data and assumptions.';
+    }
+    if (text.includes('tell me about yourself') || text.includes('who are you') || text.includes('what is your name')) {
+      return "I am Tony's AI assistant, designed to answer your questions and provide insights.";
+    }
+    if (text.includes('where are you from') || text.includes('what is your origin')) {
+      return 'As an AI, I don\'t have a physical location, but I\'m here to assist you online.';
+    }
+    if (text.includes('personal') || text.includes('are you real')) {
+      return 'I am a software program created to provide information; I do not have personal experiences.';
+    }
+    return "I'm sorry, I do not have an answer to that question right now.";
+  }
+
   const messages = [];
-  // Call your Vercel API (which implements /api/chat) directly
-  const apiUrl = 'https://tonyabdelmalak-github-io.vercel.app/api/chat';
 
   async function sendMessage() {
     const input = document.getElementById('hf-input');
@@ -38,25 +62,9 @@
     appendMessage('user', msg);
     messages.push({ role: 'user', content: msg });
     input.value = '';
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages,
-          model: MODEL,
-          max_tokens: 300,
-          temperature: 0.7,
-        }),
-      });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      const data = await response.json();
-      const reply = data.choices?.[0]?.message?.content?.trim() || '';
-      appendMessage('ai', reply);
-      messages.push({ role: 'assistant', content: reply });
-    } catch (err) {
-      appendMessage('ai', 'Error: ' + err.message);
-    }
+    const reply = getLocalResponse(msg);
+    appendMessage('ai', reply);
+    messages.push({ role: 'assistant', content: reply });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
