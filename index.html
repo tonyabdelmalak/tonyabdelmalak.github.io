@@ -834,23 +834,19 @@ font-weight: 600;
     });
   </script>
 
-    <!-- Chat widget -->
-    <div id="hf-chat-wrapper" style="position:fixed;right:16px;bottom:16px;z-index:2147483640;pointer-events:auto">
-      <button id="hf-chat-toggle" aria-label="Open chat" style="background:transparent;border:0;cursor:pointer">
-        <!-- Tony’s avatar for the chat button -->
-        <img src="assets/img/profile-img.jpg" alt="Chat" width="56" height="56" style="border-radius:50%;box-shadow:0 2px 12px rgba(0,0,0,.25)">
-      </button>
-      <div id="hf-chat-container" style="display:none;position:fixed;right:16px;bottom:88px;max-width:360px;width:clamp(280px,40vw,360px);max-height:60vh;overflow:auto">
-        <div id="hf-conversation" role="log" aria-live="polite" style="font-size:14px;line-height:1.4"></div>
-        <form id="hf-chat-form" style="display:flex;gap:8px;margin-top:8px">
-          <input id="hf-input" type="text" placeholder="Type a message…" required style="flex:1;padding:8px 10px;border:1px solid #ddd;border-radius:8px">
-          <button id="hf-send-btn" type="submit" class="hf-btn" style="padding:8px 12px">Send</button>
-        </form>
-      </div>
+  <!-- Chat widget -->
+<div id="hf-chat-wrapper">
+  <div id="hf-chat-toggle">
+    <img src="assets/img/profile-img.jpg" alt="Tony Avatar">
+  </div>
+  <div id="hf-chat-label">Chat with Tony</div>
+  <div id="hf-chat-container">
+    <div id="hf-conversation"></div>
+    <div id="hf-input-row">
+      <input id="hf-input" type="text" placeholder="Type a question...">
+      <button id="hf-send-btn">Send</button>
     </div>
-
-    <!-- Load the chat widget logic -->
-    <script src="assets/js/chat-widget.js" defer></script>
-
-</body>
+  </div>
+</div
+<script src="assets/js/chat-widget.js"></script
 </html>
