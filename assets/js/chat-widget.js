@@ -1,91 +1,87 @@
 /*
  Chat widget script for Tony Abdelmalak's website.
- Restores functionality and uses Vercel proxy.
+ Rewritten to use a proxy base URL from a JSON config (#hf-chat-config).
+ It attaches listeners after DOM load, opens/closes the chat panel,
+ sends messages to the proxy, and renders replies.
 */
 
-(function() {
-  // Remove duplicate instances of the widget to avoid conflicting handlers
-  function removeDuplicateChat() {
-    const kill = (sel) => {
-      const nodes = document.querySelectorAll(sel);
-      nodes.forEach((n, i) => {
-        if (i > 0) n.remove();
-      });
-    };
-    kill('#hf-chat-wrapper');
-    kill('#hf-chat-toggle');
-    kill('#hf-chat-container');
+(function () {
+  function $id(id) { return document.getElementById(id); }
+
+  function readConfig() {
+    try {
+      const raw = document.getElementById('hf-chat-config')?.textContent || '{}';
+      return JSON.parse(raw);
+    } catch (e) {
+      console.error('[chat] bad config JSON', e);
+      return {};
+    }
   }
 
-  // Append a message to the conversation log
-  function appendMessage(sender, text) {
-    const log = document.getElementById('hf-conversation');
-    if (!log) return;
-    const div = document.createElement('div');
-    div.innerHTML = `<strong>${sender}:</strong> ${text}`;
-    log.appendChild(div);
-    log.scrollTop = log.scrollHeight;
-  }
-
-  const MODEL = 'gpt-3.5-turbo';
-  const messages = [];
-
-  document.addEventListener('DOMContentLoaded', function() {
-    removeDuplicateChat();
-    const toggle = document.getElementById('hf-chat-toggle');
-    const container = document.getElementById('hf-chat-container');
-    const conversation = document.getElementById('hf-conversation');
-    const form = document.getElementById('hf-chat-form');
-    const input = document.getElementById('hf-input');
-    const sendBtn = document.getElementById('hf-send-btn');
-    if (!toggle || !container || !conversation || !form || !input || !sendBtn) return;
-
-    // Toggle chat open/close
-    toggle.addEventListener('click', () => {
-      const isOpen = container.style.display !== 'none' && container.style.display !== '';
-      container.style.display = isOpen ? 'none' : 'block';
-    });
-
-    async function sendMessage() {
-      const msg = input.value.trim();
-      if (!msg) return;
-      appendMessage('You', msg);
-      messages.push({ role: 'user', content: msg });
-      input.value = '';
-      try {
-        // Concatenate string to avoid automatic line breaks in minification
-        const proxyUrl = 'https://tonyabdelmalak-github-' + 'io.vercel.app/api/chat-proxy';
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ messages, model: MODEL, max_tokens: 300, temperature: 0.7 })
-        });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
-        const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content?.trim() || '';
-        appendMessage('Agent', reply);
-        messages.push({ role: 'assistant', content: reply });
-      } catch (err) {
-        appendMessage('Agent', 'Error: ' + err.message);
-      }
+  function init() {
+    const wrapper = $id('hf-chat-wrapper');
+    const toggle  = $id('hf-chat-toggle');
+    const panel   = $id('hf-chat-container');
+    const form    = $id('hf-chat-form');
+    const input   = $id('hf-input');
+    const log     = $id('hf-conversation');
+    if (!wrapper || !toggle || !panel || !form || !input || !log) {
+      console.error('[chat] missing one or more widget elements');
+      return;
     }
 
-    form.addEventListener('submit', function(e) {
+    // Open/close panel on toggle click
+    toggle.addEventListener('click', function () {
+      const open = panel.style.display !== 'none';
+      panel.style.display = open ? 'none' : 'block';
+    });
+
+    const cfg  = readConfig();
+    const BASE = (cfg.proxyBaseUrl || 'https://reflectiv-agent.onrender.com').replace(/\/\+$/, '');
+
+    function say(role, text) {
+      const div = document.createElement('div');
+      div.style.margin = '6px 0';
+      div.textContent = role === 'user' ? `You: ${text}` : text;
+      log.appendChild(div);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function sendToProxy(message) {
+      const res = await fetch(`${BASE}/chat`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      if (!res.ok) throw new Error(`Proxy ${res.status}`);
+      return res.json();
+    }
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      sendMessage();
-    });
-
-    sendBtn.addEventListener('click', function() {
-      sendMessage();
-    });
-
-    input.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      say('user', text);
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      try {
+        const data = await sendToProxy(text);
+        const reply = data?.reply || data?.choices?.[0]?.message?.content || '[no reply]';
+        say('ai', reply);
+      } catch (err) {
+        console.error(err);
+        say('ai', 'Sorry—cannot reach the server.');
+      } finally {
+        if (btn) btn.disabled = false;
+        input.focus();
       }
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
