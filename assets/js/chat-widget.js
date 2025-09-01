@@ -73,6 +73,7 @@
     const container = document.getElementById('hf-chat-container');
     const input    = document.getElementById('hf-input');
     const sendBtn  = document.getElementById('hf-send-btn');
+       container.style.display = 'flex';
     if (!toggle || !container || !input || !sendBtn) {
       console.error('[chat] missing DOM elements');
       return;
