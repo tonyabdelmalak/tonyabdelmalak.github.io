@@ -12,7 +12,7 @@ export default {
     }
 
     if (url.pathname === '/chat' && request.method === 'POST') {
-      if (!env.API_KEY) {
+      if (!env.GROQ_API_KEY) {
         return json({ error: 'Missing API_KEY' }, 500, request);
       }
       try {
@@ -25,7 +25,7 @@ export default {
         const upstream = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${env.API_KEY}`,
+            'Authorization': `Bearer ${env.GROQ_API_KEY}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ model, messages, temperature, max_tokens, stream: false })
