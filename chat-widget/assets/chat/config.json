@@ -1,0 +1,12 @@
+{
+  "proxyUrl": "",
+  "systemPrompt": "See /assets/chat/system.md",
+  "title": "Ask Tony\u2019s Copilot",
+  "greeting": "How can I help you explore Tony\u2019s journey, dashboards, or career?",
+  "brand": {
+    "accent": "AUTO",
+    "radius": "12px"
+  },
+  "rateLimit": 10,
+  "model": "llama-3.1-8b-instant"
+}
