@@ -854,16 +854,19 @@ font-weight: 600;
     -->
     
       <!-- Tony’s Copilot widget -->
-  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
-  <script src="/chat-widget/assets/chat/widget.js" defer></script>
-  <script>
+<link rel="stylesheet" href="chat-widget/assets/chat/widget.css?v=1">
+<script src="chat-widget/assets/chat/widget.js?v=1" defer></script>
+<script>
+  window.addEventListener('load', () => {
     window.TonyChatWidget?.init({
       mode: "floating",
       position: "bottom-right",
-      avatar: "/assets/img/profile-img.jpg",
-      configPath: "/chat-widget/assets/chat/config.json",
-      systemPath: "/chat-widget/assets/chat/system.md"
+      avatar: "assets/img/profile-img.jpg",
+      configPath: "chat-widget/assets/chat/config.json?v=1",
+      systemPath: "chat-widget/assets/chat/system.md?v=1"
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>
