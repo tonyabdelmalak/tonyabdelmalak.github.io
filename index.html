@@ -839,36 +839,32 @@ font-weight: 600;
     });
   </script>
 
-  <!-- Chat widget 
- <div id="hf-chat-wrapper">
-  <div id="hf-chat-toggle">
-    <img src="assets/img/profile-img.jpg" alt="Tony Avatar">
-  </div>
-  <div id="hf-chat-label">Chat with Tony</div>
-  <div id="hf-chat-container style="display:flex;"">
-    <div id="hf-conversation"></div>
-    <div id="hf-input-row">
-      <input id="hf-input" type="text" placeholder="Type a question...">
-      <button id="hf-send-btn">Send</button>
-    </div>
-  </div>
-</div
-<script src="assets/js/chat-widget.js"></script
-  <script src="assets/js/chat-widget-v2.js?buster=1"></script> 
-    -->
-    
-      <!-- Copilot widget -->
-<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=3">
-<script defer src="/chat-widget/assets/chat/widget.js?v=3"></script>
+  <!-- === Copilot widget (single source of truth) === -->
+<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=2" />
+
+<style>
+  /* Make sure the launcher is always visible above page content */
+  .copilot-launch,
+  .copilot-panel {
+    z-index: 2147483000 !important;
+  }
+</style>
+
+<script defer src="/chat-widget/assets/chat/widget.js?v=2"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const widget = new CopilotWidget({
-      proxyUrl: 'https://my-chat-agent.tonyabdelmalak.workers.dev/chat',
-      avatar: '/assets/img/profile-img.jpg' // optional; remove if not needed
+    // Initialize Copilot
+    window.TonyChatWidget?.init({
+      mode: "floating",                 // floating launcher
+      position: "bottom-right",         // bottom-right corner
+      avatar: "/assets/img/profile-img.jpg",  // site-root absolute path
+      // config + system files (your persona & guardrails live here)
+      configPath: "/chat-widget/assets/chat/config.json?v=2",
+      systemPath: "/chat-widget/assets/chat/system.md?v=2"
     });
-    widget.init();
   });
 </script>
+<!-- === /Copilot widget === -->
 
 </body>
 </html>
