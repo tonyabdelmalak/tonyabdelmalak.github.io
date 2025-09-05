@@ -857,21 +857,18 @@ font-weight: 600;
   <script src="assets/js/chat-widget-v2.js?buster=1"></script> 
     -->
     
-      <!-- Tony’s Copilot widget -->
-<link rel="stylesheet" href="chat-widget/assets/chat/widget.css?v=1">
-<script src="chat-widget/assets/chat/widget.js?v=1" defer></script>
+      <!-- Copilot widget -->
+<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=3">
+<script defer src="/chat-widget/assets/chat/widget.js?v=3"></script>
 <script>
-  window.addEventListener('load', () => {
-    window.TonyChatWidget?.init({
-      mode: "floating",
-      position: "bottom-right",
-      avatar: "assets/img/profile-img.jpg",
-      configPath: "chat-widget/assets/chat/config.json?v=1",
-      systemPath: "chat-widget/assets/chat/system.md?v=1"
+  document.addEventListener('DOMContentLoaded', () => {
+    const widget = new CopilotWidget({
+      proxyUrl: 'https://my-chat-agent.tonyabdelmalak.workers.dev/chat',
+      avatar: '/assets/img/profile-img.jpg' // optional; remove if not needed
     });
+    widget.init();
   });
 </script>
-    
-<!-- trigger redeploy test -->
+
 </body>
 </html>
