@@ -11,9 +11,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Sanity check: prints the account and verifies token scopes
+      - name: Wrangler whoami
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # accountId is optional if in wrangler.toml, but harmless to keep:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: whoami
+
+      # Actual publish (verbose logs so we see the exact error if any)
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: publish
+          command: publish --verbose
