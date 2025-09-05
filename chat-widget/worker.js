@@ -1,67 +1,75 @@
-// Cloudflare Worker: health, CORS preflight, and /chat echo (or proxy if UPSTREAM_URL set)
+// chat-widget/worker.js
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request) {
     const url = new URL(request.url);
-    const { pathname } = url;
 
-    // 1) CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders() });
+    // Health check
+    if (url.pathname === "/health") {
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // 2) Health
-    if (pathname === '/health') {
-      return json({ ok: true });
+    // Handle CORS preflight
+    if (url.pathname === "/chat" && request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "content-type, authorization",
+        },
+      });
     }
 
-    // 3) Chat
-    if (pathname === '/chat' && request.method === 'POST') {
-      let body = {};
-      try { body = await request.json(); } catch (_) {}
+    // Chat endpoint
+    if (url.pathname === "/chat" && request.method === "POST") {
+      try {
+        const { system, message } = await request.json();
 
-      const msg = (body.message || '').toString();
+        if (!message) {
+          return new Response(
+            JSON.stringify({ error: "Missing message" }),
+            { status: 400 }
+          );
+        }
 
-      // Optional real proxying
-      if (env.UPSTREAM_URL) {
-        const upstreamRes = await fetch(env.UPSTREAM_URL, {
-          method: 'POST',
+        // --- Call the model ---
+        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            ...(env.UPSTREAM_AUTH ? { 'Authorization': env.UPSTREAM_AUTH } : {})
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // store in secret
           },
           body: JSON.stringify({
-            message: msg,
-            history: body.history || [],
-            system: body.system || ''
-          })
+            model: "gpt-4o-mini", // lightweight, fast
+            messages: [
+              { role: "system", content: system || "You are a helpful assistant." },
+              { role: "user", content: message },
+            ],
+            max_tokens: 200,
+          }),
         });
-        const data = await upstreamRes.json().catch(() => ({}));
-        return json(data);
+
+        const data = await resp.json();
+        const reply = data.choices?.[0]?.message?.content?.trim() || "…";
+
+        return new Response(JSON.stringify({ reply }), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ error: err.message }),
+          { status: 500 }
+        );
       }
-
-      // Default echo mode
-      return json({ reply: `You said: ${msg}` });
     }
 
-    // 4) Not found
-    return new Response('Not Found', { status: 404, headers: corsHeaders() });
-  }
+    return new Response("Not found", { status: 404 });
+  },
 };
-
-function corsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'content-type, authorization'
-  };
-}
-
-function json(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: {
-      ...corsHeaders(),
-      'Content-Type': 'application/json; charset=utf-8'
-    }
-  });
-}
