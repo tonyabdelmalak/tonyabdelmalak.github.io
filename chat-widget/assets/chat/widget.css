@@ -12,8 +12,11 @@
   background: #fff;
   font-family: Arial, sans-serif;
   font-size: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
   overflow: hidden;
+
+  /* 👇 keeps the widget above everything */
+  z-index: 2147483647; /* max-safe */
 }
 
 /* Header */
