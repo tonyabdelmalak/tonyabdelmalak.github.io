@@ -1,17 +1,99 @@
-:root{--tcw-accent:#4f46e5;--tcw-radius:12px;--tcw-text:#111827;--tcw-sub:#6b7280;--tcw-bg:#fff;--tcw-panel:#f8fafc}
-.tcw-launcher{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--tcw-accent);box-shadow:0 10px 24px rgba(0,0,0,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2147483000}
-.tcw-launcher img{width:32px;height:32px;border-radius:50%}
-.tcw-launcher span{color:#fff;font-size:22px}
-.tcw-panel{position:fixed;right:20px;bottom:90px;width:380px;max-width:calc(100vw - 40px);height:480px;background:var(--tcw-bg);border-radius:var(--tcw-radius);box-shadow:0 20px 40px rgba(0,0,0,.18);overflow:hidden;display:none;z-index:2147483001}
-.tcw-header{background:var(--tcw-panel);padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e5e7eb}
-.tcw-avatar{width:40px;height:40px;border-radius:50%;border:2px solid var(--tcw-accent);overflow:hidden}
-.tcw-title{font:600 16px/1.2 Inter,system-ui}
-.tcw-body{padding:14px 16px;height:calc(100% - 140px);overflow-y:auto}
-.tcw-greeting{color:var(--tcw-sub);margin-bottom:12px;font:14px/1.45 Inter,system-ui}
-.tcw-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.tcw-chip{background:var(--tcw-accent);color:#fff;padding:8px 12px;border-radius:999px;font:13px/1 Inter,system-ui;cursor:pointer}
-.tcw-msg{background:#f3f4f6;padding:10px 12px;border-radius:10px;margin:8px 0;font:14px/1.45 Inter,system-ui}
-.tcw-inputbar{display:flex;gap:8px;padding:10px 12px;border-top:1px solid #e5e7eb}
-.tcw-inputbar input{flex:1;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;font:14px/1.2 Inter,system-ui}
-.tcw-inputbar button{background:var(--tcw-accent);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-@media(max-width:480px){.tcw-panel{width:calc(100vw - 24px);right:12px;bottom:78px;height:70vh}}
+/* Container */
+.copilot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 320px;
+  max-height: 500px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.copilot-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+}
+.copilot-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+.copilot-title {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* Messages */
+.copilot-messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+.copilot-msg {
+  margin: 6px 0;
+}
+.copilot-msg.user {
+  text-align: right;
+  color: #111;
+}
+.copilot-msg.agent {
+  text-align: left;
+  color: #333;
+}
+
+/* Input bar */
+.copilot-input {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  background: #fff;
+}
+.copilot-input input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+}
+.copilot-input input:focus {
+  border-color: #4f46e5;
+}
+.copilot-input button {
+  margin-left: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.copilot-input button:hover {
+  background: #3730a3;
+}
+.copilot-input button:active {
+  transform: scale(0.95);
+}
+.copilot-input button::before {
+  content: "↑";
+  font-weight: bold;
+}
