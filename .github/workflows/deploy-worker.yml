@@ -11,19 +11,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Sanity check: prints the account and verifies token scopes
+      # Show what's in the repo and print wrangler.toml so we know what file Wrangler sees
+      - name: List files + show wrangler.toml
+        run: |
+          pwd
+          ls -la
+          echo "----- wrangler.toml -----"
+          cat wrangler.toml || true
+          echo "-------------------------"
+
+      # Sanity check creds: should print your account info or an explicit auth error
       - name: Wrangler whoami
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # accountId is optional if in wrangler.toml, but harmless to keep:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: whoami
 
-      # Actual publish (verbose logs so we see the exact error if any)
-      - name: Publish
+      # Publish with maximum verbosity; if it fails we'll see the real error text
+      - name: Publish (verbose)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: publish --verbose
+          command: publish --verbose --log-level debug
