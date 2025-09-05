@@ -42,3 +42,17 @@ function corsHeaders(req, extra = {}) {
     ...extra
   };
 }
+
+// Durable Object stub to satisfy existing binding
+export class Chat {
+  constructor(state, env) {
+    this.state = state;
+    this.env = env;
+  }
+  // Handle requests to the Durable Object
+  async fetch(request) {
+    // For now, respond with a simple OK. You can implement chat logic here later.
+    return new Response('OK', { status: 200, headers: { 'content-type': 'text/plain' } });
+  }
+}
+
