@@ -23,3 +23,27 @@ try{const root=D.documentElement;if(conf.brand?.accent)root.style.setProperty("-
 let open=false;function toggle(){open=!open;panel.style.display=open?"block":"none"} launcher.onclick=toggle;
 if(o.position==="bottom-left"){launcher.style.right="auto";launcher.style.left="20px";panel.style.right="auto";panel.style.left="20px";}
 };})();
+
+(function(){
+  function attach() {
+    const textarea = document.querySelector('.tcw-inputbar textarea');
+    const input = document.querySelector('.tcw-inputbar input');
+    const textElement = textarea || input;
+    const sendBtn = document.querySelector('.tcw-inputbar button');
+    if (textElement && sendBtn) {
+      textElement.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+      return true;
+    }
+    return false;
+  }
+  const interval = setInterval(() => {
+    if (attach()) {
+      clearInterval(interval);
+    }
+  }, 500);
+})();
