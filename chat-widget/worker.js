@@ -1,76 +1,67 @@
-// chat-widget/worker.js
+// Cloudflare Worker: health, CORS preflight, and /chat echo (or proxy if UPSTREAM_URL set)
 export default {
-  async fetch(req, env, ctx) {
-    const url = new URL(req.url);
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const { pathname } = url;
 
-    // CORS preflight
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    // 1) CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
-    // Health check
-    if (url.pathname === '/health') {
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { ...JSON_HEADERS, ...CORS_HEADERS },
-      });
+    // 2) Health
+    if (pathname === '/health') {
+      return json({ ok: true });
     }
 
-    // Chat endpoint
-    if (url.pathname === '/chat') {
-      if (req.method !== 'POST') {
-        return new Response('Method Not Allowed', {
-          status: 405,
-          headers: CORS_HEADERS,
+    // 3) Chat
+    if (pathname === '/chat' && request.method === 'POST') {
+      let body = {};
+      try { body = await request.json(); } catch (_) {}
+
+      const msg = (body.message || '').toString();
+
+      // Optional real proxying
+      if (env.UPSTREAM_URL) {
+        const upstreamRes = await fetch(env.UPSTREAM_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(env.UPSTREAM_AUTH ? { 'Authorization': env.UPSTREAM_AUTH } : {})
+          },
+          body: JSON.stringify({
+            message: msg,
+            history: body.history || [],
+            system: body.system || ''
+          })
         });
+        const data = await upstreamRes.json().catch(() => ({}));
+        return json(data);
       }
 
-      const upstream = env.UPSTREAM_URL; // optional secret
-      try {
-        if (upstream) {
-          // Proxy mode (optional)
-          const proxied = await fetch(upstream, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'text/plain',
-              ...(env.UPSTREAM_AUTH ? { Authorization: env.UPSTREAM_AUTH } : {}),
-            },
-            body: await req.text(),
-          });
-
-          return new Response(await proxied.text(), {
-            status: proxied.status,
-            headers: {
-              ...CORS_HEADERS,
-              'Content-Type': proxied.headers.get('content-type') || 'application/json',
-            },
-          });
-        } else {
-          // Echo mode (works without any external API)
-          const userText = (await req.text()).trim();
-          const reply = userText
-            ? `You said: ${userText}`
-            : 'Hi! Chat service is live (no upstream set).';
-          return new Response(JSON.stringify({ reply }), {
-            status: 200,
-            headers: { ...JSON_HEADERS, ...CORS_HEADERS },
-          });
-        }
-      } catch (err) {
-        return new Response(JSON.stringify({ error: 'Upstream error', detail: String(err) }), {
-          status: 502,
-          headers: { ...JSON_HEADERS, ...CORS_HEADERS },
-        });
-      }
+      // Default echo mode
+      return json({ reply: `You said: ${msg}` });
     }
 
-    return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
-  },
+    // 4) Not found
+    return new Response('Not Found', { status: 404, headers: corsHeaders() });
+  }
 };
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'content-type, authorization',
-};
-const JSON_HEADERS = { 'Content-Type': 'application/json' };
+function corsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'content-type, authorization'
+  };
+}
+
+function json(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: {
+      ...corsHeaders(),
+      'Content-Type': 'application/json; charset=utf-8'
+    }
+  });
+}
