@@ -1,3 +1,9 @@
 name = "my-chat-agent"
 main = "chat-widget/worker.js"
-compatibility_date = "2024-05-20"
+compatibility_date = "2024-10-01"
+workers_dev = true
+
+# Optional (set in Cloudflare Dashboard or Wrangler secrets if you want proxy mode):
+# [vars]
+# UPSTREAM_URL = "https://your-upstream.example.com/chat"
+# UPSTREAM_AUTH = "Bearer YOUR_TOKEN"
