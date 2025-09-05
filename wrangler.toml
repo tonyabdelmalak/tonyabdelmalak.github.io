@@ -1,3 +1,4 @@
 name = "my-chat-agent"
-main = "chat-widget/worker.js"
-compatibility_date = "2024-05-20"
+main = "chat-widget/updated_worker.js"
+compatibility_date = "2025-09-04"
+workers_dev = true
