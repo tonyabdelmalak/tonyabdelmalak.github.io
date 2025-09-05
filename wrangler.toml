@@ -4,3 +4,7 @@ compatibility_date = "2024-09-01"
 account_id = "59fea97fab54fbd4d4168ccaa1fa3410"
 workers_dev = true
 
+# Remove the old Durable Object class named "Chat"
+[[migrations]]
+tag = "remove-chat-do-1"
+deleted_classes = ["Chat"]
