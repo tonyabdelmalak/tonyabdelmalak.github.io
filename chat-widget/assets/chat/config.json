@@ -1,7 +1,10 @@
 {
   "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "title": "Ask Tony’s Copilot",
+  "title": "Copilot",
   "greeting": "How can I help you explore Tony’s journey, dashboards, or career?",
-  "brand": { "accent": "#4f46e5", "radius": "12px" },
+  "brand": {
+    "accent": "#4f46e5",
+    "radius": "12px"
+  },
   "rateLimit": 10
 }
