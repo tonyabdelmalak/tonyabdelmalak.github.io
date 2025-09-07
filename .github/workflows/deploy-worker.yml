@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Wrangler (v3)
         run: |
-          npm i -g wrangler@3
+          npm i -g wrangler@4
           wrangler --version
 
       - name: Wrangler whoami (CLI)
