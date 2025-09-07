@@ -1,1 +1,74 @@
+{
+  "basics": {
+    "name": "Tony Abdelmalak",
+    "title": "People & Business Insights Analyst",
+    "location": "Los Angeles, CA",
+    "summary": "HR → AI/People Analytics pivot. Builds dashboards and agentic tools that turn workforce data into decisions. Tableau/SQL/Python."
+  },
+  "experience": [
+    {
+      "company": "Roter (startup)",
+      "title": "People Operations Manager (sole HR)",
+      "start": "2022-05",
+      "end": "2025-02",
+      "context": "Equity-only role; led people analytics and HRIS automations."
+    },
+    {
+      "company": "Quibi",
+      "title": "Sr. People Operations (Founding team)",
+      "start": "2019-10",
+      "end": "2020-12",
+      "context": "Built HR org, hired 200+, implemented Workday."
+    },
+    {
+      "company": "Sony Pictures Entertainment",
+      "title": "HR Consultant",
+      "start": "2018-09",
+      "end": "2019-09",
+      "context": "One-year project engagement."
+    },
+    {
+      "company": "HBO",
+      "title": "Manager, Diversity Programs",
+      "start": "2016-06",
+      "end": "2018-08",
+      "context": "Launched automated HR processes; program operations."
+    },
+    {
+      "company": "NBCUniversal",
+      "title": "Recruiter",
+      "start": "2013-01",
+      "end": "2016-05",
+      "context": "Owned internships plus exempt/non-exempt hiring."
+    }
+  ],
+  "gaps": [
+    {
+      "from": "2020-12",
+      "to": "2021-06",
+      "label": "Transition & upskilling",
+      "explanation": "Post-Quibi wind-down; intensive Tableau/SQL/Python study; built analytics portfolio."
+    }
+  ],
+  "projects": [
+    {
+      "name": "Early Turnover Segmentation Dashboard",
+      "impact": "Reduced hiring gaps ~20% and lowered overtime costs.",
+      "tech": ["Tableau", "SQL", "Python"],
+      "url": "/dashboards/attrition"
+    },
+    {
+      "name": "Workforce Planning & Forecasting",
+      "impact": "Scenario planning for headcount and cost controls.",
+      "tech": ["Tableau", "SQL"],
+      "url": "/dashboards/forecast"
+    }
+  ],
+  "skills": {
+    "analytics": ["Tableau", "SQL", "Python"],
+    "hris_crm": ["Workday", "HubSpot", "Salesforce"],
+    "focus": ["People Analytics", "AI-enabled insights", "Automation"]
+  },
+  "contact_policy": "No private/sensitive info; refer to public pages."
+}
 
