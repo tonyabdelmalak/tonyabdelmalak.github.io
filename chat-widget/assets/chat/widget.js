@@ -206,4 +206,3 @@
     init: (opts) => Widget.init(opts)
   };
 })();
-
