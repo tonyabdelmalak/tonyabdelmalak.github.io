@@ -7,12 +7,23 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # Make your CF secrets available to all steps
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      # Optional, but useful for echo/debug. Keep if you created it as a secret.
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Just for visibility when debugging
-      - name: Show repo + wrangler.toml
+      - name: Setup Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Show repo + wrangler.toml (debug)
         run: |
           pwd
           ls -la
@@ -20,22 +31,17 @@ jobs:
           cat wrangler.toml || true
           echo "-------------------------"
 
-      - name: Install Wrangler (v3)
+      - name: Install Wrangler (v4)
         run: |
           npm i -g wrangler@4
           wrangler --version
 
       - name: Wrangler whoami (CLI)
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          echo "Account: $CLOUDFLARE_ACCOUNT_ID"
+          echo "Account (if provided): ${CLOUDFLARE_ACCOUNT_ID:-<none>}"
           wrangler whoami
 
-      - name: Publish via CLI
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Deploy Worker
         run: |
-          wrangler publish --config wrangler.toml
+          # v4 uses `deploy` (not `publish`)
+          wrangler deploy --verbose --config wrangler.toml
