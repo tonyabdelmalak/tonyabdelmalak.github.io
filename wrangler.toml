@@ -1,7 +1,7 @@
-name = "my-chat-agent"
-main = "chat-widget/worker.js"
-compatibility_date = "2024-09-01"
-account_id = "59fea97fab54fbd4d4168ccaa1fa3410"
+name = "tony-copilot"
+main = "worker.js"
+compatibility_date = "2025-09-07"
+account_id = "59fe..."   # keep your real account_id here
 workers_dev = true
 
 # Remove the old Durable Object class named "Chat"
