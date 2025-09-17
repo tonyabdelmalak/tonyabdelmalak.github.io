@@ -1,21 +1,24 @@
-// worker.js — Copilot proxy (OpenAI first, fallback to Groq)
+// worker.js — First-person Tony proxy (OpenAI first, fallback to Groq)
+// Enforces "I"/"my", forbids "copilot/assistant/bot", and strips legacy intros.
 
-const SYSTEM_PROMPT = `
-You are Tony’s Copilot — a friendly, concise guide for tonyabdelmalak.github.io.
-Priorities:
-1) Help visitors understand Tony’s work, dashboards, and background.
-2) If asked for private/sensitive info, decline and point to public resources.
-3) Keep replies brief (≤60 words) unless returning code. Use short sentences/bullets.
-4) No medical/legal/financial advice—suggest a professional.
-
-Style: Warm, expert, no fluff. If unsure, say so. One smart follow-up max.
-
-Background:
-Tony Abdelmalak is a People & Business Insights Analyst who pivoted into AI-driven HR analytics.
-He uses Tableau, SQL, and Python to turn workforce/business data into exec-ready insights.
-Projects include turnover analysis, early turnover segmentation, and workforce planning models.
-He’s based in Los Angeles and aims to lead AI initiatives in HR analytics.
+const GUARDRAILS = `
+You are Tony speaking in FIRST PERSON. Always use "I" and "my".
+Never refer to yourself as a "copilot", "assistant", "AI", or "bot". You are Tony.
+Introduce yourself only on the FIRST turn of a NEW session; never repeat intros unless asked "who are you" or "what is this?".
+Tone: professional, direct, approachable. Use contractions. Short, active sentences.
+If the user repeats a broad ask (e.g., "dashboards"), go deeper with steps, choices, tradeoffs, outcomes—do not reintroduce yourself.
+When asked about dashboards: data sources → prep → modeling → visuals → interactivity → impact.
+If context is unclear, ask one focused question, then proceed with best-practice guidance.
+Replies ≤ 80 words unless returning code.
 `.trim();
+
+// Phrases to strip from legacy assistant history so the model doesn't learn/repeat them
+const INTRO_BLOCKLIST = [
+  "welcome to tony's copilot",
+  "i'm your copilot",
+  "welcome to tony abdelmalak's github",
+  "i'm tony's copilot",
+];
 
 function corsHeaders() {
   return {
@@ -23,6 +26,42 @@ function corsHeaders() {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "content-type, authorization",
   };
+}
+
+function sanitizeHistory(msgs = []) {
+  return msgs.filter(m => {
+    if (!m || !m.role || !m.content) return false;
+    if (m.role !== "assistant") return true;
+    const t = String(m.content).toLowerCase();
+    return !INTRO_BLOCKLIST.some(ph => t.includes(ph));
+  });
+}
+
+function normalizeMessages(body) {
+  // Supports either:
+  // 1) { messages: [{role, content}, ...] }
+  // 2) { message: "string", history: [{role, content}, ...] }
+  if (Array.isArray(body?.messages) && body.messages.length) {
+    const msgs = sanitizeHistory(
+      body.messages.map(m => ({ role: m.role, content: String(m.content || "").trim() }))
+    );
+    // Ensure a single system message at top (prepend if missing)
+    const hasSystem = msgs.some(m => m.role === "system");
+    return hasSystem ? msgs : [{ role: "system", content: GUARDRAILS }, ...msgs];
+  }
+
+  // Legacy shape
+  const userMsg = String(body?.message || "").trim();
+  const history = Array.isArray(body?.history) ? body.history : [];
+  const past = sanitizeHistory(
+    history
+      .filter(m => m && m.role && m.content)
+      .map(m => ({ role: m.role, content: String(m.content).trim() }))
+  ).slice(-12); // keep it light
+
+  const msgs = [{ role: "system", content: GUARDRAILS }, ...past];
+  if (userMsg) msgs.push({ role: "user", content: userMsg });
+  return msgs;
 }
 
 export default {
@@ -45,20 +84,10 @@ export default {
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
         const body = await req.json().catch(() => ({}));
-        const userMsg = (body?.message || "").toString().trim();
-        const history = Array.isArray(body?.history) ? body.history : [];
 
-        if (!userMsg) {
-          return new Response(
-            JSON.stringify({ error: "Missing 'message' in request body." }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
-        }
-
-        // Decide provider: OpenAI if available, else Groq
+        // Provider selection
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq = !!env.GROQ_API_KEY;
-
         if (!hasOpenAI && !hasGroq) {
           return new Response(
             JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
@@ -66,21 +95,10 @@ export default {
           );
         }
 
-        // Normalize history (optional)
-        const past = history
-          .filter(m => m && m.role && m.content)
-          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12); // keep it light
+        const messages = normalizeMessages(body);
 
-        const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...past,
-          { role: "user", content: userMsg }
-        ];
-
-        // Build request for the chosen provider
+        // Build request
         let apiUrl, headers, payload;
-
         if (hasOpenAI) {
           apiUrl = "https://api.openai.com/v1/chat/completions";
           headers = {
@@ -91,7 +109,7 @@ export default {
             model: "gpt-4o-mini",
             messages,
             temperature: 0.3,
-            max_tokens: 200,
+            max_tokens: 300,
           };
         } else {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
@@ -103,15 +121,11 @@ export default {
             model: "llama-3.1-8b-instant",
             messages,
             temperature: 0.3,
-            max_tokens: 200,
+            max_tokens: 300,
           };
         }
 
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(payload),
-        });
+        const resp = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(payload) });
 
         if (!resp.ok) {
           const txt = await resp.text();
@@ -122,9 +136,8 @@ export default {
         }
 
         const data = await resp.json();
-        const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
-
-        return new Response(JSON.stringify({ reply }), {
+        // Return OpenAI/Groq-compatible payload through (so widgets that expect choices[] still work)
+        return new Response(JSON.stringify(data), {
           headers: { "Content-Type": "application/json", ...corsHeaders() },
         });
       } catch (err) {
@@ -135,6 +148,6 @@ export default {
       }
     }
 
-    return new Response("Not found", { status: 404 });
+    return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };
