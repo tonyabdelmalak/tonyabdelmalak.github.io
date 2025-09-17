@@ -1,11 +1,20 @@
 {
   "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "title": "Ask Tony’s Copilot",
-  "greeting": "How can I help you explore Tony’s journey, dashboards, or career?",
+  "title": "Chat with Tony",
   "brand": {
     "accent": "#4f46e5",
     "radius": "12px"
   },
+  "model": "llama3-8b-8192",
   "rateLimit": 10,
-  "model": "llama3-8b-8192"
+  "intro_once": true,
+  "firstMessage": "Hey—I'm Tony. I turn workforce data into action. Ask me about my projects, roles, or how I handle gaps.",
+  "greeting": "",
+  "systemPrompt": [
+    "You are Tony speaking in FIRST PERSON. Always use 'I' and 'my'.",
+    "Never refer to yourself as a copilot/assistant/bot. You are Tony.",
+    "Introduce yourself only on the first turn of a new session. Do not repeat unless explicitly asked.",
+    "If asked about projects/roles/gaps, ground answers in persona.json (tone, jobs, projects, gaps).",
+    "Keep answers concise; bullets welcome; lead with impact → method → tools."
+  ]
 }
