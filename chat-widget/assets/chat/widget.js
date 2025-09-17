@@ -1,209 +1,194 @@
-// Minimal, dependency-free widget.
-// Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
-
+/* assets/chat/widget.js — Tony-first-person widget
+   - Loads config.json and persona.json
+   - Sends {messages} to Worker
+   - Accepts OpenAI-style or legacy {reply} responses
+*/
 (function () {
-  const AGENT_LABEL = "Agent";      // Consistent name in the transcript
-  const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
+  const W = window, D = document;
+  if (!W.TonyChatWidget) W.TonyChatWidget = {};
 
-  // Utility: build elements quickly
-  function el(tag, cls, html) {
-    const node = document.createElement(tag);
-    if (cls) node.className = cls;
-    if (html != null) node.innerHTML = html;
-    return node;
+  const PATHS = {
+    config: "/assets/chat/config.json",
+    persona: "/assets/chat/persona.json"
+  };
+
+  const SESSION_KEY = "tony_session_v5";
+  const GREETED_KEY = "tony_greeted_v5";
+
+  function el(t, c) { const n = D.createElement(t); if (c) n.className = c; return n; }
+  async function getJSON(u) { const r = await fetch(u, { cache: "no-store" }); return r.ok ? r.json() : null; }
+  function esc(s) { return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+  function buildSystem(conf, persona, isFirst) {
+    const guard = [
+      "You are Tony speaking in FIRST PERSON. Always use 'I' and 'my'.",
+      "Never call yourself a copilot/assistant/AI/bot. You are Tony.",
+      isFirst ? "You may introduce yourself once." : "Do not introduce yourself again.",
+      "Tone: clear, direct, warm, concise; bullets welcome."
+    ].join("\n");
+
+    const extra = Array.isArray(conf.systemPrompt) ? conf.systemPrompt.join("\n") : (conf.systemPrompt || "");
+
+    const tone = persona?.tone ? [
+      `VOICE: ${persona.tone.voice || ""}`,
+      `RULES: ${(persona.tone.rules || []).join(" • ")}`
+    ].join("\n") : "";
+
+    const about = persona?.about_me ? `ABOUT: ${persona.about_me.tagline || ""}; Stack: ${(persona.about_me.stack||[]).join(", ")}` : "";
+
+    const jobs = (persona?.jobs || []).map(j =>
+      `• ${j.title} @ ${j.company} (${j.period||""}) – Highlights: ${(j.highlights||[]).join("; ")}`
+    ).join("\n");
+
+    const projs = (persona?.projects || []).map(p =>
+      `• ${p.name} — ${p.one_liner||""}. Impact: ${p.impact||""}`
+    ).join("\n");
+
+    const gaps = (persona?.employment_gaps || []).map(g =>
+      `• Gap ${g.period}: ${g.framing}. Proof: ${(g.proof||[]).join("; ")}`
+    ).join("\n");
+
+    const portfolio = [about, jobs && ("JOBS:\n"+jobs), projs && ("PROJECTS:\n"+projs), gaps && ("GAPS:\n"+gaps)]
+      .filter(Boolean).join("\n\n");
+
+    return [guard, extra, tone, portfolio].filter(Boolean).join("\n\n");
   }
 
-  // Load JSON/MD
-  async function fetchText(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.text();
-  }
-  async function fetchJSON(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.json();
-  }
+  W.TonyChatWidget.init = async function (opts) {
+    const conf = (await getJSON(PATHS.config)) || {};
+    const persona = (await getJSON(PATHS.persona)) || {};
 
-  // Widget
-  const Widget = {
-    state: {
-      config: null,
-      systemPrompt: "",
-      open: false
-    },
+    // Basic UI
+    const launcher = el("div", "tcw-launcher"); launcher.appendChild(el("span")).textContent = "💬";
+    const panel = el("div", "tcw-panel");
+    const header = el("div", "tcw-header");
+    const title = el("div", "tcw-title"); title.textContent = conf.title || "Chat with Tony";
+    header.appendChild(title);
 
-    async init(opts) {
-      // options
-      this.opts = Object.assign(
-        {
-          mode: "floating",
-          position: "bottom-right",
-          avatar: "",
-          configPath: "/chat-widget/assets/chat/config.json",
-          systemPath: "/chat-widget/assets/chat/system.md"
-        },
-        opts || {}
-      );
+    const body = el("div", "tcw-body");
+    const thread = el("div", "tcw-messages"); body.appendChild(thread);
 
-      // load config + system prompt
-      const [config, systemText] = await Promise.all([
-        fetchJSON(this.opts.configPath),
-        fetchText(this.opts.systemPath)
-      ]);
-      this.state.config = config;
-      this.state.systemPrompt = systemText;
+    const bar = el("div", "tcw-inputbar");
+    const ta = el("textarea"); ta.placeholder = "Type your question…"; ta.rows = 1;
+    const sendBtn = el("button"); sendBtn.textContent = "Send";
+    bar.appendChild(ta); bar.appendChild(sendBtn);
 
-      // build DOM
-      this.build();
-      this.attachEvents();
+    panel.appendChild(header); panel.appendChild(body); panel.appendChild(bar);
+    D.body.appendChild(launcher); D.body.appendChild(panel);
 
-      // greeting only once per browser tab
-      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
-        this.addAgent(config.greeting);
-        sessionStorage.setItem(SESSION_FLAG, "1");
-      }
-    },
+    // Style vars
+    try {
+      const root = D.documentElement;
+      if (conf.brand?.accent) root.style.setProperty("--tcw-accent", conf.brand.accent);
+      if (conf.brand?.radius) root.style.setProperty("--tcw-radius", conf.brand.radius);
+    } catch {}
 
-    build() {
-      // Launcher
-      this.launch = el("button", "copilot-launch");
-      const avatarImg = el("img");
-      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatarImg.alt = "Open chat";
-      this.launch.appendChild(avatarImg);
+    // Open/close
+    let open = false;
+    launcher.onclick = () => { open = !open; panel.style.display = open ? "block" : "none"; if (open) ta.focus(); };
 
-      // Panel
-      this.root = el("section", "copilot-container copilot-hidden");
+    // Labels
+    function bubble(role, text) {
+      const row = el("div", "tcw-msg");
+      const label = role === "user" ? "You" : "Tony";
+      row.innerHTML = `<strong>${label}:</strong> ${esc(text)}`;
+      thread.appendChild(row);
+      thread.scrollTop = thread.scrollHeight;
+    }
+    function typing(on) {
+      let t = D.getElementById("tcw-typing");
+      if (on) {
+        if (!t) { t = el("div", "tcw-typing"); t.id = "tcw-typing"; t.textContent = "Tony is typing…"; thread.appendChild(t); }
+      } else if (t) t.remove();
+      thread.scrollTop = thread.scrollHeight;
+    }
 
-      // Header with Close (×)
-      const header = el("header", "copilot-header");
-      const avatar = el("img", "copilot-avatar");
-      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatar.alt = "Avatar";
-      const title = el("div", "copilot-title", (this.state.config.title || "Copilot"));
-      const closeBtn = el("button", "copilot-close", "&times;");
-      closeBtn.setAttribute("aria-label", "Close chat");
-      header.append(avatar, title, closeBtn);
+    // Session + one-time greeting
+    if (!sessionStorage.getItem(SESSION_KEY)) sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+    if (conf.intro_once && !sessionStorage.getItem(GREETED_KEY) && conf.firstMessage) {
+      bubble("assistant", conf.firstMessage);
+      sessionStorage.setItem(GREETED_KEY, "1");
+    }
 
-      // Messages
-      this.messages = el("div", "copilot-messages");
-
-      // Input row
-      const inputRow = el("div", "copilot-input-row");
-      this.input = el("input", "copilot-input");
-      this.input.type = "text";
-      this.input.placeholder = this.state.config.placeholder || "Type your question...";
-      const send = el("button", "copilot-send", "↥");
-      send.setAttribute("title", "Send");
-
-      inputRow.append(this.input, send);
-
-      this.root.append(header, this.messages, inputRow);
-
-      // Mount both
-      document.body.append(this.launch, this.root);
-
-      // local refs
-      this.closeBtn = closeBtn;
-      this.sendBtn = send;
-    },
-
-    attachEvents() {
-      // open/close
-      this.launch.addEventListener("click", () => this.showPanel());
-      this.closeBtn.addEventListener("click", () => this.hidePanel());
-
-      // send actions
-      this.sendBtn.addEventListener("click", () => this.handleSend());
-      this.input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          this.handleSend();
-        }
+    // Collect DOM → messages[]
+    function historyToMessages() {
+      const nodes = thread.querySelectorAll(".tcw-msg");
+      const out = [];
+      nodes.forEach(n => {
+        const isTony = n.innerHTML.startsWith("<strong>Tony");
+        const isUser = n.innerHTML.startsWith("<strong>You");
+        if (!isTony && !isUser) return;
+        const text = n.textContent.replace(/^You:\s*|^Tony:\s*/i, "").trim();
+        const lt = text.toLowerCase();
+        if (lt.includes("welcome to tony") && lt.includes("copilot")) return;
+        if (lt.includes("i'm your copilot")) return;
+        out.push({ role: isTony ? "assistant" : "user", content: text });
       });
-    },
+      return out;
+    }
 
-    showPanel() {
-      this.launch.classList.add("copilot-hidden");
-      this.root.classList.remove("copilot-hidden");
-      this.state.open = true;
-      setTimeout(() => this.input?.focus(), 10);
-    },
-    hidePanel() {
-      this.root.classList.add("copilot-hidden");
-      this.launch.classList.remove("copilot-hidden");
-      this.state.open = false;
-    },
+    // Send
+    let lastSend = 0;
+    async function send() {
+      const v = ta.value.trim();
+      if (!v) return;
+      if (conf.rateLimit && Date.now() - lastSend < 800) return;
+      lastSend = Date.now();
 
-    // UI helpers
-    addAgent(text) {
-      const row = el("div", "copilot-msg agent");
-      row.append(
-        el("span", "copilot-label", `${AGENT_LABEL}:`),
-        document.createTextNode(" " + text)
-      );
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    addUser(text) {
-      const row = el("div", "copilot-msg user");
-      row.append(
-        el("span", "copilot-label", "You:"),
-        document.createTextNode(" " + text)
-      );
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    scrollToBottom() {
-      this.messages.scrollTop = this.messages.scrollHeight;
-    },
-
-    async handleSend() {
-      const message = (this.input.value || "").trim();
-      if (!message) return;
-      this.addUser(message);
-      this.input.value = "";
+      bubble("user", v);
+      ta.value = ""; ta.style.height = "auto";
+      typing(true);
 
       try {
-        const reply = await this.callProxy(message);
-        this.addAgent(reply);
-      } catch (err) {
-        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
+        const hist = historyToMessages();
+        const isFirst = hist.length === 0 || (hist.length === 1 && hist[0].role === "assistant");
+        const system = buildSystem(conf, persona, isFirst);
+
+        const res = await fetch(conf.proxyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "system", content: system }, ...hist, { role: "user", content: v }],
+            sessionId: sessionStorage.getItem(SESSION_KEY),
+            temperature: 0.3
+          })
+        });
+
+        typing(false);
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          bubble("assistant", "⚠️ Error: Invalid response from server");
+          console.error("Proxy error:", txt);
+          return;
+        }
+        // Be ultra-tolerant of response shapes
+        const data = await res.json().catch(() => ({}));
+        const content =
+          data?.choices?.[0]?.message?.content ||
+          data?.reply ||
+          data?.message ||
+          "";
+        if (!content) {
+          bubble("assistant", "⚠️ Error: Invalid response from server");
+          console.error("Unexpected payload:", data);
+          return;
+        }
+        bubble("assistant", content);
+      } catch (e) {
+        typing(false);
+        bubble("assistant", "⚠️ Error: Invalid response from server");
+        console.error(e);
       }
-    },
-
-    // Calls your Cloudflare Worker (/chat) specified in config.json
-    async callProxy(message) {
-      const url = this.state.config.proxyUrl;
-      if (!url) throw new Error("Missing proxyUrl in config.json");
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          system: this.state.systemPrompt
-        })
-      });
-
-      if (!res.ok) {
-        let body = "";
-        try { body = await res.text(); } catch {}
-        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
-      }
-
-      const data = await res.json();
-      if (!data || typeof data.reply !== "string") {
-        throw new Error("Invalid response from server");
-      }
-      return data.reply;
     }
-  };
 
-  // public init
-  window.TonyChatWidget = {
-    init: (opts) => Widget.init(opts)
+    // Enter to send; Shift+Enter newline
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    ta.addEventListener("input", () => {
+      ta.style.height = "auto";
+      ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
+    });
+    sendBtn.onclick = send;
   };
 })();
-
