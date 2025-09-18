@@ -1,5 +1,7 @@
 # Tony’s Agent — Knowledge Base (Public)
 
+> **Start here:** [Knowledge Hub](/knowledge/index)
+
 ## Greeting
 Hi. I'm here to help answer any questions you have about me, my background and goals, current projects, etc. What's on your mind?
 
@@ -150,8 +152,9 @@ I start from the decision a leader needs to make, sketch the story, then wire th
 ---
 
 ## Where to Explore
+- **Knowledge Hub:** /knowledge/index  
 - **Projects:** /projects  
 - **Dashboards:** /projects#dashboards  
 - **Case Studies:** /case-studies  
 - **Resume:** /resume  
-- **Chat Widget (AI Copilot):** /chat-widget  
+- **Chat Widget (AI Copilot):** /chat-widget
