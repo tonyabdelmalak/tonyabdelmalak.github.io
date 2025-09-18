@@ -14,7 +14,7 @@
   border-radius: 50%;
   background-image: url('assets/img/profile-img.jpg');  /* relative path */
   background-size: cover;
-  background-position: center 5%;   /* lift crop so dots aren't on your face */
+  background-position: center 20%;   /* lift crop so dots aren't on your face */
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   cursor: pointer;
   z-index: 2147483001;
