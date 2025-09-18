@@ -7,16 +7,30 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 56px;
-  height: 56px;
-  background-color: var(--tcw-accent);
-  color: #fff;
+  width: 64px;              /* bigger bubble */
+  height: 64px;
+  border: 2px solid #ccc;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  background-image: url('assets/img/profile-img.jpg');  /* relative path */
+  background-size: cover;
+  background-position: center 20%;  /* lift crop so more forehead shows */
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 2147483001;
+  overflow: visible;        /* let dots sit outside the circle */
+}
+
+/* Reposition the built-in launcher text (…/💬) above the head */
+.tcw-launcher > span {
+  position: absolute;
+  top: -12px;               /* move above the avatar */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  pointer-events: none;     /* clicks go to the bubble, not the dots */
 }
 
 .tcw-panel {
