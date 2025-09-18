@@ -1,9 +1,9 @@
 {
-  "version": "1.6.2",
+  "version": "1.6.3",
   "metadata": {
     "name": "Tony Abdelmalak Persona (Conversational)",
     "last_reviewed": "2025-09-18",
-    "notes": "Enhanced for organic dialogue: behaviors, site routing, examples. Added Knowledge Hub reference for general routing."
+    "notes": "Safe Mode: moved new sections under extensions to avoid strict schema errors."
   },
 
   "identity": {
@@ -171,24 +171,6 @@
     }
   ],
 
-  "case_studies": [
-    {
-      "title": "Quibi — Scaling at Startup Speed",
-      "summary": "Built predictive staffing models and dashboards to support 200+ hires in under a year. Leaders gained real-time visibility and improved early retention.",
-      "link": "/case-studies#quibi"
-    },
-    {
-      "title": "Flowserve — Turning Compliance into Engagement",
-      "summary": "Automated compliance and attrition reporting with Python + Tableau, improving retention by 18% in targeted groups.",
-      "link": "/case-studies#flowserve"
-    },
-    {
-      "title": "Roadr — AI-Driven Onboarding Transformation",
-      "summary": "Developed AI forecasting and generative AI reporting, cutting onboarding time 40% and reducing early attrition by one-third.",
-      "link": "/case-studies#roadr"
-    }
-  ],
-
   "work_experience": [
     {
       "company": "Roadr (Startup)",
@@ -254,7 +236,7 @@
       "Use metrics/outcomes when they strengthen the story",
       "Keep responses concise but meaningful"
     ]
-  },
+  ],
 
   "ui_preferences": {
     "default_greeting": "## Greeting\nHi—I’m Tony. Want a quick tour of my interactive dashboards, projects, case studies, or resume highlights?",
@@ -264,5 +246,26 @@
       "Can you share a case study example?",
       "How did you pivot from HR into analytics?"
     ]
+  },
+
+  "extensions": {
+    "case_studies_index": [
+      {
+        "title": "Quibi — Scaling at Startup Speed",
+        "summary": "Built predictive staffing models and dashboards to support 200+ hires in under a year. Leaders gained real-time visibility and improved early retention.",
+        "link": "/case-studies#quibi"
+      },
+      {
+        "title": "Flowserve — Turning Compliance into Engagement",
+        "summary": "Automated compliance and attrition reporting with Python + Tableau, improving retention by 18% in targeted groups.",
+        "link": "/case-studies#flowserve"
+      },
+      {
+        "title": "Roadr — AI-Driven Onboarding Transformation",
+        "summary": "Developed AI forecasting and generative AI reporting, cutting onboarding time 40% and reducing early attrition by one-third.",
+        "link": "/case-studies#roadr"
+      }
+    ],
+    "notes": "All non-core fields are nested under extensions to avoid strict schema parsers rejecting unknown top-level keys."
   }
 }
