@@ -113,3 +113,19 @@
 .tcw-msg strong {
   font-weight: 600;
 }
+
+/* Custom overrides for Tony's avatar bubble and scroll fix */
+.tcw-launcher {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background-image: url('/assets/img/profile-img.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.tcw-panel[style*="display: block"] {
+  display: flex !important;
+}
+
