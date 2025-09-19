@@ -2,7 +2,19 @@
   "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
   "title": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on.",
   "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on.",
+  "placeholder": "Ask about projects, dashboards, resume…",
+  "brand": {
+    "avatar": "/assets/img/tony-avatar.png"
+  },
   "accent": "#4f46e5",
   "radius": "12px",
-  "rateLimit": 10
+
+  /* Client-side UX */
+  "rateLimit": 10,
+
+  /* Optional request overrides sent to the worker */
+  "model": "llama-3.1-8b-instant",
+  "max_tokens": 256,
+  "temperature": 0.3,
+  "max_history_turns": 12
 }
