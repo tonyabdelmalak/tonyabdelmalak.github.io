@@ -1,18 +1,8 @@
 {
   "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "title": "Chat with Tony",
-  "subtitle": "We are online!",
-  "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m working on.",
-  "placeholder": "Enter your message...",
-  "accent": "#1e3a8a",
-  "accent2": "#3b82f6",
-  "radius": "22px",
-  "brand": { "avatar": "/assets/img/tony-avatar.jpg" },
-  "quickReplies": [
-    "Show me your dashboards",
-    "What projects are you most proud of?",
-    "Open your resume",
-    "How did you pivot from HR into analytics?"
-  ],
-  "rateLimit": 10
+  "title": "Ask Tony’s Copilot",
+  "greeting": "How can I help you explore Tony’s journey, dashboards, or career?",
+  "brand": { "accent": "#4f46e5", "radius": "12px" },
+  "rateLimit": 10,
+  "model": "llama3"
 }
