@@ -1,111 +1,153 @@
-(function() {
-  const AVATAR_SRC = "/assets/chat/avatar-tony.jpg"; // update if needed
+/* === Chat Widget Styles (Safe Layout) === */
+:root {
+  --chat-accent: #2563eb;
+  --chat-accent-2: #1e3a8a;
+  --chat-bg: #ffffff;
+  --chat-border: #e5e7eb;
+  --chat-text: #0f172a;
+  --chat-right-offset: 16px; /* auto-adjusts if rail is present */
+}
 
-  function el(tag, cls) {
-    const n = document.createElement(tag);
-    if (cls) n.className = cls;
-    return n;
+/* Launcher Button */
+.chat-launcher {
+  position: fixed;
+  right: var(--chat-right-offset);
+  bottom: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 4px solid #6366f1;
+  background: #111;
+  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  overflow: hidden;
+  z-index: 2147483600;
+  cursor: pointer;
+}
+.chat-launcher > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Chat Container */
+.chat-container {
+  position: fixed;
+  right: var(--chat-right-offset);
+  bottom: 16px;
+  width: min(440px, 92vw);
+  height: min(620px, 84vh);
+  background: var(--chat-bg);
+  border: 1px solid var(--chat-border);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(2,6,23,.35);
+  display: none;
+  overflow: hidden;
+  z-index: 2147483601;
+}
+.chat-container.open {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+/* Header */
+.chat-header {
+  padding: 8px 10px;
+  color: #fff;
+  background: linear-gradient(135deg,var(--chat-accent-2),var(--chat-accent));
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.chat-header .title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+.chat-header .title img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.7);
+}
+.chat-header .sub {
+  font-weight: 500;
+  font-size: 11px;
+  opacity: .95;
+  line-height: 1;
+}
+.chat-header .close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.18);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: none;
+  color: #fff;
+}
+
+/* Messages */
+.chat-messages {
+  padding: 8px;
+  overflow-y: auto;
+  background: var(--chat-bg);
+  color: var(--chat-text);
+}
+.msg {
+  max-width: 84%;
+  padding: 8px 11px;
+  border-radius: 14px;
+  margin: 4px 0;
+  line-height: 1.3;
+  font-size: 15px;
+  box-shadow: 0 1px 0 rgba(2,6,23,.04);
+}
+.msg.ai {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+.msg.user {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  margin-left: auto;
+}
+
+/* Input */
+.chat-input {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-top: 1px solid var(--chat-border);
+  padding: 6px;
+  background: #fff;
+}
+.chat-input input {
+  flex: 1;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  padding: 11px 12px;
+  font-size: 15px;
+  outline: none;
+}
+.chat-input button {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg,var(--chat-accent-2),var(--chat-accent));
+  color: #fff;
+  box-shadow: 0 10px 20px rgba(37,99,235,.24);
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .chat-container {
+    width: 96vw;
   }
-
-  function createLauncher() {
-    const btn = el('button', 'chat-launcher');
-    btn.id = 'chat-launcher';
-    btn.setAttribute('aria-label', 'Open chat');
-    btn.innerHTML = `<img src="${AVATAR_SRC}" alt="Tony">`;
-    document.body.appendChild(btn);
-    return btn;
-  }
-
-  function createContainer() {
-    const box = el('section', 'chat-container');
-    box.innerHTML = `
-      <header class="chat-header">
-        <div class="title">
-          <img src="${AVATAR_SRC}" alt="Tony">
-          <div>
-            <div>Chat with Tony</div>
-            <div class="sub">We are online!</div>
-          </div>
-        </div>
-        <button class="close" aria-label="Close">✕</button>
-      </header>
-      <div class="chat-messages" id="chat-messages"></div>
-      <div class="chat-input">
-        <input id="chat-input" placeholder="Enter your message..." autocomplete="off">
-        <button id="chat-send" aria-label="Send">➤</button>
-      </div>
-    `;
-    document.body.appendChild(box);
-    return box;
-  }
-
-  function scrollToEnd() {
-    const m = document.getElementById('chat-messages');
-    if (m) m.scrollTop = m.scrollHeight;
-  }
-
-  function addMsg(text, who = 'user') {
-    const m = document.getElementById('chat-messages');
-    if (!m) return;
-    const d = el('div', 'msg ' + (who === 'user' ? 'user' : 'ai'));
-    d.textContent = text;
-    m.appendChild(d);
-    scrollToEnd();
-  }
-
-  async function realReply(userText) {
-    try {
-      const res = await fetch("https://tony-chat.workers.dev/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText })
-      });
-      const data = await res.json();
-      addMsg(data.reply || "I don’t have that info yet.", "ai");
-    } catch (e) {
-      console.error("[chat-widget] backend error", e);
-      addMsg("Sorry — I’m having trouble reaching my brain.", "ai");
-    }
-  }
-
-  function wireUp(box, launcher) {
-    const close = box.querySelector('.close');
-    const input = box.querySelector('#chat-input');
-    const send = box.querySelector('#chat-send');
-
-    const openBox = () => {
-      box.classList.add('open');
-      launcher.style.display = 'none';
-      input?.focus();
-    };
-    const closeBox = () => {
-      box.classList.remove('open');
-      launcher.style.display = 'block';
-    };
-
-    launcher.addEventListener('click', openBox);
-    close.addEventListener('click', closeBox);
-
-    function doSend() {
-      const v = input?.value.trim();
-      if (!v) return;
-      addMsg(v, 'user');
-      input.value = '';
-      realReply(v);
-    }
-
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        doSend();
-      }
-    });
-    send.addEventListener('click', doSend);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const launcher = createLauncher();
-    const box = createContainer();
-    wireUp(box, launcher);
-  });
-})();
+}
