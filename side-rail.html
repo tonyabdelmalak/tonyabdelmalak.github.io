@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Side Rail Demo</title>
+  <style>
+    :root{
+      --rail-bg: #0f172a;            /* dark background */
+      --rail-fg: #e5e7eb;            /* light text */
+      --rail-accent: #6366f1;        /* indigo highlight */
+      --rail-width-collapsed: 56px;
+      --rail-width-expanded: 200px;
+      --rail-radius: 16px;
+      --rail-gap: 8px;
+      --rail-item-h: 44px;
+    }
+
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f4f6;
+      padding-left: 80px; /* so content isn’t hidden under nav */
+    }
+
+    /* === Compact Side Rail === */
+    .side-rail{
+      position: fixed;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: var(--rail-width-collapsed);
+      background: var(--rail-bg);
+      color: var(--rail-fg);
+      border-radius: var(--rail-radius);
+      padding: 12px 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.32);
+      transition: width .24s ease;
+      overflow: hidden;
+      z-index: 1000;
+    }
+    .side-rail:hover,
+    .side-rail.is-pinned{
+      width: var(--rail-width-expanded);
+    }
+
+    .side-rail ul{
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: var(--rail-gap);
+    }
+    .side-rail a{
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      align-items: center;
+      gap: 12px;
+      height: var(--rail-item-h);
+      padding: 0 10px;
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+      position: relative;
+    }
+    .side-rail a svg{
+      width: 24px;
+      height: 24px;
+    }
+    .side-rail a span{
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .side-rail:hover a span,
+    .side-rail.is-pinned a span{
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .side-rail a:hover{
+      background: rgba(255,255,255,.07);
+    }
+    .side-rail a.active{
+      background: rgba(99,102,241,.18);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(99,102,241,.45);
+    }
+
+    /* Pin button */
+    .rail-pin{
+      margin-top: 10px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      color: var(--rail-fg);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .rail-pin svg{ width: 18px; height: 18px; }
+
+  </style>
+</head>
+<body>
+
+  <!-- SIDE NAV RAIL -->
+  <nav class="side-rail" aria-label="Quick navigation">
+    <ul>
+      <li>
+        <a href="#projects" class="active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 10v8M10 4v14M14 7v11M18 13v5"/></svg>
+          <span>Projects</span>
+        </a>
+      </li>
+      <li>
+        <a href="#dashboards">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 7-7"/></svg>
+          <span>Dashboards</span>
+        </a>
+      </li>
+      <li>
+        <a href="#resume">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M13 10h5M13 13h5"/></svg>
+          <span>Resume</span>
+        </a>
+      </li>
+      <li>
+        <a href="#case-studies">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10a2 2 0 114 0h2a2 2 0 114 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 114 0v-2z"/></svg>
+          <span>Case Studies</span>
+        </a>
+      </li>
+      <li>
+        <a href="#surprise">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.5"/><circle cx="15" cy="15" r="1.5"/><circle cx="15" cy="9" r="1.5"/><circle cx="9" cy="15" r="1.5"/></svg>
+          <span>Surprise</span>
+        </a>
+      </li>
+    </ul>
+    <button class="rail-pin" aria-pressed="false" aria-label="Pin side navigation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3l7 7-4 1-4 4-3-3 4-4 1-4zM4 20l6-6"/></svg>
+    </button>
+  </nav>
+
+  <main>
+    <h1>Welcome</h1>
+    <p>Scroll and click the side navigation items.</p>
+    <div style="height:2000px;"></div>
+  </main>
+
+  <script>
+    const rail = document.querySelector('.side-rail');
+    const pin  = rail.querySelector('.rail-pin');
+
+    pin.addEventListener('click', () => {
+      const pinned = rail.classList.toggle('is-pinned');
+      pin.setAttribute('aria-pressed', String(pinned));
+    });
+  </script>
+</body>
+</html>
