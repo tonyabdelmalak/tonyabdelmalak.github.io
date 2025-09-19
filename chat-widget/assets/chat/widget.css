@@ -1,14 +1,12 @@
-/* === Chat Widget Styles (Safe Layout) === */
 :root {
   --chat-accent: #2563eb;
   --chat-accent-2: #1e3a8a;
   --chat-bg: #ffffff;
   --chat-border: #e5e7eb;
   --chat-text: #0f172a;
-  --chat-right-offset: 16px; /* auto-adjusts if rail is present */
+  --chat-right-offset: 16px;
 }
 
-/* Launcher Button */
 .chat-launcher {
   position: fixed;
   right: var(--chat-right-offset);
@@ -30,7 +28,6 @@
   border-radius: 50%;
 }
 
-/* Chat Container */
 .chat-container {
   position: fixed;
   right: var(--chat-right-offset);
@@ -50,7 +47,6 @@
   grid-template-rows: auto 1fr auto;
 }
 
-/* Header */
 .chat-header {
   padding: 8px 10px;
   color: #fff;
@@ -91,7 +87,6 @@
   color: #fff;
 }
 
-/* Messages */
 .chat-messages {
   padding: 8px;
   overflow-y: auto;
@@ -117,7 +112,6 @@
   margin-left: auto;
 }
 
-/* Input */
 .chat-input {
   display: flex;
   gap: 6px;
@@ -143,11 +137,4 @@
   background: linear-gradient(135deg,var(--chat-accent-2),var(--chat-accent));
   color: #fff;
   box-shadow: 0 10px 20px rgba(37,99,235,.24);
-}
-
-/* Mobile */
-@media (max-width: 520px) {
-  .chat-container {
-    width: 96vw;
-  }
 }
