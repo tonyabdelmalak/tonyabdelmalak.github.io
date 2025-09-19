@@ -1,4 +1,4 @@
-/* Injects a compact side rail and manages body padding on hover/pin. */
+/* Rail + docked chat avatar. On mobile, avatar undocks to bottom-right. */
 (function(){
   const LINKS = [
     { href: "/index.html", label: "Home",
@@ -16,22 +16,44 @@
   ];
 
   function buildRail(){
-    const ul = LINKS.map(({href,label,icon}) => `
-      <li><a href="${href}" data-label="${label}">${icon}<span>${label}</span></a></li>
-    `).join("");
+    const ul = LINKS.map(({href,label,icon}) =>
+      `<li><a href="${href}" data-label="${label}">${icon}<span>${label}</span></a></li>`
+    ).join("");
 
     const rail = document.createElement("nav");
     rail.className = "side-rail";
     rail.setAttribute("aria-label","Quick navigation");
     rail.innerHTML = `
       <ul>${ul}</ul>
-      <button class="rail-pin" aria-pressed="false" aria-label="Pin side navigation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M14 3l7 7-4 1-4 4-3-3 4-4 1-4zM4 20l6-6"/>
-        </svg>
-      </button>
+      <div class="rail-footer">
+        <button class="rail-pin" aria-pressed="false" aria-label="Pin side navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M14 3l7 7-4 1-4 4-3-3 4-4 1-4zM4 20l6-6"/>
+          </svg>
+        </button>
+      </div>
     `;
     return rail;
+  }
+
+  function attachChatToRail(){
+    const rail = document.querySelector(".side-rail");
+    const footer = rail?.querySelector(".rail-footer");
+    const launcher = document.querySelector(".chat-launcher, #chat-launcher");
+    if (rail && footer && launcher && !footer.contains(launcher)) {
+      footer.appendChild(launcher);
+      launcher.classList.add("in-rail");
+    }
+  }
+
+  function detachChatToBody(){
+    const rail = document.querySelector(".side-rail");
+    const launcher = rail?.querySelector(".chat-launcher, #chat-launcher");
+    if (launcher) {
+      document.body.appendChild(launcher);
+      launcher.classList.remove("in-rail");
+      // no inline styles needed; the launcher’s default CSS handles bottom-right
+    }
   }
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -46,18 +68,33 @@
       if (here.endsWith(href)) a.classList.add("active");
     });
 
-    // Expand padding when hovered (so content reflows, not overlapped)
+    // Hover expands body padding (no overlap)
     const enter = () => document.body.classList.add("rail-expanded");
     const leave = () => { if(!rail.classList.contains("is-pinned")) document.body.classList.remove("rail-expanded"); };
     rail.addEventListener("mouseenter", enter);
     rail.addEventListener("mouseleave", leave);
 
-    // Pin keeps it expanded
+    // Pin toggles persistent expansion
     const pin = rail.querySelector(".rail-pin");
     pin.addEventListener("click", () => {
       const pinned = rail.classList.toggle("is-pinned");
       pin.setAttribute("aria-pressed", String(pinned));
       if (pinned) enter(); else leave();
     });
+
+    // Wait for the chat launcher to exist, then dock it
+    const tryAttach = () => {
+      attachChatToRail();
+      if (!rail.querySelector(".chat-launcher, #chat-launcher")) {
+        setTimeout(tryAttach, 150); // poll briefly until the widget injects
+      }
+    };
+    tryAttach();
+
+    // On mobile, undock back to bottom-right; on desktop, dock inside rail
+    const mq = window.matchMedia("(max-width: 899px)");
+    const sync = (e) => { e.matches ? detachChatToBody() : attachChatToRail(); };
+    mq.addEventListener ? mq.addEventListener("change", sync) : mq.addListener(sync);
+    sync(mq);
   });
 })();
