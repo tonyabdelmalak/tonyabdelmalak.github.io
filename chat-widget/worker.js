@@ -328,6 +328,17 @@ function trimHistory(history, maxTurns = 12) {
     .slice(-maxTurns);
 }
 
+// Final safety net: scrub headings/code and normalize bullets
+function sanitizeReply(text) {
+  if (!text) return "";
+  return String(text)
+    .replace(/^#{1,6}\s+/gm, "")        // remove markdown headings
+    .replace(/```[\s\S]*?```/g, "")     // strip code blocks
+    .replace(/^\s*[-*+]\s+/gm, "• ")    // normalize bullet markers
+    .replace(/\n{3,}/g, "\n\n")         // collapse big gaps
+    .trim();
+}
+
 /* ---------------------- Main Worker ---------------------- */
 export default {
   async fetch(req, env) {
@@ -409,7 +420,8 @@ export default {
 
           if (res.ok) {
             const data = await res.json();
-            const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+            const rawReply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+            const reply = sanitizeReply(rawReply);
             return new Response(JSON.stringify({ reply }), {
               headers: { "Content-Type": "application/json", ...corsHeaders() },
             });
@@ -460,7 +472,8 @@ export default {
 
             if (res.ok) {
               const data = await res.json();
-              const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+              const rawReply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+              const reply = sanitizeReply(rawReply);
               return new Response(JSON.stringify({ reply }), {
                 headers: { "Content-Type": "application/json", ...corsHeaders() },
               });
