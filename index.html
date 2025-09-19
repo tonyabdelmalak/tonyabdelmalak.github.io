@@ -1,32 +1,24 @@
 <!DOCTYPE html>
-
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tony Abdelmalak | AI-Driven People & Business Insights Analyst</title>
 
-
-case-study
   <!-- External CSS and fonts -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
 
-  <!-- Chat widget styles + script -->
-  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
-  <script defer src="/chat-widget/assets/chat/widget.js"></script>
-  
   <!-- Custom styles -->
   <style>
     :root {
-      --primary-color: #1E3A8A; /* deep blue */
-      --accent-color: #14B8A6;  /* teal */
-      --background-color: #F3F4F6; /* light gray */
+      --primary-color: #1e3a8a;
+      --accent-color: #14b8a6;
+      --background-color: #f3f4f6;
       --text-color: #111827;
       --subtext-color: #374151;
     }
@@ -38,46 +30,21 @@ case-study
     }
 
     /* Navbar */
-    /* Updated navbar to use a dark gradient similar to the reference site */
     .navbar {
       background: linear-gradient(90deg, #001e42, #003974);
-      
     }
-    .navbar-brand {
-      color: #fff;
-      font-weight: 500; /* unbold the name */
-      font-size: 1.4rem; /* reduce brand size further for cleaner look */
-    }
-    .navbar-nav .nav-link {
-      color: #fff;
-      font-weight: 500;
-      margin: 0 1.75rem; /* spread out midsection links for better spacing without overly wide gaps */
-    }
+    .navbar-brand { color: #fff; font-weight: 500; font-size: 1.4rem; }
+    .navbar-nav .nav-link { color: #fff; font-weight: 500; margin: 0 1.75rem; }
     .navbar-nav .nav-link:hover { color: var(--accent-color); }
-    .navbar .btn-primary {
-      background-color: var(--accent-color);
-      border-color: var(--accent-color);
-      color: #fff;
-      margin-left: 0.5rem;
-      white-space: nowrap; /* keep "Download Resume" on one line */
-    }
-    .navbar .btn-outline-light {
-      border-color: #fff;
-      color: #fff;
-    }
-    .navbar .btn-outline-light:hover {
-      background-color: #fff;
-      color: var(--primary-color);
-    }
+    .navbar .btn-primary { background-color: var(--accent-color); border-color: var(--accent-color); color: #fff; margin-left: 0.5rem; white-space: nowrap; }
+    .navbar .btn-outline-light { border-color: #fff; color: #fff; }
+    .navbar .btn-outline-light:hover { background-color: #fff; color: var(--primary-color); }
 
     /* Hero */
     #hero {
-      /* Use the plain hero image without embedded text */
       background-image: url('assets/img/IMG_7850.jpeg');
       background-size: cover;
       background-position: center;
-      /* Fallback dark background colour in case image fails to load */
-
       background-color: #001e42;
       color: #fff;
       text-align: center;
@@ -86,306 +53,92 @@ case-study
     }
     #hero::before {
       content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      /* Dark overlay to ensure text legibility over the hero image */
+      position: absolute; inset: 0;
       background: rgba(0, 0, 0, 0.6);
       z-index: 0;
     }
-    #hero .hero-content {
-      position: relative;
-      z-index: 1;
-    }
-    .btn-cta {
-      background-color: var(--accent-color);
-      color: #fff;
-      border: none;
-    }
+    #hero .hero-content { position: relative; z-index: 1; }
+    .btn-cta { background-color: var(--accent-color); color: #fff; border: none; }
     .btn-cta:hover { background-color: #0e9880; color: #fff; }
 
     /* Sections */
     section { padding: 80px 0; }
-    .section-title {
-      margin-bottom: 40px;
-      text-align: left; /* left align section headings for better readability */
-    }
-    .section-title h2 {
-      f
-        ont-weight: 700;
-      color: var(--primary-color);
-    }
+    .section-title { margin-bottom: 40px; text-align: left; }
+    .section-title h2 { font-weight: 700; color: var(--primary-color); }
 
-    /* Results cards */
-    .results-card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      transition: transform 0.3s;
-    }
+    /* Results cards + metrics */
+    .results-card { background: #fff; border-radius: 8px; padding: 30px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.3s; }
     .results-card:hover { transform: translateY(-5px); }
     .results-icon { font-size: 48px; color: var(--accent-color); margin-bottom: 10px; }
-    .results-number {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: var(--primary-color);
-    }
+    .results-number { font-size: 36px; font-weight: 700; margin-bottom: 10px; color: var(--primary-color); }
     .results-text { font-size: 16px; color: var(--subtext-color); }
 
-    /* Metrics section – dark blue with gradient numbers inspired by reference site */
-    .metrics-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      border-top: 1px solid rgba(255,255,255,0.2);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
-    .metric-item {
-      text-align: center;
-      padding: 20px 10px;
-    }
-    .metric-item:not(:last-child) {
-      border-right: 1px solid rgba(255,255,255,0.3);
-    }
-    .metric-number {
-      font-size: 56px; /* enlarge metric numbers for emphasis, similar to reference site */
-      font-weight: 700;
-      background: linear-gradient(180deg, #0ea5e9, #22d3ee);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .metric-text {
-      font-size: 16px;
-      margin-top: 8px;
-    }
+    .metrics-wrapper { display: flex; flex-wrap: wrap; justify-content: center; border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(255,255,255,0.2); padding: 20px 0; }
+    .metric-item { text-align: center; padding: 20px 10px; }
+    .metric-item:not(:last-child) { border-right: 1px solid rgba(255,255,255,0.3); }
+    .metric-number { font-size: 56px; font-weight: 700; background: linear-gradient(180deg, #0ea5e9, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .metric-text { font-size: 16px; margin-top: 8px; }
 
     /* Project cards */
-    .project-card {
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      transition: transform 0.3s;
-    }
+    .project-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.3s; }
     .project-card:hover { transform: translateY(-5px); }
-    .project-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
+    .project-card img { width: 100%; height: 200px; object-fit: cover; }
     .project-card-body { padding: 20px; }
-    .project-card-title {
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 10px;
-    }
-    .project-card-text {
-      font-size: 14px;
-      color: var(--subtext-color);
-      margin-bottom: 15px;
-    }
-    .project-card .btn {
-      background-color: var(--accent-color);
-      color: #fff;
-      border: none;
-    }
+    .project-card-title { font-weight: 600; color: var(--primary-color); margin-bottom: 10px; }
+    .project-card-text { font-size: 14px; color: var(--subtext-color); margin-bottom: 15px; }
+    .project-card .btn { background-color: var(--accent-color); color: #fff; border: none; }
     .project-card .btn:hover { background-color: #0e9880; }
 
-    /* Skills icons */
-    .skills-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
+    /* Skills */
+    .skills-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
     .skill-item { text-align: center; flex: 0 1 120px; }
-    .skill-icon {
-      font-size: 36px;
-      color: var(--primary-color);
-      margin-bottom: 10px;
-    }
+    .skill-icon { font-size: 36px; color: var(--primary-color); margin-bottom: 10px; }
 
     /* Certifications */
     .cert-list { list-style: none; padding: 0; }
     .cert-list li { margin-bottom: 10px; color: var(--subtext-color); }
-    .cert-category {
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-
-    /* Resume section */
-    #resume-section .btn {
-      background-color: var(--accent-color);
-      border: none;
-      color: #fff;
-    }
-    #resume-section .btn:hover { background-color: #0e9880; }
+    .cert-category { font-weight: 600; color: var(--primary-color); margin: 20px 0 10px; }
 
     /* Footer */
-    footer {
-      background-color: var(--primary-color);
-      color: #fff;
-      padding: 20px 0;
-      text-align: center;
-    }
+    footer { background-color: var(--primary-color); color: #fff; padding: 20px 0; text-align: center; }
     footer a { color: var(--accent-color); text-decoration: none; }
     footer a:hover { color: #fff; }
 
-  <!--  /* Chat widget
-       Repositioned just below the hero banner.  We use a larger top offset so it sits below the
-       hero image without overlapping, even on tall screens. */
-    #hf-chat-wrapper {
-      position: fixed;
-      bottom: 20px;    /* anchor chat widget near bottom so it doesn't cover content */
-      right: 20px;
+    /* Carousels */
+    .carousel-container { position: relative; margin-top: 1rem; }
+    .carousel-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+    .carousel-track::-webkit-scrollbar { display: none; }
+    #projects-track { padding: 0 1rem; }
+    #projects-track .carousel-card { margin-right: 1rem; margin-left: 0; padding-bottom: 0.75rem; }
+
+    .carousel-card {
+      flex: 0 0 280px;
+      margin-right: 1rem;
+      scroll-snap-align: start;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      z-index: 10001;
-    }
-    #hf-chat-toggle {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      border: 2px solid #ccc;
-      /* Use the actual profile image from the assets for the avatar */
-      background-image: url('assets/img/profile-img.jpg');
-      background-size: cover;
-      background-position: center;
-      cursor: pointer;
-    }
-    #hf-chat-label {
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--primary-color); /* navy blue for chat label */
-      font-weight: 600;
-    }
-    #hf-chat-container {
-      position: fixed;
-      bottom: 90px; /* anchor chat container above the chat toggle so it opens upward */
-      right: 20px;
-      width: 350px;
-      height: 480px;
+      justify-content: space-between;
       background: #fff;
-      border: 1px solid #ddd;
+      border-left: 4px solid var(--primary-color);
+      padding: 1rem;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      z-index: 10000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
     }
-    #hf-conversation { padding: 10px; flex: 1; overflow-y: auto; font-size: 14px; }
-    #hf-input-row { display: flex; border-top: 1px solid #ccc; }
-    #hf-input { flex: 1; border: none; padding: 10px; font-size: 14px; }
-    #hf-input:focus { outline: none; }
-    .hf-btn {
-      border: none;
-      background: #007BFF;
-      color: #fff;
-      padding: 8px 10px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-left: 4px;
-      border-radius: 4px;
-    }
-    -->
-  
-    /* Carousel styles for projects and AI dashboards */
-    .carousel-container {
-      position: relative;
-      margin-top: 1rem;
-    }
-    .carousel-track {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-    .carousel-track::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Remove default padding on project carousel to ensure four cards fully visible */
-    #projects-track {
-          padding-left: 1rem;
-          padding-right: 1rem;
-      }
-
-
-      #projects-track .carousel-card {
-  margin-right: 1rem;
-  margin-left: 0;
-  padding-bottom: 0.75rem;
-}
-
-.carousel-card {
-  flex: 0 0 280px;
-  margin-right: 1rem;
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: #fff;
-  border-left: 4px solid var(--primary-color);
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-    .carousel-card:hover {
-      transform: translateY(-5px);
-    }
-
-    /* Adjust typography for carousel cards to ensure four cards fit cleanly */
-    .carousel-card h4 {
-      font-size: 1.05rem;
-
-      
-    .carousel-card a {
-        margin-top: auto;
-        align-self: flex-start;
-    }
-font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--primary-color);
-    }
-    .carousel-card p {
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: var(--subtext-color);
-      margin-bottom: 1rem;
-    }
+    .carousel-card:hover { transform: translateY(-5px); }
+    .carousel-card h4 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--primary-color); }
+    .carousel-card p { font-size: 0.85rem; line-height: 1.4; color: var(--subtext-color); margin-bottom: 1rem; }
+    .carousel-card a { margin-top: auto; align-self: flex-start; }
     .carousel-arrow {
-      position: absolute;
-      /* Raise the arrows slightly so they are not cut off */
-      top: -2.8rem; /* raise the arrows slightly more so they are fully visible */
-      right: 0;
-      background: none;
-      border: none;
-      font-size: 2rem;
-      color: var(--primary-color);
+      position: absolute; top: -2.8rem; right: 0;
+      background: none; border: none; font-size: 2rem; color: var(--primary-color);
       cursor: pointer;
     }
-    .carousel-arrow.left {
-      right: 2rem;
-    }
-    .carousel-arrow.right {
-      right: 0;
-    }
-
+    .carousel-arrow.left { right: 2rem; }
   </style>
 </head>
-<body>
 
+<body>
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
     <div class="container">
@@ -421,18 +174,15 @@ font-weight: 600;
       </div>
       <p data-aos="fade-up" data-aos-delay="400" class="mt-4">
         <span class="typed"
-              data-typed-items="Advancing HR Tech Through Automation and Data Visualization; Shaping Workforce Strategies with Data-Driven Insights; Leading with AI-Driven Insights for Smarter Decisions; Elevating Culture, Performance, and People Success; Cultivating Diversity, Equity, and Inclusion; Empowering Growth Through Collaboration, Communication, and Coaching"></span>
+          data-typed-items="Advancing HR Tech Through Automation and Data Visualization; Shaping Workforce Strategies with Data-Driven Insights; Leading with AI-Driven Insights for Smarter Decisions; Elevating Culture, Performance, and People Success; Cultivating Diversity, Equity, and Inclusion; Empowering Growth Through Collaboration, Communication, and Coaching"></span>
       </p>
     </div>
   </section>
 
-  <!-- About Section -->
+  <!-- About -->
   <section id="about">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>About Me</h2>
-      </div>
-      <div>
+      <div class="section-title"><h2>About Me</h2></div>
       <div class="row justify-content-center">
         <div class="col-lg-12">
           <p><strong>People First, Data Second:</strong> I believe data is about people. My mission is to transform workforce analytics into human stories that empower decision-makers to create fair, sustainable workplaces that value each person.</p>
@@ -442,104 +192,89 @@ font-weight: 600;
       </div>
     </div>
   </section>
-  
-  <!-- Results Section -->
+
+  <!-- Results -->
   <section id="results" style="background: #001e42; color: #fff;">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2 class="text-white">Key Results & Impact</h2>
-      </div>
-      <!-- Horizontal metrics styled like the reference site -->
+      <div class="section-title"><h2 class="text-white">Key Results & Impact</h2></div>
       <div class="row justify-content-center metrics-wrapper">
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">28%</div>
-          <p class="metric-text">Reduction in attrition</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">40%</div>
-          <p class="metric-text">Decrease in reporting effort</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">17%</div>
-          <p class="metric-text">Increase in ramp-up speed</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">25%</div>
-          <p class="metric-text">Reduction in time to hire</p>
-        </div>
+        <div class="col-12 col-md-6 col-lg-3 metric-item"><div class="metric-number">28%</div><p class="metric-text">Reduction in attrition</p></div>
+        <div class="col-12 col-md-6 col-lg-3 metric-item"><div class="metric-number">40%</div><p class="metric-text">Decrease in reporting effort</p></div>
+        <div class="col-12 col-md-6 col-lg-3 metric-item"><div class="metric-number">17%</div><p class="metric-text">Increase in ramp-up speed</p></div>
+        <div class="col-12 col-md-6 col-lg-3 metric-item"><div class="metric-number">25%</div><p class="metric-text">Reduction in time to hire</p></div>
       </div>
-
     </div>
   </section>
 
-  <!-- Projects Section -->
+  <!-- Projects -->
   <section id="projects">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Portfolio Projects</h2>
-      </div>
-      
-      <!-- Portfolio projects carousel -->
+      <div class="section-title"><h2>Portfolio Projects</h2></div>
       <div class="carousel-container">
         <button class="carousel-arrow left" id="projects-prev" aria-label="Scroll left">&#8249;</button>
         <button class="carousel-arrow right" id="projects-next" aria-label="Scroll right">&#8250;</button>
         <div class="carousel-track" id="projects-track">
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Yearly Turnover Rate Analysis</h4>
             <p><strong>Problem:</strong> Understand long-term turnover trends and retention challenges.<br><strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br><strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
             <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Workforce Analytics Overview</h4>
             <p><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into a Tableau dashboard with interactive filters.<br><strong>Impact:</strong> Enabled real-time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
             <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-3.jpg" alt="Workforce Dynamics Deep Dive" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-3.jpg" alt="Workforce Dynamics Deep Dive" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Workforce Dynamics Deep Dive</h4>
             <p><strong>Problem:</strong> Identify drivers of attrition and productivity variations across departments.<br><strong>Approach:</strong> Integrated survey, hiring and productivity data to uncover correlations and trends.<br><strong>Impact:</strong> Supported evidence-based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
             <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-4.jpg" alt="Recruitment Funnel Optimization" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            
+            <img src="assets/img/portfolio/dashboard-4.jpg" alt="Recruitment Funnel Optimization" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Recruitment Funnel Optimization</h4>
-            <p><strong>Problem:</strong> Inefficient conversion at various stages of the recruitment funnel led to missed hiring targets and candidate drop-off.<br><strong>Approach:</strong> Mapped the end-to-end recruitment pipeline—from applications to offers—tracking conversion rates at each stage by role, source and location.<br><strong>Impact:</strong> Revealed that most candidates dropped off after initial screening, prompting streamlined screening processes and improved candidate engagement.</p>
+            <p><strong>Problem:</strong> Inefficient conversion at various stages of the recruitment funnel.<br><strong>Approach:</strong> Tracked conversion from application to offer by role/source/location.<br><strong>Impact:</strong> Streamlined screening and engagement to hit hiring targets.</p>
             <a href="recruitment-funnel.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-8%203.jpg" alt="Diversity Metrics Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-8%203.jpg" alt="Diversity Metrics Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Diversity Metrics Dashboard</h4>
-            <p><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into an interactive dashboard with filters.<br><strong>Impact:</strong> Enabled real-time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
+            <p><strong>Problem:</strong> No consolidated view of diversity metrics.<br><strong>Approach:</strong> Unified multiple HR sources into an interactive dashboard.<br><strong>Impact:</strong> Real-time monitoring and faster decisions.</p>
             <a href="diversity-metrics.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Workforce Forecasting</h4>
-            <p><strong>Problem:</strong> Inaccurate headcount forecasting caused staffing shortages during peak demand and excess labour during slow periods.<br><strong>Approach:</strong> Built a forecasting model using historical headcount, turnover and hiring data, with adjustable assumptions for growth and attrition. Provided scenario-based projections over 3, 6 and 12 months.<br><strong>Impact:</strong> Delivered more reliable workforce projections that improved budgeting and capacity planning accuracy by 25%.</p>
+            <p><strong>Problem:</strong> Inaccurate headcount forecasts.<br><strong>Approach:</strong> Built a forecasting model with scenarios.<br><strong>Impact:</strong> Improved budgeting and capacity planning by 25%.</p>
             <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-7.jpg" alt="Workforce Forecast Preview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-7.jpg" alt="Workforce Forecast Preview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>Workforce Forecast Preview</h4>
-            <p><strong>Problem:</strong> Stakeholders needed an at-a-glance summary of future workforce trends without diving into detailed modelling dashboards.<br><strong>Approach:</strong> Created a simplified preview dashboard that highlights projected headcount, anticipated hiring needs and attrition rates.<br><strong>Impact:</strong> Offered executives a quick, intuitive snapshot of workforce projections.</p>
+            <p>Quick snapshot of projected headcount, hiring needs and attrition.</p>
             <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
+
           <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-9.jpg" alt="HR Attrition Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
+            <img src="assets/img/portfolio/dashboard-9.jpg" alt="HR Attrition Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;" />
             <h4>HR Attrition Dashboard</h4>
-            <p><strong>Problem:</strong> High employee turnover was impacting team stability and increasing training costs.<br><strong>Approach:</strong> Analyzed HR data to uncover attrition drivers and create interactive visualizations.<br><strong>Impact:</strong> Provided actionable insights to reduce attrition and improve employee engagement.</p>
+            <p><strong>Problem:</strong> High turnover increased costs.<br><strong>Approach:</strong> Built interactive views of drivers and hotspots.<br><strong>Impact:</strong> Targeted actions to reduce attrition.</p>
             <a href="hr_attrition_dashboard_lite.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
           </div>
         </div>
       </div>
-
     </div>
   </section>
 
-  <!-- Insights & Articles Section -->
+  <!-- Insights -->
   <section id="insights" class="py-5">
     <div class="container">
       <h2 class="section-title">Insights &amp; Articles</h2>
@@ -554,13 +289,13 @@ font-weight: 600;
             <a href="https://www.tmi.org/blogs/ethical-ai-in-hr-challenges-risks-and-best-practices" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
           </div>
           <div class="carousel-card">
-            <h4>Employee Engagement Trends Report 2025: McLean & Company Publishes New Research on Shifts Shaping the Workplace</h4>
-            <p>Discover how data-driven insights can help boost engagement, retention and well-being across your organisation.</p>
+            <h4>Employee Engagement Trends Report 2025</h4>
+            <p>Data-driven insights to boost engagement, retention and well-being.</p>
             <a href="https://www.prnewswire.com/news-releases/employee-engagement-trends-report-2025-mclean--company-publishes-new-research-on-shifts-shaping-the-workplace-302411049.html" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
           </div>
           <div class="carousel-card">
             <h4>2025 Guide to Predictive Analytics in Recruitment</h4>
-            <p>Learn how to apply predictive models to optimise hiring funnels, reduce time-to-fill and improve candidate quality.</p>
+            <p>Apply predictive models to optimize hiring funnels and time-to-fill.</p>
             <a href="https://x0pa.com/blog/2025-guide-to-predictive-analytics-in-recruitment/" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
           </div>
         </div>
@@ -568,8 +303,7 @@ font-weight: 600;
     </div>
   </section>
 
-  <!-- AI Dashboards Section -->
-  
+  <!-- AI Dashboards -->
   <section id="ai-dashboards" class="py-5">
     <div class="container">
       <h2 class="section-title">AI Dashboards</h2>
@@ -580,170 +314,104 @@ font-weight: 600;
         <div class="carousel-track" id="ai-track">
           <div class="carousel-card">
             <h4>Intent Distribution</h4>
-            <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.<br><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.<br><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer-support resources.</p>
+            <p>Which intents dominate and where coverage gaps exist.</p>
             <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Resolution Rate</h4>
-            <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.<br><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.<br><strong>Impact:</strong> Highlighted low-performing intents, enabling targeted improvements to conversational flows and intent models.</p>
+            <p>Resolution % by intent; target low performers for fixes.</p>
             <a href="interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Customer Satisfaction</h4>
-            <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.<br><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.<br><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
+            <p>CSAT by intent to pinpoint improvement areas.</p>
             <a href="interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Model Performance</h4>
-            <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.<br><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi-line chart.<br><strong>Impact:</strong> Enabled data-driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
+            <p>Precision/Recall/F1 across model versions.</p>
             <a href="interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Predict Employee Attrition</h4>
-            <p>Explore an improved dashboard that visualises attrition risk by department, overtime status and key drivers. Filter by department and discover the top factors influencing turnover.</p>
+            <p>Risk by department, overtime, and drivers with filters.</p>
             <a href="interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Optimize Workforce Planning</h4>
-            <p>Interact with enhanced simulations to see how different attrition and hiring strategies impact headcount over time. Compare scenarios and review a polished workforce summary.</p>
+            <p>Scenario simulations for headcount over time.</p>
             <a href="interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
           <div class="carousel-card">
             <h4>Engagement Impact</h4>
-            <p>Discover how engagement correlates with productivity and turnover across more departments. Filter and analyse trends, and uncover insights about your workforce.</p>
+            <p>Correlation of engagement with productivity and turnover.</p>
             <a href="interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
           </div>
         </div>
       </div>
     </div>
-  </secction>
+  </section>
 
-<!-- Featured Case Studies Section -->
-<section id="featured-case-studies" class="py-5">
-  <div class="container">
-    <h2 class="section-title">Featured Case Studies</h2>
-    <div class="row g-4">
-      <!-- Recruitment Funnel card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>Recruitment Funnel Analytics</h3>
-          <p>Discover how data-driven funnel analytics cut time-to-hire by 24 % and boosted offer acceptance by 8 %.</p>
-          <div class="cta-buttons">
-              <a href="interactive_cases_refined/recruitment_funnel_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-            <a href="recruitment_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
-      </div>
-      </div>
-  </div>
- 
-          <!-- AI-Powered Attrition card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>AI-Powered Attrition Model</h3>
-          <p>Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28 %.</p>
-          <div class="cta-buttons">
-            <a href="interactive_cases_refined/ai_attrition_model_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-                <a href="predictive_attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
+  <!-- Featured Case Studies -->
+  <section id="featured-case-studies" class="py-5">
+    <div class="container">
+      <h2 class="section-title">Featured Case Studies</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="case-study-card">
+            <h3>Recruitment Funnel Analytics</h3>
+            <p>Cut time-to-hire by 24% and improved offer acceptance by 8%.</p>
+            <div class="cta-buttons d-flex gap-2">
+              <a href="interactive_cases_refined/recruitment_funnel_case.html" class="btn btn-sm btn-primary">Explore</a>
+              <a href="recruitment_case_study.html" class="btn btn-sm btn-outline-primary">Read</a>
+            </div>
           </div>
         </div>
-      </div>
-      <!-- 90-Day Attrition card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>Reducing 90-Day Attrition</h3>
-          <p>See how predictive and prescriptive analytics can cut early attrition through targeted interventions.</p>
-          <div class="cta-buttons">
-            <a <a href="interactive_cases_refined/ninety_day_attrition_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-                <a href="attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
+        <div class="col-md-4">
+          <div class="case-study-card">
+            <h3>AI-Powered Attrition Model</h3>
+            <p>Identified risk and reduced voluntary attrition by 28%.</p>
+            <div class="cta-buttons d-flex gap-2">
+              <a href="interactive_cases_refined/ai_attrition_model_case.html" class="btn btn-sm btn-primary">Explore</a>
+              <a href="predictive_attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read</a>
+            </div>
           </div>
         </div>
-      </div>
-    </div
-  </div>
-</section>
-
-<!-- Styles for Featured Case Studies -->
-<style>
-.case-study-card {
-  background: #fff;
-  border-left: 4px solid var(--accent-color);
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  height: 100%;
-}
-.case-study-card h3 {  margin-top: 0;
-  font-size: 1.25rem;
-  color: var(--primary-color);
-}
-.case-study-card p {
-  font-size: 0.9rem;
-  color: var(--subtext-color);
-}
-.case-study-card .cta-buttons {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-.case-study-card .btn {
-  flex: 1;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  padding: 0.4rem;
-}
-</style>
-
-  <!-- Skills Section -->
- <section id="skills">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Skills &amp; Tools</h2>
-      </div>
-      <div class="skills-grid">
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-bar"></i></div>
-          <div>Tableau</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-table"></i></div>
-          <div>Power BI</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-database"></i></div>
-          <div>SQL</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fab fa-python"></i></div>
-          <div>Python</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-robot"></i></div>
-          <div>AI Tools</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-users"></i></div>
-          <div>HRIS (Workday)</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
-          <div>Analytics</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
-          <div>Data Visualization</div>
+        <div class="col-md-4">
+          <div class="case-study-card">
+            <h3>Reducing 90-Day Attrition</h3>
+            <p>Predictive & prescriptive analytics for early attrition.</p>
+            <div class="cta-buttons d-flex gap-2">
+              <a href="interactive_cases_refined/ninety_day_attrition_case.html" class="btn btn-sm btn-primary">Explore</a>
+              <a href="attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Certifications Section -->
+  <!-- Skills -->
+  <section id="skills">
+    <div class="container" data-aos="fade-up">
+      <div class="section-title"><h2>Skills &amp; Tools</h2></div>
+      <div class="skills-grid">
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-chart-bar"></i></div><div>Tableau</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-table"></i></div><div>Power BI</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-database"></i></div><div>SQL</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fab fa-python"></i></div><div>Python</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-robot"></i></div><div>AI Tools</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-users"></i></div><div>HRIS (Workday)</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-chart-line"></i></div><div>Analytics</div></div>
+        <div class="skill-item"><div class="skill-icon"><i class="fas fa-chart-line"></i></div><div>Data Visualization</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Certifications -->
   <section id="certifications">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Certifications</h2>
-      </div>
+      <div class="section-title"><h2>Certifications</h2></div>
       <div class="row justify-content-center">
         <div class="col-lg-12">
           <div class="cert-category">AI & Analytics</div>
@@ -753,9 +421,10 @@ font-weight: 600;
             <li><a href="assets/img/portfolio/certifications/using-generative-ai-ethically-at-work.pdf" target="_blank">Using Generative AI Ethically at Work (LinkedIn Learning, 2025)</a></li>
             <li><a href="assets/img/portfolio/certifications/generative-ai-in-hr.pdf" target="_blank">Generative AI in HR (LinkedIn Learning, 2025)</a></li>
             <li><a href="assets/img/portfolio/certifications/actionable-insights-business-data-in-practice.pdf" target="_blank">Actionable Insights and Business Data in Practice (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/RAG Certification.pdf" target="_blank">RAG Course for Beginners (Simplilearn SkillUp, 2025)</a></li>
+            <li><a href="assets/img/portfolio/RAG Certification.pdf" target="_blank">RAG Course for Beginners (Simplilearn, 2025)</a></li>
             <li><span>AI for HR: Workforce Planning & Talent Optimization (In Progress)</span></li>
           </ul>
+
           <div class="cert-category">HR & Leadership</div>
           <ul class="cert-list">
             <li><a href="assets/img/portfolio/certifications/effectively-leading-digital-transformation.pdf" target="_blank">Effectively Leading Digital Transformation (LinkedIn Learning, 2025)</a></li>
@@ -766,12 +435,10 @@ font-weight: 600;
     </div>
   </section>
 
-  <!-- Resume Section -->
+  <!-- Resume -->
   <section id="resume-section">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Professional Resume</h2>
-      </div>
+      <div class="section-title"><h2>Professional Resume</h2></div>
       <div class="row justify-content-center">
         <div class="col-lg-8 text-center">
           <p>For a detailed overview of my work experience and accomplishments, please download my resume.</p>
@@ -781,12 +448,10 @@ font-weight: 600;
     </div>
   </section>
 
-  <!-- Contact Section -->
+  <!-- Contact -->
   <section id="contact">
     <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Contact</h2>
-      </div>
+      <div class="section-title"><h2>Contact</h2></div>
       <div class="row justify-content-center">
         <div class="col-lg-6 text-center">
           <p>If you'd like to discuss how I can bring AI-driven workforce insights to your organization, please get in touch.</p>
@@ -799,38 +464,31 @@ font-weight: 600;
 
   <!-- Footer -->
   <footer>
-    <div class="container">
-      <p>&copy; 2025 Tony Abdelmalak. All Rights Reserved.</p>
-    </div>
+    <div class="container"><p>&copy; 2025 Tony Abdelmalak. All Rights Reserved.</p></div>
   </footer>
 
-  <!-- JavaScript Files -->
+  <!-- Vendor JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.umd.js"></script>
+
   <script>
     AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
-    const typedStrings = document.querySelector('.typed').getAttribute('data-typed-items').split(';');
-    const typed = new Typed('.typed', {
-      strings: typedStrings,
-      typeSpeed: 40,
-      backSpeed: 30,
-      backDelay: 2000,
-      loop: true
-    });
-  </script>
+    const typedEl = document.querySelector('.typed');
+    if (typedEl) {
+      const typedStrings = typedEl.getAttribute('data-typed-items').split(';');
+      new Typed('.typed', { strings: typedStrings, typeSpeed: 40, backSpeed: 30, backDelay: 2000, loop: true });
+    }
 
-  <!-- Carousel logic -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    // Simple carousel scroll helpers
+    document.addEventListener('DOMContentLoaded', function () {
       function setupCarousel(trackId, prevId, nextId) {
         const track = document.getElementById(trackId);
-        document.getElementById(prevId).addEventListener('click', function() {
-          track.scrollBy({ left: -320, behavior: 'smooth' });
-        });
-        document.getElementById(nextId).addEventListener('click', function() {
-          track.scrollBy({ left: 320, behavior: 'smooth' });
-        });
+        const prev = document.getElementById(prevId);
+        const next = document.getElementById(nextId);
+        if (!track || !prev || !next) return;
+        prev.addEventListener('click', () => track.scrollBy({ left: -320, behavior: 'smooth' }));
+        next.addEventListener('click', () => track.scrollBy({ left:  320, behavior: 'smooth' }));
       }
       setupCarousel('projects-track', 'projects-prev', 'projects-next');
       setupCarousel('ai-track', 'ai-prev', 'ai-next');
@@ -838,110 +496,26 @@ font-weight: 600;
     });
   </script>
 
-  <!-- === Copilot widget (single source of truth; inline persona, no external fetch) === -->
-<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=2" />
-
-<style>
-  /* Keep the launcher/panel above all site content */
-  .copilot-container,
-  .copilot-launch,
-  .copilot-panel {
-    z-index: 2147483647 !important; /* max-safe */
-  }
-</style>
-
-<script defer src="/chat-widget/assets/chat/widget.js?v=2"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // SINGLE inline persona: removed configPath/systemPath redundancies
-    const systemPrompt = `
-You are Tony’s Copilot. Speak in the first person as Tony. Keep answers natural and concise (≤70 words unless asked).
-Lead with the answer, then up to 3 bullets. Share outcomes/metrics when helpful. If uncertain, say so and ask where to look.
-Never share private/sensitive info. When referencing my site, name the section (e.g., “Projects → Dashboards”).
-
-TOPICS I CAN COVER
-- Career pivot: HR practitioner → AI-driven analytics
-- Projects, dashboards, and visualizations I built
-- How AI + Tableau/SQL/Python speed decisions
-- Challenges, gaps, pivots as growth; wins that shaped my path
-- What I’m exploring next
-
-SNAPSHOT
-- Name: Tony Abdelmalak — Los Angeles, CA
-- Role: People & Business Insights Analyst
-- Focus: Tableau, SQL, Python, generative AI
-- Impact: ~20% fewer hiring gaps; overtime moderated; +18% retention at Flowserve
-
-SHORT STORY HIGHLIGHTS (use when relevant)
-- Quibi — Scaling fast: Predictive staffing + dashboards supported 200+ hires with real-time visibility.
-  Follow-up: Want a 60s walk-through of how the dashboards drove daily staffing calls?
-- Flowserve — Early risk detection: Automated compliance/attrition reporting; flagged at-risk teams; retention improved ~18%.
-  Follow-up: Interested in how I spotted early attrition signals?
-- Sony Pictures — Transformation visibility: Simplified HR reporting; leaders got timely trends during change.
-  Follow-up: Curious which reports became must-checks?
-- Roadr (Startup) — Onboarding/attrition: AI forecasting + Tableau/Workday + generative reporting; onboarding −40%, early exits ↓ ~⅓.
-  Follow-up: Want the quick rundown of the reporting assistant?
-- HBO — Workday + dashboards: Real-time attrition/hiring; trained teams; decisions sped up.
-  Follow-up: Need an example of how we cut reporting delays?
-- NBCUniversal — Funnel clarity: Improved ATS analytics; time-to-fill dropped; forecasts sharpened.
-  Follow-up: Want to see the funnel metrics I used?
-
-HOW I WORK (use when asked “how did you build X?”)
-- Start from the decision → sketch story → wire data (SQL/Python) → build in Tableau.
-- Keep models explainable; metrics meaningful; outputs actionable.
-- Offer a link to Projects, Dashboards, or Case Studies.
-
-SKILLS & TOOLS
-- Analytics/Viz: Tableau, Power BI, SQL, Excel
-- AI/ML: forecasting, explainable models, lightweight copilots
-- HRIS: Workday, SuccessFactors, Greenhouse
-- Ops/Automation: Python, Apps Script, GitHub Pages, Cloudflare Workers
-
-CURRENT GOALS
-- Lead AI initiatives in HR analytics
-- Expand interactive dashboards and AI copilots
-- Continue certifications in AI, Tableau, SQL, HR analytics
-
-GUARDRAILS
-- Public info only; decline private/sensitive requests politely.
-- No medical/legal/financial advice.
-- Keep responses short, clear, and useful; end with one next step or a single follow-up question.
-
-SITE MAP HINTS (for citations in answers)
-- Projects: /projects   • Dashboards: /projects#dashboards
-- Case Studies: /case-studies   • Resume: /resume   • Chat Widget: /chat-widget
-`;
-
-    const commonOpts = {
-      mode: 'floating',
-      position: 'bottom-right',
-      avatar: '/assets/img/profile-img.jpg',
-      title: 'Copilot',
-      greeting: 'How can I help you explore Tony’s journey, dashboards, or career?',
-      // IMPORTANT: inline persona only; no external fetches
-      systemPrompt
-      // configPath: REMOVED
-      // systemPath: REMOVED
-    };
-
-    // Proxy to your Worker
-    const proxyUrl = 'https://my-chat-agent.tonyabdelmalak.workers.dev/chat';
-
-    try {
-      if (window.CopilotWidget) {
-        const widget = new CopilotWidget({ proxyUrl, ...commonOpts });
-        widget.init();
-      } else if (window.TonyChatWidget?.init) {
-        window.TonyChatWidget.init({ proxyUrl, ...commonOpts });
-      } else {
-        console.error('[Copilot] No widget API found.');
+  <!-- === Tony’s Chat Widget (single, authoritative include) === -->
+  <link rel="stylesheet" href="/assets/chat/widget.css" />
+  <script defer src="/assets/chat/widget.js"></script>
+  <script>
+    // Minimal bootstrap for the widget if it exposes a global init
+    window.addEventListener('DOMContentLoaded', () => {
+      const init = window.TonyChatWidget?.init || window.CopilotWidget?.init || null;
+      if (init) {
+        init({
+          mode: 'floating',
+          position: 'bottom-right',
+          avatar: '/assets/img/profile-img.jpg',
+          title: 'Copilot',
+          greeting: 'How can I help you explore Tony’s journey, dashboards, or career?',
+          // persona/config files — the widget should fetch this JSON:
+          configPath: '/assets/chat/config.json'
+        });
       }
-    } catch (err) {
-      console.error('[Copilot] init error:', err);
-    }
-  });
-</script>
-<!-- === /Copilot widget === -->
-
+    });
+  </script>
+  <!-- === /Tony’s Chat Widget === -->
 </body>
 </html>
