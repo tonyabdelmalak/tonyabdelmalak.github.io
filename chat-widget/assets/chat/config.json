@@ -1,7 +1,7 @@
 {
   "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "title": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on. What’s on your mind?",
-  "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on. What’s on your mind?",
+  "title": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on.",
+  "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on.",
   "accent": "#4f46e5",
   "radius": "12px",
   "rateLimit": 10
