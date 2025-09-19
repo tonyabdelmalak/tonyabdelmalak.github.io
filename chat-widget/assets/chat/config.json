@@ -1,5 +1,8 @@
 {
-  "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+  "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+  "systemUrl": "/chat-widget/assets/chat/system.md",
+  "model": "llama-3.1-70b-versatile",
+  "temperature": 0.2,
   "title": "What's on your mind?",
   "greeting": "Hi, I’m Tony. Feel free to ask me about my background, dashboards, projects, or what I’m building next.",
   "accent": "#4f46e5",
