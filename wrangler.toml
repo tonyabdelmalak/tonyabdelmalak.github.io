@@ -1,12 +1,17 @@
-name = "my-chat-agent"
-main = "chat-widget/worker.js"
+name = "tony-chat"
+main = "src/worker.js"
 compatibility_date = "2024-09-01"
-account_id = "59fea97fab54fbd4d4168ccaa1fa3410"
-workers_dev = true
-[observability.logs]
-enabled = true
 
-# Remove the old Durable Object class named "Chat"
-[[migrations]]
-tag = "remove-chat-do-1"
-deleted_classes = ["Chat"]
+[vars]
+# Your public RAW system file with the assistant rules (guardrails)
+SYSTEM_MD_URL = "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/system.md"
+
+# Your site + local dev (CORS allowlist)
+ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io,http://127.0.0.1:8787,http://localhost:8787"
+
+# Provider/model (use OpenAI by default; Groq works too)
+PROVIDER = "openai"
+MODEL = "gpt-4o-mini"
+# If using Groq instead:
+# PROVIDER = "groq"
+# MODEL = "llama-3.1-8b-instant"
