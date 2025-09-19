@@ -1,7 +1,7 @@
 :root{
   /* positioning */
-  --rail-offset: 88px;                 /* space below your top navbar */
-  --rail-side-gap: 16px;               /* gap from page edge */
+  --rail-offset: 88px;                 /* space under your top navbar */
+  --rail-side-gap: 16px;
 
   /* sizes */
   --rail-width-collapsed: 56px;
@@ -18,26 +18,17 @@
   --rail-z: 2147482000;
 }
 
-/* Reserve space on the side so content doesn't hide underneath the rail */
+/* Reserve space so content never sits under the rail */
 @media (min-width: 900px){
-  body.has-rail{
-    padding-right: 72px;               /* collapsed space */
-  }
-  body.rail-expanded{
-    padding-right: 216px;              /* expanded space */
-  }
+  body.has-rail{ padding-right: 72px; }       /* collapsed width */
+  body.rail-expanded{ padding-right: 216px; } /* expanded width */
 }
 
 /* ==== Rail container ==== */
 .side-rail{
   position: fixed;
-  /* RIGHT SIDE: move here to avoid covering hero text */
   right: var(--rail-side-gap);
-  left: auto;
-
-  top: var(--rail-offset);             /* clear the navbar */
-  transform: none;
-
+  top: var(--rail-offset);
   width: var(--rail-width-collapsed);
   max-height: calc(100vh - (var(--rail-offset) + 16px));
   background: var(--rail-bg);
@@ -49,6 +40,9 @@
   transition: width .24s ease;
   overflow: hidden;
   z-index: var(--rail-z);
+
+  display: flex;
+  flex-direction: column;
 }
 .side-rail:hover,
 .side-rail.is-pinned{
@@ -89,34 +83,23 @@
 }
 .side-rail a:hover,
 .side-rail a:focus{ background: rgba(255,255,255,.08); }
-
 .side-rail a.active{
   background: rgba(99,102,241,.22);
   color: #fff;
   box-shadow: inset 0 0 0 1px rgba(99,102,241,.45);
 }
 
-/* Tooltip when collapsed */
-.side-rail:not(:hover):not(.is-pinned) a:focus::after,
-.side-rail:not(:hover):not(.is-pinned) a:hover::after{
-  content: attr(data-label);
-  position: absolute;
-  left: auto;
-  right: calc(100% + 10px);            /* appears to the LEFT of the rail */
-  top: 50%;
-  transform: translateY(-50%);
-  background: #111827;
-  color: #f9fafb;
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(0,0,0,.2);
+/* ===== Bottom area (pin + chat avatar) ===== */
+.rail-footer{
+  margin-top: auto;
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  padding-top: 8px;
 }
 
 /* Pin button */
 .rail-pin{
-  margin-top: 10px;
   width: 36px; height: 36px;
   border: none;
   border-radius: 50%;
@@ -129,7 +112,43 @@
 .rail-pin:hover{ background: rgba(255,255,255,.16); }
 .rail-pin svg{ width: 18px; height: 18px; }
 
-/* Small screens: hide the rail (your top nav already handles nav) */
+/* When the chat launcher is INSIDE the rail */
+.side-rail .chat-launcher{
+  position: static;                /* cancel fixed positioning */
+  width: 44px;                     /* compact size to match icons */
+  height: 44px;
+  border: 3px solid #6366f1;       /* your purple ring */
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  box-shadow: none;
+  background: #111;
+}
+.side-rail .chat-launcher > img{
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.side-rail .chat-dots{ display: none; }  /* hide floating dot bubble when docked */
+
+/* Tooltips when collapsed (appear to the LEFT of the rail) */
+.side-rail:not(:hover):not(.is-pinned) a:focus::after,
+.side-rail:not(:hover):not(.is-pinned) a:hover::after{
+  content: attr(data-label);
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #111827;
+  color: #f9fafb;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(0,0,0,.2);
+}
+
+/* Small screens: hide the rail, let JS undock the launcher to bottom-right */
 @media (max-width: 899px){
   .side-rail{ display: none; }
   body.has-rail, body.rail-expanded{ padding-right: 0; }
