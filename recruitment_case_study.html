@@ -1,155 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recruitment Funnel Analytics Case Study</title>
-    <link rel="stylesheet" href="/assets/ui/side-rail.css">
-    <script src="/assets/ui/side-rail.js" defer></script>
-    <style>
-        :root {
-            --primary-color: #1E3A8A;
-            --accent-color: #149DDD;
-            --background-color: #F3F4F6;
-            --text-color: #111827;
-            --subtext-color: #374151;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
-            background-color: var(--background-color);
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background: var(--primary-color);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        header h1 {
-            margin: 0;
-            font-size: 32px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        .snapshot {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-        .snapshot-card {
-            flex: 1 1 250px;
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .snapshot-card h2 {
-            margin: 0 0 10px;
-            font-size: 28px;
-            color: var(--primary-color);
-        }
-        .snapshot-card p {
-            margin: 0;
-            color: var(--subtext-color);
-        }
-        section {
-            margin-bottom: 40px;
-        }
-        section h2 {
-            color: var(--primary-color);
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        section p {
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-        .cta {
-            text-align: center;
-            margin-top: 40px;
-        }
-        .cta a {
-            display: inline-block;
-            background: var(--accent-color);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-        .cta a:hover {
-            background: #0e77b8;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Recruitment Case Study – Tony Abdelmalak</title>
+
+  <meta property="og:title" content="Recruitment Case Study – HR Analytics">
+  <meta property="og:description" content="Exploring hiring patterns, recruitment metrics, and data-driven HR insights.">
+  <meta property="og:image" content="https://tonyabdelmalak.github.io/assets/recruitment_case_og.png">
+  <meta property="og:url" content="https://tonyabdelmalak.github.io/recruitment_case_study.html">
+
+  <!-- Side rail -->
+  <link rel="stylesheet" href="/assets/ui/side-rail.css">
+  <script src="/assets/ui/side-rail.js" defer></script>
+
+  <style>
+    body {
+      font: 16px system-ui;
+      margin: 0;
+      background: #fafafa;
+      color: #111;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 { margin: 8px 0 12px; }
+    .note {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 16px;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Recruitment Funnel Analytics</h1>
-    </header>
-    <div class="container">
-        <!-- Snapshot Cards -->
-        <div class="snapshot">
-            <div class="snapshot-card">
-                <h2>↓24% </h2>
-                <p>Faster Time‑to‑Hire</p>
-            </div>
-            <div class="snapshot-card">
-                <h2>↑8% </h2>
-                <p>Increase in Offer Acceptance</p>
-            </div>
-            <div class="snapshot-card">
-                <h2>Hours Saved</h2>
-                <p>Per Recruiter Each Week</p>
-            </div>
-        </div>
-        <!-- Sections -->
-        <section>
-            <h2>Executive Summary</h2>
-            <p>Hiring delays were slowing business growth and causing frustration for recruiters and candidates. I led an analysis of the recruitment funnel that reduced the average time‑to‑hire by 24&nbsp;% and increased offer acceptance by 8&nbsp;%. By mapping each stage and visualizing conversion rates, recruiters focused on the bottlenecks that mattered most.</p>
-        </section>
-        <section>
-            <h2>Problem &amp; Context</h2>
-            <p>In hyper‑competitive markets, time is talent. Lengthy hiring cycles hurt morale and the bottom line. As an HR practitioner turned analyst, I aimed to transform qualitative observations about the candidate journey into quantitative insights that could drive action.</p>
-        </section>
-        <section>
-            <h2>Methodology</h2>
-            <p><strong>Data collection:</strong> Extracted applicant tracking system data covering every hiring stage—sourcing, screening, interviewing, offer extended and offer accepted—capturing timestamps, conversion statuses and candidate experience scores.</p>
-            <p><strong>Funnel metrics:</strong> Calculated conversion rates between stages, average time spent in each stage and overall time‑to‑hire. Segmented by department, job level and recruiter to pinpoint delays.</p>
-            <p><strong>Dashboard design:</strong> Built interactive dashboards (originally in Tableau) that visualized the funnel. Recruiters could filter by position or timeframe and see their pipeline at a glance, with sparklines to show progress over time and benchmarks for top performers.</p>
-            <p><strong>Process optimization:</strong> Armed with data, recruiters re‑engineered workflows—streamlining job postings, standardizing interview scheduling and automating candidate communications. I tested small changes (e.g., automated screening quizzes) and measured their impact on conversion rates.</p>
-        </section>
-        <section>
-            <h2>Results &amp; Impact</h2>
-            <p><strong>24&nbsp;% faster hiring:</strong> The average time from application to offer dropped from 55 days to 42 days within three months. Some high‑volume roles saw reductions of up to 30&nbsp;%.</p>
-            <p><strong>Offer acceptance up 8&nbsp;%:</strong> Improved communication and faster feedback loops translated into higher acceptance rates.</p>
-            <p><strong>Improved recruiter productivity:</strong> Dashboards saved recruiters hours each week by eliminating manual tracking. They could instantly see which candidates needed attention and which stages required escalation.</p>
-        </section>
-        <section>
-            <h2>Ethical &amp; Human Considerations</h2>
-            <p>Candidate data was anonymized prior to analysis. Process changes prioritized the candidate experience—automated communications were humanized, ensuring applicants felt respected rather than spammed. Analytics served as a partner to recruiting, not a judge; recruiters maintained ownership of decisions while using data to support them.</p>
-        </section>
-        <section>
-            <h2>Lessons Learned</h2>
-            <p><strong>Small changes add up:</strong> Incremental improvements—like scheduling automation—stacked together to produce big gains.</p>
-            <p><strong>Visualization drives action:</strong> Simple visuals were more persuasive than spreadsheets. People respond to trends they can see.</p>
-            <p><strong>Continuous iteration:</strong> Hiring landscapes evolve quickly. Building flexible dashboards allowed recruiters to test ideas and measure results.</p>
-        </section>
-        <section>
-            <h2>Conclusion &amp; Next Steps</h2>
-            <p>This case study shows how data‑savvy HR professionals can transform recruitment from a bottleneck into a competitive advantage. Next steps include integrating candidate feedback sentiment, automating additional workflow steps and expanding the dashboards to cover onboarding and early performance.</p>
-        </section>
-        <div class="cta">
-            <a href="interactive_cases_refined/recruitment_case.html">Explore Interactive Dashboard</a>
-        </div>
-    </div>
+  <div class="wrap">
+    <h1>Recruitment Case Study</h1>
+    <p class="note">
+      This case study analyzes recruitment data to highlight bottlenecks, optimize funnel stages,
+      and provide recommendations for improving hiring efficiency.
+    </p>
+
+    <!-- Add charts/embeds here -->
+    <p>
+      <a href="https://public.tableau.com/app/profile/tony.abdelmalak" target="_blank">
+        View related dashboards on Tableau Public
+      </a>
+    </p>
+  </div>
 </body>
 </html>
