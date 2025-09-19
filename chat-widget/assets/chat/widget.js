@@ -3,7 +3,7 @@
 // Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
 
 (function () {
-  const AGENT_LABEL = "Agent";      // Consistent name in the transcript
+  const AGENT_LABEL = "Tony";      // Consistent name in the transcript
   const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
 
   // Utility: build elements quickly
