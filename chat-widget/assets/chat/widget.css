@@ -1,126 +1,147 @@
-/* === Chat Widget (clean, tight, rail-aware) === */
-:root{
-  --chat-accent: #2563eb;
-  --chat-accent-2: #1e3a8a;
-  --chat-bg: #ffffff;
-  --chat-border: #e5e7eb;
-  --chat-text: #0f172a;
+WIDGET.CSS
 
-  /* JS updates this when the vertical rail is present/expanded */
-  --chat-right-offset: 16px;
+:root {
+  --tcw-accent: #4f46e5;
+  --tcw-radius: 12px;
 }
 
-/* Launcher (bottom-right) */
-.chat-launcher{
+.tcw-launcher {
   position: fixed;
-  right: var(--chat-right-offset);
   bottom: 20px;
-  width: 68px;
-  height: 68px;
+  right: 20px;
+  width: 64px;              /* bigger bubble */
+  height: 64px;
+  border: 2px solid #ccc;
   border-radius: 50%;
-  border: 4px solid #6366f1;
-  background: #111;
-  box-shadow: 0 10px 24px rgba(0,0,0,.22);
+  background-image: url('assets/img/profile-img.jpg');  /* relative path */
+  background-size: cover;
+  background-position: center 20%;  /* lift crop so more forehead shows */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 2147483001;
+  overflow: visible;        /* let dots sit outside the circle */
+}
+
+/* Reposition the built-in launcher text (…/💬) above the head */
+.tcw-launcher > span {
+  position: absolute;
+  top: -12px;               /* move above the avatar */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  pointer-events: none;     /* clicks go to the bubble, not the dots */
+}
+
+.tcw-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  max-height: 520px;
+  background-color: #fff;
+  border-radius: var(--tcw-radius);
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   overflow: hidden;
-  z-index: 2147483600; /* above rail */
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  z-index: 2147483000;
+}
+
+.tcw-header {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--tcw-accent);
+  color: #fff;
+}
+
+.tcw-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.tcw-title {
+  font-weight: 600;
+}
+
+.tcw-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.tcw-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.tcw-msg {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tcw-inputbar {
+  display: flex;
+  border-top: 1px solid #eee;
+  padding: 8px;
+}
+
+.tcw-inputbar textarea {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: var(--tcw-radius);
+  padding: 6px 8px;
+  resize: none;
+  font-family: inherit;
+}
+
+.tcw-inputbar button {
+  margin-left: 8px;
+  background-color: var(--tcw-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--tcw-radius);
+  padding: 6px 12px;
   cursor: pointer;
 }
-.chat-launcher > img{
-  width:100%; height:100%;
-  object-fit: cover; border-radius: 50%;
+
+.tcw-typing {
+  font-style: italic;
+  color: #888;
 }
 
-/* Container */
-.chat-container{
-  position: fixed;
-  right: var(--chat-right-offset);
-  bottom: 16px;
-  width: min(440px, 92vw);
-  height: min(700px, 88vh);
-  background: var(--chat-bg);
-  border: 1px solid var(--chat-border);
-  border-radius: 18px;
-  box-shadow: 0 24px 60px rgba(2,6,23,.35);
-  display: none; /* toggled by JS */
-  overflow: hidden;
-  z-index: 2147483601;
+.tcw-greeting {
+  margin-bottom: 8px;
+  color: #555;
 }
 
-/* Open layout: header, messages, input */
-.chat-container.open{
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+.tcw-msg strong {
+  font-weight: 600;
 }
 
-/* Header — compact and tight to border */
-.chat-header{
-  padding: 10px 12px;
-  color: #fff;
-  background: linear-gradient(135deg,var(--chat-accent-2),var(--chat-accent));
-  display:flex; gap:10px; align-items:center; justify-content:space-between;
-}
-.chat-header .title{
-  display:flex; gap:10px; align-items:center;
-  font-weight:700; font-size:17px;
-}
-.chat-header .title img{
-  width:32px; height:32px; border-radius:50%;
-  border:2px solid rgba(255,255,255,.7);
-}
-.chat-header .sub{ font-weight:500; font-size:12px; opacity:.95; }
-.chat-header .close{
-  width:34px; height:34px; border-radius:10px;
-  background: rgba(255,255,255,.18);
-  display:grid; place-items:center; cursor:pointer; border:none; color:#fff;
+/* Custom overrides for Tony's avatar bubble and scroll fix */
+.tcw-launcher {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background-image: url('/assets/img/profile-img.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
-/* Messages — roomy but not wasteful */
-.chat-messages{
-  padding: 10px 10px 6px;
-  overflow-y: auto;
-  background: var(--chat-bg);
-  color: var(--chat-text);
-}
-.msg{
-  max-width: 82%;
-  padding: 9px 12px;
-  border-radius: 16px;
-  margin: 6px 0;
-  line-height: 1.35;
-  font-size: 15px;
-  box-shadow: 0 1px 0 rgba(2,6,23,.04);
-}
-.msg.ai{ background:#eef2ff; border:1px solid #c7d2fe; }
-.msg.user{ background:#eff6ff; border:1px solid #bfdbfe; margin-left:auto; }
-
-/* Optional suggested chips */
-.suggests{ display:flex; flex-wrap:wrap; gap:8px; margin: 6px 0 4px; }
-.suggest{
-  padding:7px 10px; border-radius: 16px;
-  background: #f5f7ff;
-  border:1px solid #c7d2fe;
-  cursor: pointer; font-size:14px;
+.tcw-panel[style*="display: block"] {
+  display: flex !important;
 }
 
-/* Input — snug to bottom border */
-.chat-input{
-  display:flex; gap:8px; align-items:center;
-  border-top:1px solid var(--chat-border);
-  padding: 8px;
-  background:#fff;
-}
-.chat-input input{
-  flex:1; border: 2px solid #dbeafe;
-  border-radius: 14px; padding: 12px 12px;
-  font-size: 15px; outline:none;
-}
-.chat-input button{
-  width:44px; height:44px; border-radius: 14px; border:none; cursor:pointer;
-  background: linear-gradient(135deg,var(--chat-accent-2),var(--chat-accent));
-  color:#fff; box-shadow: 0 10px 20px rgba(37,99,235,.28);
-}
-
-/* Small screens */
-@media (max-width: 520px){
-  .chat-container{ width: 96vw; }
-}
