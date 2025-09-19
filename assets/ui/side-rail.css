@@ -1,62 +1,42 @@
-:root{
-  /* positioning */
-  --rail-offset: 88px;                 /* space under your top navbar */
-  --rail-side-gap: 16px;
-
-  /* sizes */
+:root {
+  --rail-bg: #1e293b; /* Slate 800 */
+  --rail-fg: #e5e7eb;
+  --rail-accent: #14b8a6; /* Teal 500 */
   --rail-width-collapsed: 56px;
   --rail-width-expanded: 200px;
   --rail-radius: 16px;
-  --rail-item-h: 44px;
   --rail-gap: 8px;
-
-  /* colors */
-  --rail-bg: rgba(15,23,42,.92);       /* slate-900 w/ translucency */
-  --rail-fg: #e5e7eb;                  /* gray-200 */
-  --rail-accent: #6366f1;              /* indigo-500 */
-
+  --rail-item-h: 44px;
   --rail-z: 2147482000;
 }
 
-/* Reserve space so content never sits under the rail */
-@media (min-width: 900px){
-  body.has-rail{ padding-right: 72px; }       /* collapsed width */
-  body.rail-expanded{ padding-right: 216px; } /* expanded width */
-}
-
-/* ==== Rail container ==== */
-.side-rail{
+.side-rail {
   position: fixed;
-  right: var(--rail-side-gap);
-  top: var(--rail-offset);
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   width: var(--rail-width-collapsed);
-  max-height: calc(100vh - (var(--rail-offset) + 16px));
   background: var(--rail-bg);
   color: var(--rail-fg);
   border-radius: var(--rail-radius);
   padding: 12px 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,.32);
-  backdrop-filter: saturate(140%) blur(6px);
   transition: width .24s ease;
   overflow: hidden;
   z-index: var(--rail-z);
-
-  display: flex;
-  flex-direction: column;
 }
 .side-rail:hover,
-.side-rail.is-pinned{
+.side-rail.is-pinned {
   width: var(--rail-width-expanded);
 }
-
-.side-rail ul{
+.side-rail ul {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: var(--rail-gap);
 }
-.side-rail a{
+.side-rail a {
   display: grid;
   grid-template-columns: 28px 1fr;
   align-items: center;
@@ -69,87 +49,46 @@
   position: relative;
   outline: none;
 }
-.side-rail a svg{ width: 24px; height: 24px; opacity:.96; }
-.side-rail a span{
+.side-rail a svg {
+  width: 24px;
+  height: 24px;
+}
+.side-rail a span {
   white-space: nowrap;
   opacity: 0;
   transform: translateX(-4px);
   transition: opacity .18s ease, transform .18s ease;
 }
 .side-rail:hover a span,
-.side-rail.is-pinned a span{
+.side-rail.is-pinned a span {
   opacity: 1;
   transform: translateX(0);
 }
 .side-rail a:hover,
-.side-rail a:focus{ background: rgba(255,255,255,.08); }
-.side-rail a.active{
-  background: rgba(99,102,241,.22);
+.side-rail a:focus {
+  background: rgba(255,255,255,.07);
+}
+.side-rail a.active {
+  background: rgba(20,184,166,.18);
   color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(99,102,241,.45);
+  box-shadow: inset 0 0 0 1px rgba(20,184,166,.45);
 }
-
-/* ===== Bottom area (pin + chat avatar) ===== */
-.rail-footer{
-  margin-top: auto;
-  display: grid;
-  gap: 10px;
-  place-items: center;
-  padding-top: 8px;
-}
-
-/* Pin button */
-.rail-pin{
-  width: 36px; height: 36px;
+.rail-pin {
+  margin-top: 10px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 50%;
-  background: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.06);
   color: var(--rail-fg);
   display: grid;
   place-items: center;
   cursor: pointer;
 }
-.rail-pin:hover{ background: rgba(255,255,255,.16); }
-.rail-pin svg{ width: 18px; height: 18px; }
-
-/* When the chat launcher is INSIDE the rail */
-.side-rail .chat-launcher{
-  position: static;                /* cancel fixed positioning */
-  width: 44px;                     /* compact size to match icons */
-  height: 44px;
-  border: 3px solid #6366f1;       /* your purple ring */
-  border-radius: 50%;
-  overflow: hidden;
-  padding: 0;
-  box-shadow: none;
-  background: #111;
+.rail-pin:hover {
+  background: rgba(255,255,255,.12);
 }
-.side-rail .chat-launcher > img{
-  width: 100%; height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-.side-rail .chat-dots{ display: none; }  /* hide floating dot bubble when docked */
-
-/* Tooltips when collapsed (appear to the LEFT of the rail) */
-.side-rail:not(:hover):not(.is-pinned) a:focus::after,
-.side-rail:not(:hover):not(.is-pinned) a:hover::after{
-  content: attr(data-label);
-  position: absolute;
-  right: calc(100% + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #111827;
-  color: #f9fafb;
-  padding: 6px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-  white-space: nowrap;
-  box-shadow: 0 6px 18px rgba(0,0,0,.2);
-}
-
-/* Small screens: hide the rail, let JS undock the launcher to bottom-right */
-@media (max-width: 899px){
-  .side-rail{ display: none; }
-  body.has-rail, body.rail-expanded{ padding-right: 0; }
+.rail-pin svg {
+  width: 18px;
+  height: 18px;
 }
