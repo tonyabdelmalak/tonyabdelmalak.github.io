@@ -1,5 +1,5 @@
 // worker.js — Copilot proxy (OpenAI first, fallback to Groq) with 429 backoff + model pool
-// Persona stays here. We can also merge client-sent `system` addendums without losing this.
+// Persona stays here. We also merge a strict style addendum and any client-sent `system`.
 
 const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
@@ -268,6 +268,17 @@ What’s on your mind?
 }
 `.trim();
 
+/* --------- Style addendum to lock output shape --------- */
+const STYLE_ADDENDUM = `
+FORMAT RULES (hard):
+- Max 70 words unless user asks for more.
+- No markdown headings, no lists, no section titles, no code blocks.
+- Lead with the answer in 1–2 short sentences.
+- Then up to 3 short bullets (optional).
+- End with exactly ONE follow-up question on a new line, prefixed with "→ ".
+- Keep it warm and plain; no résumé-speak, no buzzwords.
+`.trim();
+
 /* ---------------------- Utilities ---------------------- */
 function corsHeaders() {
   return {
@@ -283,9 +294,9 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
-function mergeSystem(base, addendum) {
-  if (!addendum) return base;
-  return `${base}\n\n---\n# Client system addendum\n${String(addendum).trim()}`;
+// Merge any number of system prompt parts with a clear separator
+function mergeSystem(...parts) {
+  return parts.filter(Boolean).map(s => String(s).trim()).join("\n\n---\n");
 }
 
 // Respect Retry-After if present; otherwise exponential backoff.
@@ -350,13 +361,15 @@ export default {
         const history = trimHistory(body?.history, clamp(body?.max_history_turns ?? 12, 0, 40));
         const clientSystem = body?.system ? String(body.system) : "";
         const temperature = clamp(body?.temperature ?? 0.3, 0, 2);
-        const max_tokens = clamp(body?.max_tokens ?? 200, 32, 1024);
+        const max_tokens = clamp(body?.max_tokens ?? 160, 32, 1024); // tightened default
         const preferredModel = body?.model && String(body.model);
         const modelPool = Array.isArray(body?.model_pool) && body.model_pool.length
           ? body.model_pool.map(String)
           : ["llama-3.1-8b-instant", "llama-3.1-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"];
 
-        const mergedSystem = mergeSystem(SYSTEM_PROMPT, clientSystem);
+        // Merge persona + style rules + optional client addendum
+        const mergedSystem = mergeSystem(SYSTEM_PROMPT, STYLE_ADDENDUM, clientSystem);
+
         const messages = [
           { role: "system", content: mergedSystem },
           ...history,
