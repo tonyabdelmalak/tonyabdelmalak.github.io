@@ -1,4 +1,4 @@
-/* Chat widget with in-box toolbar and roomy conversation area */
+/* Chat widget: in-box toolbar, tighter spacing, header avatar fixed */
 (function(){
   // Quick-link buttons INSIDE the chat box
   const LINKS = [
@@ -14,17 +14,23 @@
     const btn = el('button','chat-launcher');
     btn.id = 'chat-launcher';
     btn.setAttribute('aria-label','Open chat');
-    btn.innerHTML = `<img src="/assets/chat/avatar-tony.jpg" alt="Tony">`;
+
+    // IMPORTANT: Set your avatar path ONCE here.
+    const avatarSrc = "/assets/chat/avatar-tony.jpg";   // <— update if your image lives elsewhere
+    btn.innerHTML = `<img src="${avatarSrc}" alt="Tony">`;
+    // stash the src so the header can reuse the exact same image
+    btn.dataset.avatar = avatarSrc;
+
     document.body.appendChild(btn);
     return btn;
   }
 
-  function createContainer(){
+  function createContainer(avatarSrc){
     const box = el('section','chat-container');
     box.innerHTML = `
       <header class="chat-header">
         <div class="title">
-          <img src="/assets/chat/avatar-tony.jpg" alt="Tony" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.7)">
+          <img src="${avatarSrc}" alt="Tony">
           <div>
             <div>Chat with Tony</div>
             <div class="sub">We are online!</div>
@@ -81,13 +87,12 @@
     launcher.addEventListener('click', openBox);
     close.addEventListener('click',   closeBox);
 
-    // Send handlers
     function doSend(){
       const v = input.value.trim();
       if(!v) return;
       addMsg(v,'user');
       input.value='';
-      // dummy AI echo – replace with your fetch to worker if needed
+      // demo reply – replace with your Worker call if needed
       setTimeout(()=> addMsg("Got it — I'll help with that."), 250);
     }
     send.addEventListener('click', doSend);
@@ -103,7 +108,9 @@
 
   document.addEventListener('DOMContentLoaded', ()=>{
     const launcher = createLauncher();
-    const box = createContainer();
+    // use the same exact image path for the header avatar
+    const avatar = launcher.dataset.avatar || (launcher.querySelector('img')?.src) || '';
+    const box = createContainer(avatar);
     wireUp(box, launcher);
   });
 })();
