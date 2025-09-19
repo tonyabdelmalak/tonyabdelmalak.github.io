@@ -1,112 +1,209 @@
-// agent-widget.js — single-file, idempotent loader (no external CSS/JSON)
-(function () {
-  const s = document.currentScript;
-  if (!s) return;
 
-  // Read attributes
-  const cfg = {
-    proxyUrl: s.getAttribute("data-proxy-url"),
-    title: s.getAttribute("data-title") || "Ask Tony’s Copilot",
-    greeting: s.getAttribute("data-greeting") || "How can I help?",
-    accent: s.getAttribute("data-accent") || "#4f46e5",
-    radius: s.getAttribute("data-radius") || "12px",
-    rateLimit: Number(s.getAttribute("data-rate-limit") || 10),
-    avatar: s.getAttribute("data-avatar") || "",
-    system: (s.getAttribute("data-system") || "").trim(),
+// Minimal, dependency-free widget.
+// Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
+
+(function () {
+  const AGENT_LABEL = "Agent";      // Consistent name in the transcript
+  const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
+
+  // Utility: build elements quickly
+  function el(tag, cls, html) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (html != null) node.innerHTML = html;
+    return node;
+  }
+
+  // Load JSON/MD
+  async function fetchText(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.text();
+  }
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.json();
+  }
+
+  // Widget
+  const Widget = {
+    state: {
+      config: null,
+      systemPrompt: "",
+      open: false
+    },
+
+    async init(opts) {
+      // options
+      this.opts = Object.assign(
+        {
+          mode: "floating",
+          position: "bottom-right",
+          avatar: "",
+          configPath: "/chat-widget/assets/chat/config.json",
+          systemPath: "/chat-widget/assets/chat/system.md"
+        },
+        opts || {}
+      );
+
+      // load config + system prompt
+      const [config, systemText] = await Promise.all([
+        fetchJSON(this.opts.configPath),
+        fetchText(this.opts.systemPath)
+      ]);
+      this.state.config = config;
+      this.state.systemPrompt = systemText;
+
+      // build DOM
+      this.build();
+      this.attachEvents();
+
+      // greeting only once per browser tab
+      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
+        this.addAgent(config.greeting);
+        sessionStorage.setItem(SESSION_FLAG, "1");
+      }
+    },
+
+    build() {
+      // Launcher
+      this.launch = el("button", "copilot-launch");
+      const avatarImg = el("img");
+      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatarImg.alt = "Open chat";
+      this.launch.appendChild(avatarImg);
+
+      // Panel
+      this.root = el("section", "copilot-container copilot-hidden");
+
+      // Header with Close (×)
+      const header = el("header", "copilot-header");
+      const avatar = el("img", "copilot-avatar");
+      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatar.alt = "Avatar";
+      const title = el("div", "copilot-title", (this.state.config.title || "Copilot"));
+      const closeBtn = el("button", "copilot-close", "&times;");
+      closeBtn.setAttribute("aria-label", "Close chat");
+      header.append(avatar, title, closeBtn);
+
+      // Messages
+      this.messages = el("div", "copilot-messages");
+
+      // Input row
+      const inputRow = el("div", "copilot-input-row");
+      this.input = el("input", "copilot-input");
+      this.input.type = "text";
+      this.input.placeholder = this.state.config.placeholder || "Type your question...";
+      const send = el("button", "copilot-send", "↥");
+      send.setAttribute("title", "Send");
+
+      inputRow.append(this.input, send);
+
+      this.root.append(header, this.messages, inputRow);
+
+      // Mount both
+      document.body.append(this.launch, this.root);
+
+      // local refs
+      this.closeBtn = closeBtn;
+      this.sendBtn = send;
+    },
+
+    attachEvents() {
+      // open/close
+      this.launch.addEventListener("click", () => this.showPanel());
+      this.closeBtn.addEventListener("click", () => this.hidePanel());
+
+      // send actions
+      this.sendBtn.addEventListener("click", () => this.handleSend());
+      this.input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          this.handleSend();
+        }
+      });
+    },
+
+    showPanel() {
+      this.launch.classList.add("copilot-hidden");
+      this.root.classList.remove("copilot-hidden");
+      this.state.open = true;
+      setTimeout(() => this.input?.focus(), 10);
+    },
+    hidePanel() {
+      this.root.classList.add("copilot-hidden");
+      this.launch.classList.remove("copilot-hidden");
+      this.state.open = false;
+    },
+
+    // UI helpers
+    addAgent(text) {
+      const row = el("div", "copilot-msg agent");
+      row.append(
+        el("span", "copilot-label", `${AGENT_LABEL}:`),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    addUser(text) {
+      const row = el("div", "copilot-msg user");
+      row.append(
+        el("span", "copilot-label", "You:"),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    scrollToBottom() {
+      this.messages.scrollTop = this.messages.scrollHeight;
+    },
+
+    async handleSend() {
+      const message = (this.input.value || "").trim();
+      if (!message) return;
+      this.addUser(message);
+      this.input.value = "";
+
+      try {
+        const reply = await this.callProxy(message);
+        this.addAgent(reply);
+      } catch (err) {
+        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
+      }
+    },
+
+    // Calls your Cloudflare Worker (/chat) specified in config.json
+    async callProxy(message) {
+      const url = this.state.config.proxyUrl;
+      if (!url) throw new Error("Missing proxyUrl in config.json");
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          system: this.state.systemPrompt
+        })
+      });
+
+      if (!res.ok) {
+        let body = "";
+        try { body = await res.text(); } catch {}
+        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
+      }
+
+      const data = await res.json();
+      if (!data || typeof data.reply !== "string") {
+        throw new Error("Invalid response from server");
+      }
+      return data.reply;
+    }
   };
 
-  if (!cfg.proxyUrl) {
-    console.error("[TonyWidget] Missing data-proxy-url");
-    return;
-  }
-
-  // Prevent duplicate mount
-  if (document.getElementById("tony-widget")) return;
-
-  // Styles
-  const style = document.createElement("style");
-  style.textContent = `
-  #tony-widget{position:fixed;bottom:20px;right:20px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;z-index:2147483647}
-  #tw-btn{display:flex;align-items:center;gap:10px;background:${cfg.accent};color:#fff;border:none;border-radius:${cfg.radius};padding:12px 14px;box-shadow:0 6px 20px rgba(0,0,0,.15);cursor:pointer}
-  #tw-btn img{width:24px;height:24px;border-radius:50%;object-fit:cover;display:${cfg.avatar?'block':'none'}}
-  #tw-panel{position:fixed;bottom:90px;right:20px;width:360px;max-height:70vh;border-radius:${cfg.radius};box-shadow:0 12px 30px rgba(0,0,0,.25);overflow:hidden;background:#fff;display:none;flex-direction:column}
-  #tw-header{background:${cfg.accent};color:#fff;padding:10px 12px;font-weight:600;display:flex;align-items:center;gap:8px}
-  #tw-header img{width:20px;height:20px;border-radius:50%;object-fit:cover;display:${cfg.avatar?'block':'none'}}
-  #tw-body{padding:10px;overflow:auto;max-height:55vh;border-top:1px solid #eee;border-bottom:1px solid #eee}
-  #tw-input{display:flex;gap:8px;padding:10px}
-  #tw-input input{flex:1;padding:10px;border:1px solid #ddd;border-radius:10px}
-  #tw-input button{padding:10px 12px;border:1px solid ${cfg.accent};color:${cfg.accent};background:#fff;border-radius:10px;cursor:pointer}
-  .tw-msg{margin:8px 0}
-  .tw-me{font-weight:600}
-  `;
-  document.head.appendChild(style);
-
-  // UI
-  const root = document.createElement("div");
-  root.id = "tony-widget";
-  root.innerHTML = `
-    <div id="tw-panel">
-      <div id="tw-header">${cfg.avatar ? `<img src="${escapeAttr(cfg.avatar)}" alt=""/>` : ""}<span>${escapeHtml(cfg.title)}</span></div>
-      <div id="tw-body"><div class="tw-msg">${escapeHtml(cfg.greeting)}</div></div>
-      <div id="tw-input">
-        <input id="tw-text" placeholder="Type your question..." />
-        <button id="tw-send">Send</button>
-      </div>
-    </div>
-    <button id="tw-btn">${cfg.avatar ? `<img src="${escapeAttr(cfg.avatar)}" alt=""/>` : ""}<span>Chat</span></button>
-  `;
-  document.body.appendChild(root);
-
-  const panel = root.querySelector("#tw-panel");
-  const btn = root.querySelector("#tw-btn");
-  const body = root.querySelector("#tw-body");
-  const input = root.querySelector("#tw-text");
-  const send = root.querySelector("#tw-send");
-
-  btn.addEventListener("click", () => {
-    panel.style.display = panel.style.display === "flex" ? "none" : "flex";
-  });
-
-  // Simple client-side rate limit
-  let sentInWindow = 0;
-  setInterval(() => { sentInWindow = 0; }, 60_000);
-
-  async function ask(q) {
-    if (!q) return;
-    if (sentInWindow >= cfg.rateLimit) {
-      body.insertAdjacentHTML("beforeend", `<div class="tw-msg">Agent: (rate limit reached — try again in a minute)</div>`);
-      body.scrollTop = body.scrollHeight;
-      return;
-    }
-    sentInWindow++;
-
-    body.insertAdjacentHTML("beforeend", `<div class="tw-msg tw-me">You: ${escapeHtml(q)}</div>`);
-    input.value = "";
-    try {
-      const payload = {
-        messages: [
-          ...(cfg.system ? [{ role: "system", content: cfg.system }] : []),
-          { role: "user", content: q }
-        ]
-      };
-      const res = await fetch(cfg.proxyUrl, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      const a = (data && data.reply) || (data?.choices?.[0]?.message?.content) || "…";
-      body.insertAdjacentHTML("beforeend", `<div class="tw-msg">Agent: ${escapeHtml(String(a))}</div>`);
-      body.scrollTop = body.scrollHeight;
-    } catch (e) {
-      body.insertAdjacentHTML("beforeend", `<div class="tw-msg">Agent: (network error)</div>`);
-      body.scrollTop = body.scrollHeight;
-      console.error("[TonyWidget] fetch error", e);
-    }
-  }
-  send.addEventListener("click", () => ask(input.value.trim()));
-  input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(input.value.trim()); });
-
-  function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]))}
-  function escapeAttr(s){return String(s).replace(/"/g,"&quot;")}
+  // public init
+  window.TonyChatWidget = {
+    init: (opts) => Widget.init(opts)
+  };
 })();
