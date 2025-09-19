@@ -1,152 +1,110 @@
-// worker.js — Cloudflare Worker (Module syntax)
-// Paste this entire file into your Worker and deploy.
-// Expects environment variables: OPENAI_API_KEY (required), GROQ_API_KEY (optional)
+// worker.js — Cloudflare Worker (Modules)
+// Set environment variables in Cloudflare dashboard:
+//  - OPENAI_API_KEY (required, if using OpenAI)
+//  - GROQ_API_KEY   (optional, fallback)
 
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
+  async fetch(request, env) {
+    const { pathname } = new URL(request.url);
 
-    // --- CORS (preflight) ---
+    // CORS preflight
     if (request.method === "OPTIONS") {
-      return cors(new Response(null, { status: 204 }));
+      return withCORS(new Response(null, { status: 204 }));
     }
 
-    // --- Health check ---
-    if (url.pathname === "/" && request.method === "GET") {
-      return cors(json({ ok: true, service: "tony-copilot-worker" }));
+    // Health check
+    if (pathname === "/" && request.method === "GET") {
+      return withCORS(json({ ok: true, name: "tony-copilot-worker" }));
     }
 
-    // --- Chat endpoint ---
-    if (url.pathname === "/chat" && request.method === "POST") {
+    // Chat endpoint
+    if (pathname === "/chat" && request.method === "POST") {
       try {
         const body = await safeJson(request);
-        const messages = Array.isArray(body?.messages) ? body.messages : [];
+        const userMessages = Array.isArray(body?.messages) ? body.messages : [];
+        const system = typeof body?.system === "string" && body.system.trim() ? body.system.trim() : null;
 
-        if (!messages.length) {
-          return cors(json({ error: "Missing messages[]" }, 400));
+        if (!userMessages.length) {
+          return withCORS(json({ error: "Missing messages[]" }, 400));
         }
 
-        // Optional system message support
-        const systemPrompt =
-          typeof body?.systemPrompt === "string" && body.systemPrompt.trim()
-            ? body.systemPrompt.trim()
-            : null;
+        const messages = system
+          ? [{ role: "system", content: system }, ...userMessages]
+          : userMessages;
 
-        const finalMessages = systemPrompt
-          ? [{ role: "system", content: systemPrompt }, ...messages]
-          : messages;
-
-        // Try OpenAI first; fall back to Groq if configured
-        let replyText = null;
-
+        // Try OpenAI first
         if (env.OPENAI_API_KEY) {
-          const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+          const r = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
               "content-type": "application/json",
-              authorization: `Bearer ${env.OPENAI_API_KEY}`,
+              "authorization": `Bearer ${env.OPENAI_API_KEY}`
             },
             body: JSON.stringify({
               model: "gpt-4o-mini",
-              messages: finalMessages,
+              messages,
               temperature: clamp(body.temperature, 0, 1, 0.3),
-              max_tokens: clamp(body.max_tokens, 1, 800, 300),
-            }),
+              max_tokens: clamp(body.max_tokens, 1, 800, 300)
+            })
           });
-
-          const openaiJson = await openaiRes.json().catch(() => ({}));
-          replyText =
-            openaiJson?.choices?.[0]?.message?.content ??
-            openaiJson?.reply ??
-            null;
-
-          if (replyText) {
-            return cors(json({ reply: replyText, provider: "openai" }));
-          }
+          const j = await r.json().catch(() => ({}));
+          const reply = j?.choices?.[0]?.message?.content || j?.reply || null;
+          if (reply) return withCORS(json({ reply, provider: "openai" }));
         }
 
+        // Fallback to Groq if provided
         if (env.GROQ_API_KEY) {
-          const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "content-type": "application/json",
-              authorization: `Bearer ${env.GROQ_API_KEY}`,
+              "authorization": `Bearer ${env.GROQ_API_KEY}`
             },
             body: JSON.stringify({
               model: "llama-3.1-8b-instant",
-              messages: finalMessages,
+              messages,
               temperature: clamp(body.temperature, 0, 1, 0.3),
-              max_tokens: clamp(body.max_tokens, 1, 800, 300),
-            }),
+              max_tokens: clamp(body.max_tokens, 1, 800, 300)
+            })
           });
-
-          const groqJson = await groqRes.json().catch(() => ({}));
-          replyText =
-            groqJson?.choices?.[0]?.message?.content ??
-            groqJson?.reply ??
-            null;
-
-          if (replyText) {
-            return cors(json({ reply: replyText, provider: "groq" }));
-          }
-
-          return cors(json({ error: "No reply from Groq", details: groqJson }, 502));
+          const j = await r.json().catch(() => ({}));
+          const reply = j?.choices?.[0]?.message?.content || j?.reply || null;
+          if (reply) return withCORS(json({ reply, provider: "groq" }));
+          return withCORS(json({ error: "No reply from Groq", details: j }, 502));
         }
 
-        return cors(
-          json(
-            {
-              error:
-                "No provider configured. Set OPENAI_API_KEY (preferred) or GROQ_API_KEY in Worker settings.",
-            },
-            500,
-          ),
-        );
+        return withCORS(json({ error: "No provider configured (set OPENAI_API_KEY or GROQ_API_KEY)" }, 500));
       } catch (err) {
-        return cors(
-          json(
-            {
-              error: "Unhandled error",
-              details: String(err?.stack || err),
-            },
-            500,
-          ),
-        );
+        return withCORS(json({ error: "Unhandled error", details: String(err?.stack || err) }, 500));
       }
     }
 
-    // --- Not found ---
-    return cors(json({ error: "Not found" }, 404));
-  },
+    return withCORS(json({ error: "Not found" }, 404));
+  }
 };
 
-// ---------- helpers ----------
+// ---- helpers ----
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8" },
+    headers: { "content-type": "application/json; charset=utf-8" }
   });
 }
 
-function cors(res) {
-  const headers = new Headers(res.headers);
-  headers.set("Access-Control-Allow-Origin", "*");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  headers.set("Access-Control-Allow-Headers", "*");
-  headers.set("Access-Control-Max-Age", "86400");
-  return new Response(res.body, { status: res.status, headers });
+function withCORS(res) {
+  const h = new Headers(res.headers);
+  h.set("Access-Control-Allow-Origin", "*");
+  h.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  h.set("Access-Control-Allow-Headers", "*");
+  h.set("Access-Control-Max-Age", "86400");
+  return new Response(res.body, { status: res.status, headers: h });
 }
 
-async function safeJson(request) {
-  try {
-    return await request.json();
-  } catch {
-    return {};
-  }
+async function safeJson(req) {
+  try { return await req.json(); } catch { return {}; }
 }
 
-function clamp(val, min, max, fallback) {
-  const n = Number(val);
-  if (Number.isFinite(n)) return Math.max(min, Math.min(max, n));
-  return fallback;
+function clamp(v, min, max, fallback) {
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
 }
