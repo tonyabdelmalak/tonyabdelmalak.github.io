@@ -1,5 +1,5 @@
 // worker.js — Copilot proxy (OpenAI first, fallback to Groq) with 429 backoff + model pool
-// Persona stays here. We also merge a strict style addendum and any client-sent `system`.
+// Reads system.md from client body if provided, otherwise fetches from env.SYSTEM_URL (+5 min cache).
 
 const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
@@ -191,49 +191,18 @@ What’s on your mind?
   ],
 
   "work_experience": [
-    {
-      "company": "Roadr (Startup)",
-      "role": "People Operations Manager",
-      "highlights": [
-        "Sole HR lead (HRIS, payroll, compliance, analytics).",
-        "Implemented scalable systems to support growth."
-      ]
-    },
-    {
-      "company": "Quibi",
-      "role": "Early Employee (#3), People Ops",
-      "highlights": [
-        "Built HR from scratch; implemented Workday; hired 200+."
-      ]
-    },
-    {
-      "company": "HBO",
-      "role": "Manager, Diversity Initiatives",
-      "highlights": [
-        "Workday workflows; diversity & recruiting reporting."
-      ]
-    },
-    {
-      "company": "Sony Pictures Entertainment",
-      "role": "Consultant",
-      "highlights": [
-        "People ops & analytics during transformation."
-      ]
-    },
-    {
-      "company": "NBCUniversal",
-      "role": "Recruiter",
-      "highlights": [
-        "Hiring across exempt/non-exempt; internship program."
-      ]
-    },
-    {
-      "company": "Flowserve",
-      "role": "HR Analyst",
-      "highlights": [
-        "Compliance/engagement dashboards; predictive models (retention +18%)."
-      ]
-    }
+    { "company": "Roadr (Startup)", "role": "People Operations Manager",
+      "highlights": ["Sole HR lead (HRIS, payroll, compliance, analytics).","Implemented scalable systems to support growth."] },
+    { "company": "Quibi", "role": "Early Employee (#3), People Ops",
+      "highlights": ["Built HR from scratch; implemented Workday; hired 200+."] },
+    { "company": "HBO", "role": "Manager, Diversity Initiatives",
+      "highlights": ["Workday workflows; diversity & recruiting reporting."] },
+    { "company": "Sony Pictures Entertainment", "role": "Consultant",
+      "highlights": ["People ops & analytics during transformation."] },
+    { "company": "NBCUniversal", "role": "Recruiter",
+      "highlights": ["Hiring across exempt/non-exempt; internship program."] },
+    { "company": "Flowserve", "role": "HR Analyst",
+      "highlights": ["Compliance/engagement dashboards; predictive models (retention +18%)."] }
   ],
 
   "faq_snippets": [
@@ -299,6 +268,31 @@ function mergeSystem(...parts) {
   return parts.filter(Boolean).map(s => String(s).trim()).join("\n\n---\n");
 }
 
+// Simple in-memory 5-minute cache for system.md
+let SYSTEM_CACHE = { text: null, ts: 0 };
+const SYSTEM_TTL_MS = 5 * 60 * 1000;
+
+async function fetchSystemFromUrl(env) {
+  const url = env?.SYSTEM_URL;
+  const now = Date.now();
+  if (!url) return ""; // no URL configured
+
+  // serve from cache if fresh
+  if (SYSTEM_CACHE.text && now - SYSTEM_CACHE.ts < SYSTEM_TTL_MS) {
+    return SYSTEM_CACHE.text;
+  }
+
+  try {
+    const res = await fetch(url, { headers: { "Cache-Control": "no-cache" } });
+    if (!res.ok) return "";
+    const text = await res.text();
+    SYSTEM_CACHE = { text, ts: now };
+    return text || "";
+  } catch {
+    return "";
+  }
+}
+
 // Respect Retry-After if present; otherwise exponential backoff.
 async function fetchWithBackoff(url, init, { attempts = 3, initialDelayMs = 1000 } = {}) {
   let delay = initialDelayMs;
@@ -352,7 +346,7 @@ function sanitizeReply(text) {
       if (bulletCount < 3) {
         out.push(line);
         bulletCount++;
-      } // else drop extra bullets silently
+      }
       continue;
     }
     if (/^→\s/.test(line)) {
@@ -360,7 +354,7 @@ function sanitizeReply(text) {
         out.push(line);
         seenFollow = true;
       }
-      continue; // drop additional follow-ups
+      continue;
     }
     out.push(line);
   }
@@ -399,7 +393,8 @@ export default {
 
         // Optional client params
         const history = trimHistory(body?.history, clamp(body?.max_history_turns ?? 12, 0, 40));
-        const clientSystem = body?.system ? String(body.system) : "";
+        const clientSystem = body?.system ? String(body.system) : ""; // from widget
+        const fetchedSystem = clientSystem ? "" : await fetchSystemFromUrl(env); // fallback pull
         const temperature = clamp(body?.temperature ?? 0.3, 0, 2);
         const max_tokens = clamp(body?.max_tokens ?? 160, 32, 1024); // tightened default
         const preferredModel = body?.model && String(body.model);
@@ -407,8 +402,8 @@ export default {
           ? body.model_pool.map(String)
           : ["llama-3.1-8b-instant", "llama-3.1-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"];
 
-        // Merge persona + style rules + optional client addendum
-        const mergedSystem = mergeSystem(SYSTEM_PROMPT, STYLE_ADDENDUM, clientSystem);
+        // Merge persona + style rules + client addendum or fetched system.md
+        const mergedSystem = mergeSystem(SYSTEM_PROMPT, STYLE_ADDENDUM, clientSystem || fetchedSystem);
 
         const messages = [
           { role: "system", content: mergedSystem },
@@ -457,7 +452,6 @@ export default {
           }
 
           const errDetails = await readErrorSafely(res);
-          // If not rate-limit and not a 5xx, return now; fallback likely won't help.
           if (res.status !== 429 && (res.status < 500 || res.status >= 600)) {
             return new Response(
               JSON.stringify({
@@ -479,7 +473,6 @@ export default {
             "Content-Type": "application/json",
           };
 
-          // If client forces a specific Groq model, try it first, then the pool.
           const pool = preferredModel ? [preferredModel, ...modelPool.filter(m => m !== preferredModel)] : modelPool;
 
           let last429 = null;
@@ -490,7 +483,6 @@ export default {
               messages,
               temperature,
               max_tokens
-              // stream: true  // keep JSON to match the widget
             };
 
             const res = await fetchWithBackoff(
@@ -510,10 +502,9 @@ export default {
 
             if (res.status === 429) {
               last429 = await readErrorSafely(res);
-              continue; // try next model
+              continue;
             }
 
-            // non-429 error → bail (no benefit to try more)
             const otherErr = await readErrorSafely(res);
             return new Response(
               JSON.stringify({
@@ -526,7 +517,6 @@ export default {
             );
           }
 
-          // Exhausted pool due to 429s
           return new Response(
             JSON.stringify({
               error: "rate_limited",
@@ -538,7 +528,6 @@ export default {
           );
         }
 
-        // If we’re here, no providers succeeded
         return new Response(
           JSON.stringify({
             error: "No provider available after retries",
