@@ -1,217 +1,159 @@
-/* Chat widget: real backend, loads config + system.md (in assets/chat),
-   no suggestion chips, rail-aware offset, avatar fixed, single-instance init. */
-(function(){
-  if (window.__TONY_CHAT_INIT__) return;
-  window.__TONY_CHAT_INIT__ = true;
+// chat-widget/assets/chat/widget.js
+// Path-proof loader + minimal chat post. Works on GitHub Pages or custom domain.
 
-  const LOG_PREFIX = "[chat-widget]";
-  // OPTION B: keep everything inside /chat-widget/assets/chat
-  const PATH_ROOT  = "./chat-widget/assets/chat";
-  const PATHS = {
-    config:  `${PATH_ROOT}/config.json`,
-    system:  `${PATH_ROOT}/system.md`,
-    avatar:  `${PATH_ROOT}/avatar-tony.jpg`
-  };
-
-  const el = (t,c)=>{ const n=document.createElement(t); if(c) n.className=c; return n; };
-  const on = (node,evt,fn)=> node && node.addEventListener(evt,fn,{passive:true});
-
-  const state = { config:null, systemText:"", history:[] };
-
-  // ---------- UI ----------
-  function createLauncher(){
-    const btn = el('button','chat-launcher');
-    btn.id = 'chat-launcher';
-    btn.type = 'button';
-    btn.setAttribute('aria-label','Open chat');
-    btn.innerHTML = `<img src="${PATHS.avatar}" alt="Tony">`;
-    document.body.appendChild(btn);
-    return btn;
+(function () {
+  // --- Resolve base path from this script's src, fallback to known folder ---
+  function getBasePath() {
+    const scripts = document.getElementsByTagName('script');
+    for (let i = scripts.length - 1; i >= 0; i--) {
+      const src = scripts[i].getAttribute('src') || '';
+      if (src.endsWith('chat-widget/assets/chat/widget.js')) {
+        const u = new URL(src, window.location.href);
+        return u.href.replace(/widget\.js$/, '');
+      }
+      // handles relative includes like ./chat-widget/assets/chat/widget.js
+      if (src.includes('chat-widget/assets/chat/widget.js')) {
+        const u = new URL(src, window.location.href);
+        return u.href.replace(/widget\.js$/, '');
+      }
+    }
+    // Fallback: trailing slash required
+    return new URL('./chat-widget/assets/chat/', window.location.href).href;
   }
 
-  function createContainer(){
-    const box = el('section','chat-container');
-    box.setAttribute('role','dialog');
-    box.setAttribute('aria-label','Chat with Tony');
-    box.innerHTML = `
-      <header class="chat-header">
-        <div class="title">
-          <img src="${PATHS.avatar}" alt="Tony">
-          <div>
-            <div>Chat with Tony</div>
-            <div class="sub">We are online!</div>
-          </div>
-        </div>
-        <button class="close" aria-label="Close" type="button">✕</button>
-      </header>
+  const BASE = getBasePath();
+  const CONFIG_URL = new URL('config.json', BASE).href;
+  const SYSTEM_URL = new URL('system.md', BASE).href;
 
-      <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
-
-      <div class="chat-input">
-        <input id="chat-input" placeholder="Enter your message..." autocomplete="off" />
-        <button id="chat-send" aria-label="Send" type="button">➤</button>
-      </div>
-    `;
-    document.body.appendChild(box);
-    return box;
-  }
-
-  function scrollToEnd(){
-    const m = document.getElementById('chat-messages');
-    if (m) m.scrollTop = m.scrollHeight;
-  }
-
-  function addMsg(text, who='user'){
-    const m = document.getElementById('chat-messages');
-    if (!m) return;
-    const d = el('div','msg ' + (who==='user'?'user':'ai'));
-    d.textContent = text;
-    m.appendChild(d);
-    scrollToEnd();
-  }
-
-  // ---------- loaders ----------
-  async function loadConfig(){
-    const res = await fetch(PATHS.config, {cache:'no-store'});
-    if (!res.ok) throw new Error(`config.json ${res.status}`);
-    return res.json();
-  }
-  async function loadSystem(){
-    const res = await fetch(PATHS.system, {cache:'no-store'});
-    if (!res.ok) throw new Error(`system.md ${res.status}`);
+  // --- Helpers ---
+  async function safeFetchText(url, label) {
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) {
+      throw new Error(`${label} fetch failed (${res.status}) at ${url}`);
+    }
     return res.text();
   }
 
-  // ---------- backend ----------
-  async function callBackend(userText){
-    if (!state.config?.proxyUrl) throw new Error("proxyUrl missing in config.json");
-
-    const messages = [
-      { role: "system", content: state.systemText },
-      ...state.history.map(h => ({ role: h.role === 'assistant' ? 'assistant' : 'user', content: h.content })),
-      { role: "user", content: userText }
-    ];
-
-    const body = JSON.stringify({
-      model: state.config.model || "llama3",
-      messages,
-      temperature: state.config.temperature ?? 0.3,
-      max_tokens: state.config.max_tokens ?? 512
-    });
-
-    const resp = await fetch(state.config.proxyUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body
-    });
-
-    if (!resp.ok) {
-      const t = await resp.text().catch(()=> "");
-      throw new Error(`Proxy ${resp.status} ${t}`);
+  async function safeFetchJson(url, label) {
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) {
+      throw new Error(`${label} fetch failed (${res.status}) at ${url}`);
     }
-
-    const json = await resp.json();
-    const content =
-      json?.choices?.[0]?.message?.content ??
-      json?.message?.content ??
-      json?.content ??
-      "Sorry, I couldn’t form a reply.";
-    return String(content);
+    return res.json();
   }
 
-  // ---------- wire up ----------
-  function wireUp(box, launcher){
-    const close = box.querySelector('.close');
-    const input = box.querySelector('#chat-input');
-    const send  = box.querySelector('#chat-send');
+  // --- State (filled at init) ---
+  let CONFIG = null;
+  let SYSTEM_MD = '';
 
-    const openBox  = () => { box.classList.add('open'); launcher.style.display='none'; input?.focus(); };
-    const closeBox = () => { box.classList.remove('open'); launcher.style.display='block'; };
+  // --- Chat call to Worker ---
+  async function sendToProxy(message, history = []) {
+    if (!CONFIG || !CONFIG.proxyUrl) {
+      throw new Error('proxyUrl missing in config.json');
+    }
+    const payload = {
+      message,
+      history,
+      system: SYSTEM_MD,           // send system.md from repo
+      model: CONFIG.model || 'llama3',
+      temperature: 0.3,
+      max_tokens: 160
+    };
 
-    on(launcher,'click', openBox);
-    on(close,   'click', closeBox);
+    const res = await fetch(CONFIG.proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
 
-    async function doSend(){
-      try{
-        const v = (input?.value || "").trim();
-        if(!v) return;
-        addMsg(v,'user');
-        state.history.push({role:'user', content:v});
-        input.value = "";
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Proxy error ${res.status}: ${text}`);
+    }
 
-        const typing = el('div','msg ai'); typing.textContent = "…";
-        document.getElementById('chat-messages').appendChild(typing);
-        scrollToEnd();
+    const data = await res.json().catch(() => ({}));
+    if (!data || typeof data.reply !== 'string') {
+      throw new Error('Proxy returned no reply');
+    }
+    return data.reply;
+  }
 
-        const reply = await callBackend(v);
+  // --- Minimal wiring to your existing UI (adjust selectors if different) ---
+  function bindUI() {
+    const input = document.querySelector('#chat-input, .chat-input, textarea[name="chat"]') || null;
+    const sendBtn = document.querySelector('#chat-send, .chat-send, button[data-role="chat-send"]') || null;
+    const out = document.querySelector('#chat-output, .chat-output, .messages') || null;
 
-        typing.remove();
-        addMsg(reply,'ai');
-        state.history.push({role:'assistant', content:reply});
-      }catch(e){
-        console.error(LOG_PREFIX, "send error", e);
-        addMsg("Hmm, something went wrong reaching the server. Try again in a moment.", "ai");
+    if (!input || !sendBtn || !out) {
+      console.warn('widget.js: Could not find expected chat elements. Ensure you have:');
+      console.warn(' - input:  #chat-input  or  .chat-input  or  textarea[name="chat"]');
+      console.warn(' - button: #chat-send   or  .chat-send   or  button[data-role="chat-send"]');
+      console.warn(' - output: #chat-output or  .chat-output or  .messages');
+      return;
+    }
+
+    let history = [];
+
+    async function handleSend() {
+      const msg = (input.value || '').trim();
+      if (!msg) return;
+      append(out, 'You', msg);
+      input.value = '';
+      try {
+        const reply = await sendToProxy(msg, history);
+        append(out, 'Agent', reply);
+        history.push({ role: 'user', content: msg }, { role: 'assistant', content: reply });
+        if (history.length > 24) history = history.slice(-24);
+      } catch (err) {
+        console.error(err);
+        append(out, 'Agent', 'Sorry—having trouble reaching my brain right now. Try again in a moment.');
       }
     }
 
-    on(input,'keydown', (e)=>{
-      if (e.key === 'Enter' && !e.shiftKey){
+    sendBtn.addEventListener('click', handleSend);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        doSend();
+        handleSend();
       }
     });
-    on(send,'click', doSend);
-
-    box.querySelectorAll('form').forEach(f=>{
-      on(f,'submit', (e)=>{ e.preventDefault(); doSend(); });
-    });
   }
 
-  // ---------- rail-aware positioning ----------
-  function updateChatOffset(){
-    try{
-      const rail = document.querySelector('.side-rail');
-      const wide = window.matchMedia('(min-width: 900px)').matches;
-      let offset = 16;
-      if (rail && wide && getComputedStyle(rail).display !== 'none') {
-        const expanded = rail.classList.contains('is-pinned') ||
-                         document.body.classList.contains('rail-expanded');
-        offset = expanded ? (200 + 20) : (56 + 20 + 16);
-      }
-      document.documentElement.style.setProperty('--chat-right-offset', offset + 'px');
-    }catch(e){
-      console.warn(LOG_PREFIX, "offset calc failed", e);
+  function append(container, who, text) {
+    const row = document.createElement('div');
+    row.className = `msg msg--${who.toLowerCase()}`;
+    row.innerHTML = `<strong>${who}:</strong> ${escapeHtml(text)}`;
+    container.appendChild(row);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // --- Init ---
+  (async function init() {
+    try {
+      // Load config + system using the resolved base path
+      CONFIG = await safeFetchJson(CONFIG_URL, 'config.json');
+      SYSTEM_MD = await safeFetchText(SYSTEM_URL, 'system.md');
+
+      // Optional greeting log
+      console.info('[widget] Loaded config from', CONFIG_URL);
+      console.info('[widget] Loaded system.md from', SYSTEM_URL);
+      console.info('[widget] Using proxy:', CONFIG.proxyUrl);
+
+      bindUI();
+    } catch (err) {
+      console.error('Widget init failed:', err);
+      // Helpful hints
+      console.error('Check these:');
+      console.error('1) File paths exist exactly: chat-widget/assets/chat/{config.json, system.md, widget.js, widget.css}');
+      console.error('2) config.json has a valid "proxyUrl" (your Cloudflare Worker /chat).');
+      console.error('3) Worker ALLOWED_ORIGINS includes this site\'s origin.');
     }
-  }
-  function observeRail(){
-    const rail = document.querySelector('.side-rail');
-    if (!rail) return;
-    const mo = new MutationObserver(updateChatOffset);
-    mo.observe(document.body, { attributes:true, attributeFilter:['class'] });
-    mo.observe(rail, { attributes:true, attributeFilter:['class','style'] });
-    rail.addEventListener('mouseenter', updateChatOffset);
-    rail.addEventListener('mouseleave', updateChatOffset);
-  }
-
-  // ---------- bootstrap ----------
-  async function init(){
-    try{
-      if (!document.body) { document.addEventListener('DOMContentLoaded', init, {once:true}); return; }
-      state.config = await loadConfig();
-      state.systemText = await loadSystem();
-
-      const launcher = createLauncher();
-      const box = createContainer();
-      wireUp(box, launcher);
-      updateChatOffset();
-      observeRail();
-      window.addEventListener('resize', updateChatOffset);
-
-      setTimeout(()=> addMsg(state.config?.greeting || "Hi! Ask me anything — I’ll reply here.", 'ai'), 120);
-    }catch(e){
-      console.error(LOG_PREFIX, "init failed", e);
-      addMsg("The chat failed to initialize. Check that config.json and system.md are reachable.", "ai");
-    }
-  }
-  init();
+  })();
 })();
