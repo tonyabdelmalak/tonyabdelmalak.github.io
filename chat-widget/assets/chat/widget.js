@@ -1,202 +1,109 @@
-// Sleek wave widget — dependency-free
-// Exposes: window.TonyChatWidget.init({ avatar, configPath, systemPath })
+/* Chat widget with in-box toolbar and roomy conversation area */
+(function(){
+  // Quick-link buttons INSIDE the chat box
+  const LINKS = [
+    { href: "/hr_attrition_dashboard_lite.html", label: "Attrition Dashboard", svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 10v8M10 4v14M14 7v11M18 13v5"/></svg>` },
+    { href: "/predictive_attrition_case_study.html", label: "Predictive Case Study", svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10a2 2 0 114 0h2a2 2 0 114 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 114 0v-2z"/></svg>` },
+    { href: "/recruitment-funnel.html", label: "Recruitment Funnel", svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18L14 12v7l-4 2v-9L3 4z"/></svg>` },
+    { href: "/sentiment.html", label: "Sentiment Analysis", svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>` }
+  ];
 
-(function () {
-  const AGENT_LABEL = "Tony";
-  const SESSION_FLAG = "copilot_greeted";
+  function el(tag, cls){ const n = document.createElement(tag); if(cls) n.className = cls; return n; }
 
-  function el(tag, cls, html) {
-    const node = document.createElement(tag);
-    if (cls) node.className = cls;
-    if (html != null) node.innerHTML = html;
-    return node;
-  }
-  async function fetchText(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.text();
-  }
-  async function fetchJSON(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.json();
+  function createLauncher(){
+    const btn = el('button','chat-launcher');
+    btn.id = 'chat-launcher';
+    btn.setAttribute('aria-label','Open chat');
+    btn.innerHTML = `<img src="/assets/chat/avatar-tony.jpg" alt="Tony">`;
+    document.body.appendChild(btn);
+    return btn;
   }
 
-  const Widget = {
-    state: { config: null, systemPrompt: "", open: false },
+  function createContainer(){
+    const box = el('section','chat-container');
+    box.innerHTML = `
+      <header class="chat-header">
+        <div class="title">
+          <img src="/assets/chat/avatar-tony.jpg" alt="Tony" style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(255,255,255,.7)">
+          <div>
+            <div>Chat with Tony</div>
+            <div class="sub">We are online!</div>
+          </div>
+        </div>
+        <button class="close" aria-label="Close">✕</button>
+      </header>
 
-    async init(opts) {
-      this.opts = Object.assign(
-        {
-          avatar: "",
-          configPath: "/chat-widget/assets/chat/config.json",
-          systemPath: "/chat-widget/assets/chat/system.md"
-        },
-        opts || {}
-      );
+      <nav class="chat-toolbar" aria-label="Quick links">
+        ${LINKS.map(l => `<a href="${l.href}" title="${l.label}" aria-label="${l.label}">${l.svg}</a>`).join('')}
+      </nav>
 
-      const [config, systemText] = await Promise.all([
-        fetchJSON(this.opts.configPath),
-        fetchText(this.opts.systemPath)
-      ]);
-      this.state.config = config;
-      this.state.systemPrompt = systemText;
+      <div class="chat-messages" id="chat-messages">
+        <div class="suggests" id="chat-suggests">
+          <button class="suggest">Show me your dashboards</button>
+          <button class="suggest">What projects are you most proud of?</button>
+          <button class="suggest">Open your resume</button>
+          <button class="suggest">How did you pivot from HR into analytics?</button>
+        </div>
+        <div class="msg ai">Hi! I can answer questions or take you straight to dashboards via the buttons above.</div>
+      </div>
 
-      this.build();
-      this.attachEvents();
+      <div class="chat-input">
+        <input id="chat-input" placeholder="Enter your message..." autocomplete="off">
+        <button id="chat-send" aria-label="Send">➤</button>
+      </div>
+    `;
+    document.body.appendChild(box);
+    return box;
+  }
 
-      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
-        this.addAgent(config.greeting);
-        if (Array.isArray(config.quickReplies) && config.quickReplies.length) {
-          this.renderChips(config.quickReplies);
-        }
-        sessionStorage.setItem(SESSION_FLAG, "1");
-      }
-    },
+  function scrollToEnd(){
+    const m = document.getElementById('chat-messages');
+    m && (m.scrollTop = m.scrollHeight);
+  }
 
-    build() {
-      // Theme vars (can be overridden in config.json)
-      document.documentElement.style.setProperty("--copilot-accent", this.state.config.accent || "#1e3a8a");
-      document.documentElement.style.setProperty("--copilot-accent-2", this.state.config.accent2 || "#3b82f6");
-      document.documentElement.style.setProperty("--copilot-radius", this.state.config.radius || "22px");
+  function addMsg(text, who='user'){
+    const m = document.getElementById('chat-messages');
+    const d = el('div','msg ' + (who==='user'?'user':'ai'));
+    d.textContent = text;
+    m.appendChild(d);
+    scrollToEnd();
+  }
 
-      // Launcher
-      this.launch = el("button", "copilot-launch");
-      const avatarImg = el("img");
-      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatarImg.alt = "Open chat";
-      this.launch.appendChild(avatarImg);
+  function wireUp(box, launcher){
+    const close = box.querySelector('.close');
+    const input = box.querySelector('#chat-input');
+    const send  = box.querySelector('#chat-send');
+    const chips = box.querySelectorAll('.suggest');
 
-      // Panel
-      this.root = el("section", "copilot-container copilot-hidden");
+    const openBox  = () => { box.classList.add('open'); launcher.style.display='none'; };
+    const closeBox = () => { box.classList.remove('open'); launcher.style.display='block'; };
 
-      // Header
-      const header = el("header", "copilot-header");
-      const headerRow = el("div", "copilot-header-row");
-      const avatar = el("img", "copilot-avatar");
-      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatar.alt = "Avatar";
+    launcher.addEventListener('click', openBox);
+    close.addEventListener('click',   closeBox);
 
-      const titleWrap = el("div", "copilot-title-wrap");
-      const title = el("div", "copilot-title", this.state.config.title || "Chat with Tony");
-      const subtitle = el("div", "copilot-subtitle", this.state.config.subtitle || "We are online!");
-      titleWrap.append(title, subtitle);
-
-      const closeBtn = el("button", "copilot-close", "×");
-      closeBtn.setAttribute("aria-label", "Close chat");
-
-      headerRow.append(avatar, titleWrap);
-      header.append(headerRow, closeBtn);
-
-      // Messages + chips
-      this.messages = el("div", "copilot-messages");
-      this.chipsWrap = el("div", "copilot-chips");
-
-      // Input row
-      const inputRow = el("div", "copilot-input-row");
-      this.input = el("input", "copilot-input");
-      this.input.type = "text";
-      this.input.placeholder = this.state.config.placeholder || "Enter your message...";
-      const send = el("button", "copilot-send", "➤");
-      send.setAttribute("title", "Send");
-
-      inputRow.append(this.input, send);
-      this.root.append(header, this.messages, this.chipsWrap, inputRow);
-      document.body.append(this.launch, this.root);
-
-      // refs
-      this.closeBtn = closeBtn;
-      this.sendBtn = send;
-    },
-
-    attachEvents() {
-      this.launch.addEventListener("click", () => this.showPanel());
-      this.closeBtn.addEventListener("click", () => this.hidePanel());
-      this.sendBtn.addEventListener("click", () => this.handleSend());
-      this.input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          this.handleSend();
-        }
-      });
-    },
-
-    showPanel() {
-      this.launch.classList.add("copilot-hidden");
-      this.root.classList.remove("copilot-hidden");
-      this.state.open = true;
-      setTimeout(() => this.input?.focus(), 10);
-    },
-    hidePanel() {
-      this.root.classList.add("copilot-hidden");
-      this.launch.classList.remove("copilot-hidden");
-      this.state.open = false;
-    },
-
-    addAgent(text) {
-      const row = el("div", "copilot-msg agent");
-      const bubble = el("div", "bubble", text);
-      row.append(bubble);
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    addUser(text) {
-      const row = el("div", "copilot-msg user");
-      const bubble = el("div", "bubble", text);
-      row.append(bubble);
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    renderChips(items) {
-      this.chipsWrap.innerHTML = "";
-      items.slice(0, 6).forEach((label) => {
-        const chip = el("button", "copilot-chip", label);
-        chip.addEventListener("click", () => {
-          this.input.value = label;
-          this.handleSend();
-        });
-        this.chipsWrap.append(chip);
-      });
-    },
-    scrollToBottom() {
-      this.messages.scrollTop = this.messages.scrollHeight;
-    },
-
-    async handleSend() {
-      const message = (this.input.value || "").trim();
-      if (!message) return;
-      this.addUser(message);
-      this.input.value = "";
-
-      try {
-        const reply = await this.callProxy(message);
-        this.addAgent(reply);
-        if (Array.isArray(this.state.config.quickReplies) && this.state.config.quickReplies.length) {
-          this.renderChips(this.state.config.quickReplies);
-        }
-      } catch (err) {
-        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
-      }
-    },
-
-    async callProxy(message) {
-      const url = this.state.config.proxyUrl;
-      if (!url) throw new Error("Missing proxyUrl in config.json");
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, system: this.state.systemPrompt })
-      });
-      if (!res.ok) {
-        let body = "";
-        try { body = await res.text(); } catch {}
-        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
-      }
-      const data = await res.json();
-      if (!data || typeof data.reply !== "string") throw new Error("Invalid response from server");
-      return data.reply;
+    // Send handlers
+    function doSend(){
+      const v = input.value.trim();
+      if(!v) return;
+      addMsg(v,'user');
+      input.value='';
+      // dummy AI echo – replace with your fetch to worker if needed
+      setTimeout(()=> addMsg("Got it — I'll help with that."), 250);
     }
-  };
+    send.addEventListener('click', doSend);
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSend(); });
 
-  window.TonyChatWidget = { init: (opts) => Widget.init(opts) };
+    chips.forEach(c=>{
+      c.addEventListener('click', ()=>{
+        addMsg(c.textContent.trim(),'user');
+        setTimeout(()=> addMsg('Here’s a quick answer — or use the toolbar to jump to a page.'), 250);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const launcher = createLauncher();
+    const box = createContainer();
+    wireUp(box, launcher);
+  });
 })();
