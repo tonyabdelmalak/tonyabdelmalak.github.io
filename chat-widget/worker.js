@@ -4,7 +4,7 @@ const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
 
 ## Greeting
-Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m building next. What’s on your mind?
+What’s on your mind?
 
 ---
 
