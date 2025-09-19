@@ -1,4 +1,3 @@
-
 // Minimal, dependency-free widget.
 // Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
 
@@ -26,12 +25,21 @@
     return res.json();
   }
 
-  // Widget
+  // Debounce utility
+  function debounce(fn, wait = 700) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), wait);
+    };
+  }
+
   const Widget = {
     state: {
       config: null,
       systemPrompt: "",
-      open: false
+      open: false,
+      inFlight: false
     },
 
     async init(opts) {
@@ -98,9 +106,12 @@
       const send = el("button", "copilot-send", "↥");
       send.setAttribute("title", "Send");
 
+      // Toast area for soft error messages
+      this.toastEl = el("div", "copilot-toast copilot-hidden");
+
       inputRow.append(this.input, send);
 
-      this.root.append(header, this.messages, inputRow);
+      this.root.append(header, this.messages, inputRow, this.toastEl);
 
       // Mount both
       document.body.append(this.launch, this.root);
@@ -115,12 +126,13 @@
       this.launch.addEventListener("click", () => this.showPanel());
       this.closeBtn.addEventListener("click", () => this.hidePanel());
 
-      // send actions
-      this.sendBtn.addEventListener("click", () => this.handleSend());
+      // send actions (debounced)
+      const debouncedSend = debounce(() => this.handleSend(), 700);
+      this.sendBtn.addEventListener("click", debouncedSend);
       this.input.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
-          this.handleSend();
+          debouncedSend();
         }
       });
     },
@@ -159,18 +171,32 @@
     scrollToBottom() {
       this.messages.scrollTop = this.messages.scrollHeight;
     },
+    showToast(msg) {
+      if (!this.toastEl) return;
+      this.toastEl.textContent = msg;
+      this.toastEl.classList.remove("copilot-hidden");
+      setTimeout(() => this.toastEl.classList.add("copilot-hidden"), 4000);
+    },
 
     async handleSend() {
+      if (this.state.inFlight) return; // single-flight guard
+
       const message = (this.input.value || "").trim();
       if (!message) return;
       this.addUser(message);
       this.input.value = "";
+      this.state.inFlight = true;
+      this.sendBtn.disabled = true;
 
       try {
         const reply = await this.callProxy(message);
         this.addAgent(reply);
       } catch (err) {
-        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
+        this.showToast(err.userMessage || "⚠️ Busy right now, please try again in a few seconds.");
+        this.addAgent(`⚠️ ${err.message || "Failed to fetch"}`);
+      } finally {
+        this.state.inFlight = false;
+        this.sendBtn.disabled = false;
       }
     },
 
@@ -189,9 +215,17 @@
       });
 
       if (!res.ok) {
-        let body = "";
-        try { body = await res.text(); } catch {}
-        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
+        // try parse structured error
+        let userMessage = "";
+        try {
+          const err = await res.json();
+          if (err.userMessage) userMessage = err.userMessage;
+        } catch {}
+        const detail = await res.text().catch(() => "");
+        const error = new Error(`HTTP ${res.status}`);
+        error.userMessage = userMessage || null;
+        error.detail = detail;
+        throw error;
       }
 
       const data = await res.json();
