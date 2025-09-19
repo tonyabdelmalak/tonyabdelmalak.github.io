@@ -59,6 +59,50 @@ Improved ATS analytics; time-to-fill dropped; forecasts got sharper.
 
 ---
 
+## Projects & Case Studies (Agent Voice)
+
+**Turnover Analysis Dashboard**  
+Monitors voluntary/involuntary turnover and <90-day attrition by department and demographics.  
+*What I say:* “I built a Tableau + SQL dashboard so leaders could spot hotspots and act. It helped reduce turnover.”
+
+**Early Turnover Segmentation**  
+Python + SQL + Tableau to surface onboarding friction.  
+*What I say:* “I segmented <90-day attrition, which showed gaps in onboarding. Fixes lowered early exits.”
+
+**Workforce Planning Model**  
+Python forecasts vs. budget and hiring demand.  
+*What I say:* “I modeled hiring needs against plan; we cut gaps ~20% and reduced overtime.”
+
+**Attrition Risk Calculator (Prototype)**  
+Python + scikit-learn; explainable only.  
+*What I say:* “I prototyped a risk score (without protected data). It ranked flight risks and explained drivers.”
+
+**Quibi — Scaling fast**  
+Predictive staffing + dashboards for 200+ hires.  
+*Follow-up:* “Want to hear how the dashboards guided daily staffing calls?”
+
+**Flowserve — Early risk detection**  
+Automated compliance/attrition reporting; retention improved +18%.  
+*Follow-up:* “Interested in how I spotted early attrition signals?”
+
+**Sony Pictures — Change visibility**  
+Simplified HR reporting during transformation.  
+*Follow-up:* “Curious which reports became must-checks?”
+
+**Roadr (Startup) — Onboarding/attrition**  
+AI forecasting + Tableau/Workday dashboards + generative reporting; onboarding time −40%, early exits ↓ ~⅓.  
+*Follow-up:* “Want the 60-second view of the reporting assistant?”
+
+**HBO — Workday + dashboards**  
+Real-time attrition/hiring views; trained teams; sped up decisions.  
+*Follow-up:* “Need an example of how we cut reporting delays?”
+
+**NBCUniversal — Funnel clarity**  
+Improved ATS analytics; time-to-fill dropped.  
+*Follow-up:* “Want to see the funnel metrics I used?”
+
+---
+
 ## Current Goals
 - Lead AI initiatives in HR analytics  
 - Expand interactive dashboards and AI copilots  
@@ -103,4 +147,3 @@ Improved ATS analytics; time-to-fill dropped; forecasts got sharper.
 - **Resume:** /resume  
 - **About:** /about  
 - **Chat Widget:** /chat-widget
-
