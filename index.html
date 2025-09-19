@@ -11,10 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.cs-->s" rel="stylesheet"/>
 
   <!-- Chat widget styles (single source of truth) -->
-  <link rel="stylesheet" href="/assets/chat/widget.css?v=1.6.4"/>
+  <!--<link rel="stylesheet" href="/assets/chat/w-->idget.css?v=1.6.4"/>
 
   <!-- Page styles -->
   <style>
@@ -487,35 +487,18 @@
       setupCarousel('insights-track', 'insights-prev', 'insights-next');
     });
   </script>
+    <script
+      defer
+      src="/agent-widget.js"
+      data-proxy-url="https://my-chat-agent.tonyabdelmalak.workers.dev/chat"
+      data-'itle="Ask Tony’s Copilot"
+      data-greeting="How can I help you explore Tony’s journey, dashboards, or career?"
+      data-accent="#4f46e5"
+      data-radius="12px"
+      data-rate-limit="10"
+    ></script>
 
-  <!-- === Chat Widget (canonical) === -->
-  <script defer src="/assets/chat/widget.js?v=1.6.4"></script>
-  <script>
-    // Initialize your widget (supports legacy/new APIs)
-    window.addEventListener('DOMContentLoaded', () => {
-      const opts = {
-        mode: 'floating',
-        position: 'bottom-right',
-        avatar: '/assets/img/profile-img.jpg',
-        title: 'Copilot',
-        greeting: "Hi—I’m Tony. Want a quick tour of my dashboards, projects, or resume highlights?",
-        configPath: '/assets/chat/config.json?v=1.6.4'
-      };
-
-      try {
-        if (window.CopilotWidget) {
-          const widget = new window.CopilotWidget(opts);
-          widget.init();
-        } else if (window.TonyChatWidget?.init) {
-          window.TonyChatWidget.init(opts);
-        } else {
-          console.error('[ChatWidget] API not found. Verify /assets/chat/widget.js is loading.');
-        }
-      } catch (e) {
-        console.error('[ChatWidget] init error:', e);
-      }
-    });
-  </script>
+   </script>
   <!-- === /Chat Widget === -->
 </body>
 </html>
