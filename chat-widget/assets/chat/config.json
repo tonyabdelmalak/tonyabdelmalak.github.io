@@ -6,7 +6,3 @@
   "radius": "12px",
   "rateLimit": 10
 }
-  "rateLimit": 10,
-  "model": "llama3-8b-8192"
-
-
