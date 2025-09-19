@@ -1,159 +1,196 @@
-// chat-widget/assets/chat/widget.js
-// Path-proof loader + minimal chat post. Works on GitHub Pages or custom domain.
-
+/* assets/chat/widget.js — Tony-first-person widget
+   - Loads config.json and persona.json
+   - Sends {messages} to Worker
+   - Accepts OpenAI-style or legacy {reply} responses
+*/
 (function () {
-  // --- Resolve base path from this script's src, fallback to known folder ---
-  function getBasePath() {
-    const scripts = document.getElementsByTagName('script');
-    for (let i = scripts.length - 1; i >= 0; i--) {
-      const src = scripts[i].getAttribute('src') || '';
-      if (src.endsWith('chat-widget/assets/chat/widget.js')) {
-        const u = new URL(src, window.location.href);
-        return u.href.replace(/widget\.js$/, '');
-      }
-      // handles relative includes like ./chat-widget/assets/chat/widget.js
-      if (src.includes('chat-widget/assets/chat/widget.js')) {
-        const u = new URL(src, window.location.href);
-        return u.href.replace(/widget\.js$/, '');
-      }
-    }
-    // Fallback: trailing slash required
-    return new URL('./chat-widget/assets/chat/', window.location.href).href;
+  const W = window, D = document;
+  if (!W.TonyChatWidget) W.TonyChatWidget = {};
+
+  const PATHS = {
+    config: "/assets/chat/config.json",
+    persona: "/assets/chat/persona.json"
+  };
+
+  const SESSION_KEY = "tony_session_v5";
+  const GREETED_KEY = "tony_greeted_v5";
+
+  function el(t, c) { const n = D.createElement(t); if (c) n.className = c; return n; }
+  async function getJSON(u) { const r = await fetch(u, { cache: "no-store" }); return r.ok ? r.json() : null; }
+  function esc(s) { return s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+  function buildSystem(conf, persona, isFirst) {
+    const guard = [
+      "You are Tony speaking in FIRST PERSON. Always use 'I' and 'my'.",
+      "Never call yourself a copilot/assistant/AI/bot. You are Tony.",
+      isFirst ? "You may introduce yourself once." : "Do not introduce yourself again.",
+      "Tone: clear, direct, warm, concise; bullets welcome."
+    ].join("\n");
+
+    const extra = Array.isArray(conf.systemPrompt) ? conf.systemPrompt.join("\n") : (conf.systemPrompt || "");
+
+    const tone = persona?.tone ? [
+      `VOICE: ${persona.tone.voice || ""}`,
+      `RULES: ${(persona.tone.rules || []).join(" • ")}`
+    ].join("\n") : "";
+
+    const about = persona?.about_me ? `ABOUT: ${persona.about_me.tagline || ""}; Stack: ${(persona.about_me.stack||[]).join(", ")}` : "";
+
+    const jobs = (persona?.jobs || []).map(j =>
+      `• ${j.title} @ ${j.company} (${j.period||""}) – Highlights: ${(j.highlights||[]).join("; ")}`
+    ).join("\n");
+
+    const projs = (persona?.projects || []).map(p =>
+      `• ${p.name} — ${p.one_liner||""}. Impact: ${p.impact||""}`
+    ).join("\n");
+
+    const gaps = (persona?.employment_gaps || []).map(g =>
+      `• Gap ${g.period}: ${g.framing}. Proof: ${(g.proof||[]).join("; ")}`
+    ).join("\n");
+
+    const portfolio = [about, jobs && ("JOBS:\n"+jobs), projs && ("PROJECTS:\n"+projs), gaps && ("GAPS:\n"+gaps)]
+      .filter(Boolean).join("\n\n");
+
+    return [guard, extra, tone, portfolio].filter(Boolean).join("\n\n");
   }
 
-  const BASE = getBasePath();
-  const CONFIG_URL = new URL('config.json', BASE).href;
-  const SYSTEM_URL = new URL('system.md', BASE).href;
+  W.TonyChatWidget.init = async function (opts) {
+    const conf = (await getJSON(PATHS.config)) || {};
+    const persona = (await getJSON(PATHS.persona)) || {};
 
-  // --- Helpers ---
-  async function safeFetchText(url, label) {
-    const res = await fetch(url, { cache: 'no-cache' });
-    if (!res.ok) {
-      throw new Error(`${label} fetch failed (${res.status}) at ${url}`);
-    }
-    return res.text();
-  }
+    // Basic UI
+    const launcher = el("div", "tcw-launcher"); launcher.appendChild(el("span")).textContent = "💬";
+    const panel = el("div", "tcw-panel");
+    const header = el("div", "tcw-header");
+    const title = el("div", "tcw-title"); title.textContent = conf.title || "Chat with Tony";
+    header.appendChild(title);
 
-  async function safeFetchJson(url, label) {
-    const res = await fetch(url, { cache: 'no-cache' });
-    if (!res.ok) {
-      throw new Error(`${label} fetch failed (${res.status}) at ${url}`);
-    }
-    return res.json();
-  }
+    const body = el("div", "tcw-body");
+    const thread = el("div", "tcw-messages"); body.appendChild(thread);
 
-  // --- State (filled at init) ---
-  let CONFIG = null;
-  let SYSTEM_MD = '';
+    const bar = el("div", "tcw-inputbar");
+    const ta = el("textarea"); ta.placeholder = "Type your question…"; ta.rows = 1;
+    const sendBtn = el("button"); sendBtn.textContent = "Send";
+    bar.appendChild(ta); bar.appendChild(sendBtn);
 
-  // --- Chat call to Worker ---
-  async function sendToProxy(message, history = []) {
-    if (!CONFIG || !CONFIG.proxyUrl) {
-      throw new Error('proxyUrl missing in config.json');
-    }
-    const payload = {
-      message,
-      history,
-      system: SYSTEM_MD,           // send system.md from repo
-      model: CONFIG.model || 'llama3',
-      temperature: 0.3,
-      max_tokens: 160
-    };
+    panel.appendChild(header); panel.appendChild(body); panel.appendChild(bar);
+    D.body.appendChild(launcher); D.body.appendChild(panel);
 
-    const res = await fetch(CONFIG.proxyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(`Proxy error ${res.status}: ${text}`);
-    }
-
-    const data = await res.json().catch(() => ({}));
-    if (!data || typeof data.reply !== 'string') {
-      throw new Error('Proxy returned no reply');
-    }
-    return data.reply;
-  }
-
-  // --- Minimal wiring to your existing UI (adjust selectors if different) ---
-  function bindUI() {
-    const input = document.querySelector('#chat-input, .chat-input, textarea[name="chat"]') || null;
-    const sendBtn = document.querySelector('#chat-send, .chat-send, button[data-role="chat-send"]') || null;
-    const out = document.querySelector('#chat-output, .chat-output, .messages') || null;
-
-    if (!input || !sendBtn || !out) {
-      console.warn('widget.js: Could not find expected chat elements. Ensure you have:');
-      console.warn(' - input:  #chat-input  or  .chat-input  or  textarea[name="chat"]');
-      console.warn(' - button: #chat-send   or  .chat-send   or  button[data-role="chat-send"]');
-      console.warn(' - output: #chat-output or  .chat-output or  .messages');
-      return;
-    }
-
-    let history = [];
-
-    async function handleSend() {
-      const msg = (input.value || '').trim();
-      if (!msg) return;
-      append(out, 'You', msg);
-      input.value = '';
-      try {
-        const reply = await sendToProxy(msg, history);
-        append(out, 'Agent', reply);
-        history.push({ role: 'user', content: msg }, { role: 'assistant', content: reply });
-        if (history.length > 24) history = history.slice(-24);
-      } catch (err) {
-        console.error(err);
-        append(out, 'Agent', 'Sorry—having trouble reaching my brain right now. Try again in a moment.');
-      }
-    }
-
-    sendBtn.addEventListener('click', handleSend);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSend();
-      }
-    });
-  }
-
-  function append(container, who, text) {
-    const row = document.createElement('div');
-    row.className = `msg msg--${who.toLowerCase()}`;
-    row.innerHTML = `<strong>${who}:</strong> ${escapeHtml(text)}`;
-    container.appendChild(row);
-    container.scrollTop = container.scrollHeight;
-  }
-
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // --- Init ---
-  (async function init() {
+    // Style vars
     try {
-      // Load config + system using the resolved base path
-      CONFIG = await safeFetchJson(CONFIG_URL, 'config.json');
-      SYSTEM_MD = await safeFetchText(SYSTEM_URL, 'system.md');
+      const root = D.documentElement;
+      if (conf.brand?.accent) root.style.setProperty("--tcw-accent", conf.brand.accent);
+      if (conf.brand?.radius) root.style.setProperty("--tcw-radius", conf.brand.radius);
+    } catch {}
 
-      // Optional greeting log
-      console.info('[widget] Loaded config from', CONFIG_URL);
-      console.info('[widget] Loaded system.md from', SYSTEM_URL);
-      console.info('[widget] Using proxy:', CONFIG.proxyUrl);
+    // Open/close
+    let open = false;
+    launcher.onclick = () => { open = !open; panel.style.display = open ? "block" : "none"; if (open) ta.focus(); };
 
-      bindUI();
-    } catch (err) {
-      console.error('Widget init failed:', err);
-      // Helpful hints
-      console.error('Check these:');
-      console.error('1) File paths exist exactly: chat-widget/assets/chat/{config.json, system.md, widget.js, widget.css}');
-      console.error('2) config.json has a valid "proxyUrl" (your Cloudflare Worker /chat).');
-      console.error('3) Worker ALLOWED_ORIGINS includes this site\'s origin.');
+    // Labels
+    function bubble(role, text) {
+      const row = el("div", "tcw-msg");
+      const label = role === "user" ? "You" : "Tony";
+      row.innerHTML = `<strong>${label}:</strong> ${esc(text)}`;
+      thread.appendChild(row);
+      thread.scrollTop = thread.scrollHeight;
     }
-  })();
+    function typing(on) {
+      let t = D.getElementById("tcw-typing");
+      if (on) {
+        if (!t) { t = el("div", "tcw-typing"); t.id = "tcw-typing"; t.textContent = "Tony is typing…"; thread.appendChild(t); }
+      } else if (t) t.remove();
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    // Session + one-time greeting
+    if (!sessionStorage.getItem(SESSION_KEY)) sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+    if (conf.intro_once && !sessionStorage.getItem(GREETED_KEY) && conf.firstMessage) {
+      bubble("assistant", conf.firstMessage);
+      sessionStorage.setItem(GREETED_KEY, "1");
+    }
+
+    // Collect DOM → messages[]
+    function historyToMessages() {
+      const nodes = thread.querySelectorAll(".tcw-msg");
+      const out = [];
+      nodes.forEach(n => {
+        const isTony = n.innerHTML.startsWith("<strong>Tony");
+        const isUser = n.innerHTML.startsWith("<strong>You");
+        if (!isTony && !isUser) return;
+        const text = n.textContent.replace(/^You:\s*|^Tony:\s*/i, "").trim();
+        const lt = text.toLowerCase();
+        if (lt.includes("welcome to tony") && lt.includes("copilot")) return;
+        if (lt.includes("i'm your copilot")) return;
+        out.push({ role: isTony ? "assistant" : "user", content: text });
+      });
+      return out;
+    }
+
+    // Send
+    let lastSend = 0;
+    async function send() {
+      const v = ta.value.trim();
+      if (!v) return;
+      if (conf.rateLimit && Date.now() - lastSend < 800) return;
+      lastSend = Date.now();
+
+      bubble("user", v);
+      ta.value = ""; ta.style.height = "auto";
+      typing(true);
+
+      try {
+        const hist = historyToMessages();
+        const isFirst = hist.length === 0 || (hist.length === 1 && hist[0].role === "assistant");
+        const system = buildSystem(conf, persona, isFirst);
+
+        const res = await fetch(conf.proxyUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "system", content: system }, ...hist, { role: "user", content: v }],
+            sessionId: sessionStorage.getItem(SESSION_KEY),
+            temperature: 0.3
+          })
+        });
+
+        typing(false);
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          bubble("assistant", "⚠️ Error: Invalid response from server");
+          console.error("Proxy error:", txt);
+          return;
+        }
+        // Be ultra-tolerant of response shapes
+        const data = await res.json().catch(() => ({}));
+        const content =
+          data?.choices?.[0]?.message?.content ||
+          data?.reply ||
+          data?.message ||
+          "";
+        if (!content) {
+          bubble("assistant", "⚠️ Error: Invalid response from server");
+          console.error("Unexpected payload:", data);
+          return;
+        }
+        bubble("assistant", content);
+      } catch (e) {
+        typing(false);
+        bubble("assistant", "⚠️ Error: Invalid response from server");
+        console.error(e);
+      }
+    }
+
+    // Enter to send; Shift+Enter newline
+    ta.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+    });
+    ta.addEventListener("input", () => {
+      ta.style.height = "auto";
+      ta.style.height = Math.min(ta.scrollHeight, 160) + "px";
+    });
+    sendBtn.onclick = send;
+  };
 })();
+
+
