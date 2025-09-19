@@ -328,15 +328,44 @@ function trimHistory(history, maxTurns = 12) {
     .slice(-maxTurns);
 }
 
-// Final safety net: scrub headings/code and normalize bullets
+/* Final safety net: scrub headings/code, normalize bullets, keep ≤3 bullets, only one follow-up line */
 function sanitizeReply(text) {
   if (!text) return "";
-  return String(text)
-    .replace(/^#{1,6}\s+/gm, "")        // remove markdown headings
-    .replace(/```[\s\S]*?```/g, "")     // strip code blocks
-    .replace(/^\s*[-*+]\s+/gm, "• ")    // normalize bullet markers
-    .replace(/\n{3,}/g, "\n\n")         // collapse big gaps
+  let s = String(text)
+    .replace(/^#{1,6}\s+/gm, "")      // remove markdown headings
+    .replace(/```[\s\S]*?```/g, "")   // strip code blocks
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")       // collapse big gaps
     .trim();
+
+  // Normalize bullet markers to "• "
+  s = s.replace(/^\s*[-*+]\s+/gm, "• ");
+
+  // Split and enforce bullet + follow-up limits
+  const lines = s.split("\n").map(l => l.trim()).filter(Boolean);
+  const out = [];
+  let bulletCount = 0;
+  let seenFollow = false;
+
+  for (const line of lines) {
+    if (line.startsWith("• ")) {
+      if (bulletCount < 3) {
+        out.push(line);
+        bulletCount++;
+      } // else drop extra bullets silently
+      continue;
+    }
+    if (/^→\s/.test(line)) {
+      if (!seenFollow) {
+        out.push(line);
+        seenFollow = true;
+      }
+      continue; // drop additional follow-ups
+    }
+    out.push(line);
+  }
+
+  return out.join("\n").trim();
 }
 
 /* ---------------------- Main Worker ---------------------- */
