@@ -171,6 +171,24 @@
     }
   ],
 
+  "case_studies": [
+  {
+    "title": "Quibi — Scaling at Startup Speed",
+    "summary": "Built predictive staffing models and dashboards to support 200+ hires in under a year. Leaders gained real-time visibility and improved early retention.",
+    "link": "/case-studies#quibi"
+  },
+  {
+    "title": "Flowserve — Turning Compliance into Engagement",
+    "summary": "Automated compliance and attrition reporting with Python + Tableau, improving retention by 18% in targeted groups.",
+    "link": "/case-studies#flowserve"
+  },
+  {
+    "title": "Roadr — AI-Driven Onboarding Transformation",
+    "summary": "Developed AI forecasting and generative AI reporting, cutting onboarding time 40% and reducing early attrition by one-third.",
+    "link": "/case-studies#roadr"
+  }
+],
+  
   "work_experience": [
     {
       "company": "Roadr (Startup)",
