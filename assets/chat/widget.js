@@ -1,139 +1,137 @@
-(function() {
-async function getJSON(url) {
-  const r = await fetch(url, { cache: \"no-store\" });
-  return r.ok ? r.json() : null;
-}
+// /assets/chat/widget.js
+(function () {
+  const W = (window.TonyChatWidget = window.TonyChatWidget || {});
+  let mounted = false;
 
-function createEl(tag, cls) {
-  const el = document.createElement(tag);
-  if (cls) el.className = cls;
-  return el;
-}
+  // Public init
+  W.init = function init(opts = {}) {
+    if (mounted) return;
+    mounted = true;
 
-class ChatWidget {
-  constructor(conf, persona) {
-    this.conf = conf;
-    this.persona = persona;
-    this.SYSTEM_PROMPT = persona ? JSON.stringify(persona) : \"Hi, I'm Tony.\";
-    this.launcher = null;
-    this.panel = null;
-    this.messages = [];
-  }
+    const cfg = {
+      proxyUrl: opts.proxyUrl,
+      systemPrompt: opts.systemPrompt || "",
+      // File-based config/persona (optional but supported)
+      configUrl: "/assets/chat/config.json",
+      systemUrl: "/assets/chat/system.md",
+    };
 
-  init() {
-    this.launcher = createEl('div', 'tcw-launcher');
-    document.body.appendChild(this.launcher);
-    this.panel = createEl('div', 'tcw-panel');
-    this.panel.style.display = 'none';
-    document.body.appendChild(this.panel);
+    // Load config + system persona (best effort)
+    Promise.all([
+      fetch(cfg.configUrl).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+      fetch(cfg.systemUrl).then(r => r.ok ? r.text() : "").catch(() => "")
+    ]).then(([conf, sysText]) => {
+      const ui = {
+        title: conf.title || "Copilot",
+        greeting: conf.greeting || "How can I help you explore Tony’s journey, dashboards, or career?",
+        avatar: conf.avatar || "/assets/img/profile-img.jpg",
+        accent: conf.accent || "#4f46e5",
+        radius: conf.radius || "12px",
+        position: conf.position || "bottom-right",
+        rateLimit: Number(conf.rateLimit || 10)
+      };
+      const persona = (cfg.systemPrompt && cfg.systemPrompt.trim()) ? cfg.systemPrompt : (sysText || "");
 
-    const header = createEl('div', 'tcw-header');
-    const title = createEl('div', 'tcw-title');
-    title.textContent = this.conf.title || 'Chat';
-    header.appendChild(title);
-    this.panel.appendChild(header);
+      mountUI(ui, cfg, persona);
+    }).catch(() => {
+      mountUI({}, cfg, cfg.systemPrompt || "");
+    });
+  };
 
-    const body = createEl('div', 'tcw-body');
-    const messagesEl = createEl('div', 'tcw-messages');
-    body.appendChild(messagesEl);
-    this.panel.appendChild(body);
-    this.messagesEl = messagesEl;
+  function mountUI(ui, cfg, systemPrompt) {
+    // Styles (widget.css provides most, this is just CSS vars & fallback)
+    const style = document.createElement("style");
+    style.textContent = `
+      :root {
+        --tw-accent: ${ui.accent};
+        --tw-radius: ${ui.radius};
+      }
+    `;
+    document.head.appendChild(style);
 
-    const inputBar = createEl('div', 'tcw-inputbar');
-    const textarea = document.createElement('textarea');
-    textarea.rows = 1;
-    textarea.placeholder = 'Type a question…';
-    inputBar.appendChild(textarea);
-    const sendBtn = document.createElement('button');
-    sendBtn.textContent = 'Send';
-    inputBar.appendChild(sendBtn);
-    this.panel.appendChild(inputBar);
+    // Root
+    const root = document.createElement("div");
+    root.className = "copilot-container";
+    root.innerHTML = `
+      <button class="copilot-launch" aria-label="Open chat">
+        <img src="${ui.avatar}" alt="Avatar"/>
+      </button>
+      <div class="copilot-panel" role="dialog" aria-modal="true" aria-label="${escapeHtml(ui.title)}">
+        <div class="copilot-header">
+          <div class="copilot-title">${escapeHtml(ui.title)}</div>
+          <button class="copilot-close" aria-label="Close">×</button>
+        </div>
+        <div class="copilot-body">
+          <div class="copilot-msg copilot-agent">${escapeHtml(ui.greeting)}</div>
+        </div>
+        <div class="copilot-input">
+          <input type="text" placeholder="Type your question…" />
+          <button class="copilot-send">Send</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(root);
 
-    this.textarea = textarea;
-    this.sendBtn = sendBtn;
+    const panel = root.querySelector(".copilot-panel");
+    const launch = root.querySelector(".copilot-launch");
+    const closeBtn = root.querySelector(".copilot-close");
+    const body = root.querySelector(".copilot-body");
+    const input = root.querySelector(".copilot-input input");
+    const send = root.querySelector(".copilot-send");
 
-    if (this.conf.intro_once && !sessionStorage.getItem('tcw_greeted')) {
-      sessionStorage.setItem('tcw_greeted', '1');
-      if (this.conf.firstMessage) {
-        this.addMsg('assistant', this.conf.firstMessage);
+    // Positioning
+    if (ui.position === "bottom-left") {
+      root.style.left = "20px";
+      root.style.right = "auto";
+    }
+
+    // Toggle
+    function toggle(open) {
+      panel.style.display = open ? "flex" : "none";
+      if (open) input.focus();
+    }
+    launch.addEventListener("click", () => toggle(panel.style.display !== "flex"));
+    closeBtn.addEventListener("click", () => toggle(false));
+
+    // Send handler
+    async function ask(q) {
+      if (!q) return;
+      pushMsg(`You: ${q}`, "user");
+      input.value = "";
+      try {
+        const res = await fetch(cfg.proxyUrl, {
+          method: "POST",
+          headers: {"content-type":"application/json"},
+          body: JSON.stringify({
+            system: systemPrompt || undefined,
+            messages: [{ role: "user", content: q }]
+          })
+        });
+        const data = await res.json();
+        const text =
+          data.reply ||
+          data?.choices?.[0]?.message?.content ||
+          data?.message ||
+          "…";
+        pushMsg(`Copilot: ${text}`, "agent");
+      } catch (e) {
+        pushMsg("Copilot: (network error)", "agent");
       }
     }
 
-    this.launcher.addEventListener('click', () => {
-      this.panel.style.display = this.panel.style.display === 'none' ? 'flex' : 'none';
-      if (this.panel.style.display === 'flex') {
-        this.textarea.focus();
-      }
-    });
-
-    this.sendBtn.addEventListener('click', () => this.send());
-    this.textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        this.send();
-      }
-    });
-  }
-
-  addMsg(sender, text) {
-    const row = createEl('div', 'tcw-msg');
-    const strong = document.createElement('strong');
-    strong.textContent = sender === 'assistant' ? 'Tony: ' : 'You: ';
-    row.appendChild(strong);
-    row.appendChild(document.createTextNode(text));
-    this.messagesEl.appendChild(row);
-    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
-  }
-
-  collectHistory() {
-    const history = [];
-    this.messagesEl.querySelectorAll('.tcw-msg').forEach(row => {
-      const strong = row.querySelector('strong');
-      const text = row.textContent;
-      if (strong && text) {
-        const sender = strong.textContent.trim().replace(':', '').toLowerCase();
-        const content = text.replace(strong.textContent, '').trim();
-        history.push({ role: sender === 'tony' ? 'assistant' : 'user', content });
-      }
-    });
-    return history;
-  }
-
-  async send() {
-    const msg = this.textarea.value.trim();
-    if (!msg) return;
-    this.addMsg('user', msg);
-    this.textarea.value = '';
-    const history = this.collectHistory();
-    const messages = [
-      { role: 'system', content: this.SYSTEM_PROMPT },
-      ...history,
-      { role: 'user', content: msg }
-    ];
-    try {
-      const res = await fetch(this.conf.proxyUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.conf.model,
-          messages,
-          temperature: 0.3,
-          max_tokens: 400
-        })
-      });
-      const data = await res.json();
-      const reply = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content.trim() : '';
-      this.addMsg('assistant', reply);
-    } catch (e) {
-      this.addMsg('assistant', 'Error: ' + e.message);
+    function pushMsg(html, who) {
+      const div = document.createElement("div");
+      div.className = "copilot-msg " + (who === "user" ? "copilot-user" : "copilot-agent");
+      div.textContent = html;
+      // strip "You: " / "Copilot: " labels for cleaner UI, keep content
+      div.textContent = html.replace(/^You:\s*/,'').replace(/^Copilot:\s*/,'');
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
     }
-  }
-}
 
-(async () => {
-  const confRes = await getJSON('/assets/chat/config.json');
-  const personaRes = await getJSON('/assets/chat/persona.json');
-  const chat = new ChatWidget(confRes || {}, personaRes);
-  chat.init();
-})();
+    send.addEventListener("click", () => ask(input.value.trim()));
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(input.value.trim()); });
+  }
+
+  function escapeHtml(s){return (s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 })();
