@@ -1,5 +1,5 @@
 (function() {
-  const AVATAR_SRC = "/assets/chat/avatar-tony.jpg"; // update if needed
+  const AVATAR_SRC = "/assets/img/avatar-tony.jpg"; // ✅ updated path
 
   function el(tag, cls) {
     const n = document.createElement(tag);
