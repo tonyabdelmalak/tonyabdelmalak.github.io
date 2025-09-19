@@ -1,18 +1,55 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI Sentiment Analysis on Employee Surveys — Tony Abdelmalak</title>
-<meta property="og:title" content="AI Sentiment Analysis on Employee Surveys — Live Dashboard">
-<meta property="og:description" content="NLP (spaCy/NLTK/transformers) on survey comments to surface themes & sentiment by department.">
-<meta property="og:image" content="https://tonyabdelmalak.github.io/assets/sentiment_og.png">
-<meta property="og:url" content="https://tonyabdelmalak.github.io/projects/sentiment.html">
-<style>body{font:16px system-ui;margin:0;background:#fafafa;color:#111}.wrap{max-width:1100px;margin:0 auto;padding:24px}
-h1{margin:8px 0 6px}.note{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px}</style></head>
-<body><div class="wrap">
-<h1>AI Sentiment Analysis on Employee Surveys</h1>
-<p class="note">This page will embed the Tableau dashboard automatically when it’s published. For now, the dataset and code are available below.</p>
-<p><a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/RecruitmentFunnel_17550659994180/RecruitmentFunnel" target="_blank">Download data (CSV)</a></p>
-<pre>Reproduce:
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI Sentiment Analysis on Employee Surveys – Tony Abdelmalak</title>
+
+  <meta property="og:title" content="AI Sentiment Analysis on Employee Surveys – Live Dashboard">
+  <meta property="og:description" content="NLP (spaCy/NLTK/transformers) on survey comments to surface themes & sentiment by department.">
+  <meta property="og:image" content="https://tonyabdelmalak.github.io/assets/sentiment_og.png">
+  <meta property="og:url" content="https://tonyabdelmalak.github.io/projects/sentiment.html">
+
+  <!-- Side rail -->
+  <link rel="stylesheet" href="/assets/ui/side-rail.css">
+  <script src="/assets/ui/side-rail.js" defer></script>
+
+  <style>
+    body {
+      font: 16px system-ui;
+      margin: 0;
+      background: #fafafa;
+      color: #111;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 { margin: 8px 0 6px; }
+    .note {
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>AI Sentiment Analysis on Employee Surveys</h1>
+    <p class="note">This page will embed the Tableau dashboard automatically when it’s published. For now, the dataset and code are available.</p>
+    <p>
+      <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/RecruitmentFunnel_17550659994180/RecruitmentFunnel" target="_blank">
+        View Tableau dashboard
+      </a>
+    </p>
+    <pre>
+Reproduce:
 1) pip install -r requirements.txt
 2) Run notebooks/sentiment_pipeline.ipynb
-3) Publish tableau/sentiment.twbx to Tableau Public and paste the embed URL here.</pre>
-</div></body></html>
+3) Publish tableau/sentiment.twbx to Tableau Public and paste the embed URL here.
+    </pre>
+  </div>
+</body>
+</html>
