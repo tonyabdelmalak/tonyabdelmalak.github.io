@@ -1,28 +1,51 @@
 :root{
-  --rail-bg: #0f172a;            /* background */
-  --rail-fg: #e5e7eb;            /* text */
-  --rail-accent: #6366f1;        /* highlight */
+  /* positioning */
+  --rail-offset: 88px;                 /* space below your top navbar */
+  --rail-side-gap: 16px;               /* gap from page edge */
+
+  /* sizes */
   --rail-width-collapsed: 56px;
   --rail-width-expanded: 200px;
   --rail-radius: 16px;
-  --rail-gap: 8px;
   --rail-item-h: 44px;
+  --rail-gap: 8px;
+
+  /* colors */
+  --rail-bg: rgba(15,23,42,.92);       /* slate-900 w/ translucency */
+  --rail-fg: #e5e7eb;                  /* gray-200 */
+  --rail-accent: #6366f1;              /* indigo-500 */
+
   --rail-z: 2147482000;
 }
 
-/* container (injected) */
+/* Reserve space on the side so content doesn't hide underneath the rail */
+@media (min-width: 900px){
+  body.has-rail{
+    padding-right: 72px;               /* collapsed space */
+  }
+  body.rail-expanded{
+    padding-right: 216px;              /* expanded space */
+  }
+}
+
+/* ==== Rail container ==== */
 .side-rail{
   position: fixed;
-  left: 16px;                    /* set to right:16px; left:auto; to move to right */
-  top: 50%;
-  transform: translateY(-50%);
+  /* RIGHT SIDE: move here to avoid covering hero text */
+  right: var(--rail-side-gap);
+  left: auto;
+
+  top: var(--rail-offset);             /* clear the navbar */
+  transform: none;
+
   width: var(--rail-width-collapsed);
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - (var(--rail-offset) + 16px));
   background: var(--rail-bg);
   color: var(--rail-fg);
   border-radius: var(--rail-radius);
   padding: 12px 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,.32);
+  backdrop-filter: saturate(140%) blur(6px);
   transition: width .24s ease;
   overflow: hidden;
   z-index: var(--rail-z);
@@ -41,7 +64,7 @@
 }
 .side-rail a{
   display: grid;
-  grid-template-columns: 28px 1fr;  /* icon + label */
+  grid-template-columns: 28px 1fr;
   align-items: center;
   gap: 12px;
   height: var(--rail-item-h);
@@ -52,9 +75,7 @@
   position: relative;
   outline: none;
 }
-.side-rail a svg{
-  width: 24px; height: 24px;
-}
+.side-rail a svg{ width: 24px; height: 24px; opacity:.96; }
 .side-rail a span{
   white-space: nowrap;
   opacity: 0;
@@ -67,21 +88,21 @@
   transform: translateX(0);
 }
 .side-rail a:hover,
-.side-rail a:focus{
-  background: rgba(255,255,255,.07);
-}
+.side-rail a:focus{ background: rgba(255,255,255,.08); }
+
 .side-rail a.active{
-  background: rgba(99,102,241,.18);
+  background: rgba(99,102,241,.22);
   color: #fff;
   box-shadow: inset 0 0 0 1px rgba(99,102,241,.45);
 }
 
-/* tooltip when collapsed */
+/* Tooltip when collapsed */
 .side-rail:not(:hover):not(.is-pinned) a:focus::after,
 .side-rail:not(:hover):not(.is-pinned) a:hover::after{
   content: attr(data-label);
   position: absolute;
-  left: calc(100% + 10px);
+  left: auto;
+  right: calc(100% + 10px);            /* appears to the LEFT of the rail */
   top: 50%;
   transform: translateY(-50%);
   background: #111827;
@@ -93,27 +114,23 @@
   box-shadow: 0 6px 18px rgba(0,0,0,.2);
 }
 
-/* pin button */
+/* Pin button */
 .rail-pin{
   margin-top: 10px;
   width: 36px; height: 36px;
   border: none;
   border-radius: 50%;
-  background: rgba(255,255,255,.06);
+  background: rgba(255,255,255,.08);
   color: var(--rail-fg);
   display: grid;
   place-items: center;
   cursor: pointer;
 }
-.rail-pin:hover{ background: rgba(255,255,255,.12); }
+.rail-pin:hover{ background: rgba(255,255,255,.16); }
 .rail-pin svg{ width: 18px; height: 18px; }
 
-/* small screens: dock lower-left */
-@media (max-width: 820px){
-  .side-rail{
-    top: auto; bottom: 16px;
-    left: 16px;
-    transform: none;
-    border-radius: 14px;
-  }
+/* Small screens: hide the rail (your top nav already handles nav) */
+@media (max-width: 899px){
+  .side-rail{ display: none; }
+  body.has-rail, body.rail-expanded{ padding-right: 0; }
 }
