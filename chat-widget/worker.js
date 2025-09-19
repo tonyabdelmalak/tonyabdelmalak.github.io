@@ -1,5 +1,5 @@
-
-// worker.js — Copilot proxy (OpenAI first, fallback to Groq)
+// worker.js — Copilot proxy (OpenAI first, fallback to Groq) with 429 backoff + model pool
+// Persona stays here. We can also merge client-sent `system` addendums without losing this.
 
 const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
@@ -266,10 +266,9 @@ What’s on your mind?
     ]
   }
 }
-
-
 `.trim();
 
+/* ---------------------- Utilities ---------------------- */
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -278,11 +277,52 @@ function corsHeaders() {
   };
 }
 
+function clamp(n, min, max) {
+  n = Number(n);
+  if (Number.isNaN(n)) return min;
+  return Math.max(min, Math.min(max, n));
+}
+
+function mergeSystem(base, addendum) {
+  if (!addendum) return base;
+  return `${base}\n\n---\n# Client system addendum\n${String(addendum).trim()}`;
+}
+
+// Respect Retry-After if present; otherwise exponential backoff.
+async function fetchWithBackoff(url, init, { attempts = 3, initialDelayMs = 1000 } = {}) {
+  let delay = initialDelayMs;
+  let lastRes = null;
+  for (let i = 0; i < attempts; i++) {
+    const res = await fetch(url, init);
+    if (res.status !== 429) return res;
+    lastRes = res;
+    const retryAfter = res.headers.get("retry-after");
+    const waitMs = retryAfter ? Number(retryAfter) * 1000 : delay;
+    await new Promise(r => setTimeout(r, waitMs));
+    delay *= 2;
+  }
+  return lastRes || fetch(url, init);
+}
+
+async function readErrorSafely(res) {
+  try { return await res.json(); } catch {}
+  try { return await res.text(); } catch {}
+  return "Unknown error";
+}
+
+function trimHistory(history, maxTurns = 12) {
+  return (Array.isArray(history) ? history : [])
+    .filter(m => m && m.role && m.content)
+    .map(m => ({ role: m.role, content: String(m.content).trim() }))
+    .slice(-maxTurns);
+}
+
+/* ---------------------- Main Worker ---------------------- */
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    // Health check
+    // Health
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
         headers: { "Content-Type": "application/json", ...corsHeaders() },
@@ -298,9 +338,7 @@ export default {
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
         const body = await req.json().catch(() => ({}));
-        const userMsg = (body?.message || "").toString().trim();
-        const history = Array.isArray(body?.history) ? body.history : [];
-
+        const userMsg = String(body?.message ?? "").trim();
         if (!userMsg) {
           return new Response(
             JSON.stringify({ error: "Missing 'message' in request body." }),
@@ -308,10 +346,25 @@ export default {
           );
         }
 
-        // Decide provider: OpenAI if available, else Groq
+        // Optional client params
+        const history = trimHistory(body?.history, clamp(body?.max_history_turns ?? 12, 0, 40));
+        const clientSystem = body?.system ? String(body.system) : "";
+        const temperature = clamp(body?.temperature ?? 0.3, 0, 2);
+        const max_tokens = clamp(body?.max_tokens ?? 200, 32, 1024);
+        const preferredModel = body?.model && String(body.model);
+        const modelPool = Array.isArray(body?.model_pool) && body.model_pool.length
+          ? body.model_pool.map(String)
+          : ["llama-3.1-8b-instant", "llama-3.1-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"];
+
+        const mergedSystem = mergeSystem(SYSTEM_PROMPT, clientSystem);
+        const messages = [
+          { role: "system", content: mergedSystem },
+          ...history,
+          { role: "user", content: userMsg }
+        ];
+
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq = !!env.GROQ_API_KEY;
-
         if (!hasOpenAI && !hasGroq) {
           return new Response(
             JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
@@ -319,70 +372,132 @@ export default {
           );
         }
 
-        // Normalize history (optional)
-        const past = history
-          .filter(m => m && m.role && m.content)
-          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12); // keep it light
-
-        const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...past,
-          { role: "user", content: userMsg }
-        ];
-
-        // Build request for the chosen provider
-        let apiUrl, headers, payload;
-
+        /* ---------- Try OpenAI first (if configured) ---------- */
         if (hasOpenAI) {
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: "gpt-4o-mini",
+          const openaiPayload = {
+            model: preferredModel || "gpt-4o-mini",
             messages,
-            temperature: 0.3,
-            max_tokens: 200,
+            temperature,
+            max_tokens
           };
-        } else {
-          apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-          headers = {
+
+          const res = await fetchWithBackoff(
+            "https://api.openai.com/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(openaiPayload),
+            },
+            { attempts: 3, initialDelayMs: 1000 }
+          );
+
+          if (res.ok) {
+            const data = await res.json();
+            const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+            return new Response(JSON.stringify({ reply }), {
+              headers: { "Content-Type": "application/json", ...corsHeaders() },
+            });
+          }
+
+          const errDetails = await readErrorSafely(res);
+          // If not rate-limit and not a 5xx, return now; fallback likely won't help.
+          if (res.status !== 429 && (res.status < 500 || res.status >= 600)) {
+            return new Response(
+              JSON.stringify({
+                error: "Upstream error (OpenAI)",
+                status: res.status,
+                details: errDetails,
+                userMessage: "I’m a bit busy right now — try again in a moment."
+              }),
+              { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+            );
+          }
+          // else fall through to Groq
+        }
+
+        /* ---------- Groq fallback (or primary if no OpenAI) ---------- */
+        if (hasGroq) {
+          const groqHeaders = {
             "Authorization": `Bearer ${env.GROQ_API_KEY}`,
             "Content-Type": "application/json",
           };
-          payload = {
-            model: "llama-3.1-8b-instant",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
-          };
-        }
 
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(payload),
-        });
+          // If client forces a specific Groq model, try it first, then the pool.
+          const pool = preferredModel ? [preferredModel, ...modelPool.filter(m => m !== preferredModel)] : modelPool;
 
-        if (!resp.ok) {
-          const txt = await resp.text();
+          let last429 = null;
+
+          for (const model of pool) {
+            const groqPayload = {
+              model,
+              messages,
+              temperature,
+              max_tokens
+              // stream: true  // keep JSON to match the widget
+            };
+
+            const res = await fetchWithBackoff(
+              "https://api.groq.com/openai/v1/chat/completions",
+              { method: "POST", headers: groqHeaders, body: JSON.stringify(groqPayload) },
+              { attempts: 3, initialDelayMs: 1000 }
+            );
+
+            if (res.ok) {
+              const data = await res.json();
+              const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+              return new Response(JSON.stringify({ reply }), {
+                headers: { "Content-Type": "application/json", ...corsHeaders() },
+              });
+            }
+
+            if (res.status === 429) {
+              last429 = await readErrorSafely(res);
+              continue; // try next model
+            }
+
+            // non-429 error → bail (no benefit to try more)
+            const otherErr = await readErrorSafely(res);
+            return new Response(
+              JSON.stringify({
+                error: "Upstream error (Groq)",
+                status: res.status,
+                details: otherErr,
+                userMessage: "I’m running into an upstream error. Try again shortly."
+              }),
+              { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+            );
+          }
+
+          // Exhausted pool due to 429s
           return new Response(
-            JSON.stringify({ error: "Upstream error", status: resp.status, details: txt }),
-            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+            JSON.stringify({
+              error: "rate_limited",
+              status: 429,
+              details: last429 || "Rate limit across models",
+              userMessage: "I’m getting a lot of requests at once. Give me a few seconds and try again — or shorten your prompt."
+            }),
+            { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders() } }
           );
         }
 
-        const data = await resp.json();
-        const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
-
-        return new Response(JSON.stringify({ reply }), {
-          headers: { "Content-Type": "application/json", ...corsHeaders() },
-        });
+        // If we’re here, no providers succeeded
+        return new Response(
+          JSON.stringify({
+            error: "No provider available after retries",
+            userMessage: "I’m having trouble reaching the model right now. Try again in a moment."
+          }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+        );
       } catch (err) {
         return new Response(
-          JSON.stringify({ error: "Server error", details: String(err) }),
+          JSON.stringify({
+            error: "Server error",
+            details: String(err),
+            userMessage: "Something went wrong on my side. Please try again."
+          }),
           { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
         );
       }
