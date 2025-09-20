@@ -1,132 +1,208 @@
-// worker.js — Tony-first-person proxy (OpenAI first, fallback Groq)
-// Always returns OpenAI-style {choices[0].message.content} so the widget won't break.
+// Minimal, dependency-free widget.
+// Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
 
-const GUARDRAILS = `
-You are Tony speaking in FIRST PERSON. Always use "I" and "my".
-Never call yourself a copilot/assistant/AI/bot. You are Tony.
-Introduce yourself only on the FIRST turn of a NEW session; don't repeat unless asked "who are you" or "what is this?".
-Tone: professional, direct, approachable. Use contractions. Short, active sentences.
-If the user repeats a broad ask (e.g., "dashboards"), go deeper with steps, choices, tradeoffs, outcomes—do not reintroduce yourself.
-When asked about dashboards: data sources → prep → modeling → visuals → interactivity → impact.
-If context is unclear, ask one focused question, then proceed with best-practice guidance.
-Replies ≤ 120 words unless returning code.
-`.trim();
+(function () {
+  const AGENT_LABEL = "Agent";      // Consistent name in the transcript
+  const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
 
-const INTRO_BLOCKLIST = [
-  "welcome to tony's copilot",
-  "i'm your copilot",
-  "welcome to tony abdelmalak's github",
-  "i'm tony's copilot"
-];
-
-function CORS() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST,GET,OPTIONS",
-    "Access-Control-Allow-Headers": "content-type, authorization"
-  };
-}
-function j(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...CORS(), "Content-Type": "application/json" }
-  });
-}
-
-function sanitizeHistory(msgs = []) {
-  return msgs.filter(m => {
-    if (!m || !m.role || !m.content) return false;
-    if (m.role !== "assistant") return true;
-    const t = String(m.content).toLowerCase();
-    return !INTRO_BLOCKLIST.some(p => t.includes(p));
-  });
-}
-
-function normalizeMessages(body) {
-  // Preferred: { messages: [{role,content}, ...] }
-  if (Array.isArray(body?.messages) && body.messages.length) {
-    const msgs = sanitizeHistory(body.messages.map(m => ({
-      role: m.role, content: String(m.content || "").trim()
-    })));
-    const hasSystem = msgs.some(m => m.role === "system");
-    return hasSystem ? msgs : [{ role: "system", content: GUARDRAILS }, ...msgs];
+  // Utility: build elements quickly
+  function el(tag, cls, html) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (html != null) node.innerHTML = html;
+    return node;
   }
-  // Legacy: { message, history }
-  const userMsg = String(body?.message || "").trim();
-  const history = Array.isArray(body?.history) ? body.history : [];
-  const past = sanitizeHistory(history.map(m => ({
-    role: m.role, content: String(m.content || "").trim()
-  }))).slice(-12);
-  const msgs = [{ role: "system", content: GUARDRAILS }, ...past];
-  if (userMsg) msgs.push({ role: "user", content: userMsg });
-  return msgs;
-}
 
-export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
+  // Load JSON/MD
+  async function fetchText(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.text();
+  }
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.json();
+  }
 
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS() });
-    if (url.pathname === "/health") return j({ ok: true, ts: Date.now() });
+  // Widget
+  const Widget = {
+    state: {
+      config: null,
+      systemPrompt: "",
+      open: false
+    },
 
-    if (url.pathname === "/chat" && req.method === "POST") {
-      try {
-        const body = await req.json().catch(() => ({}));
+    async init(opts) {
+      // options
+      this.opts = Object.assign(
+        {
+          mode: "floating",
+          position: "bottom-right",
+          avatar: "",
+          configPath: "/chat-widget/assets/chat/config.json",
+          systemPath: "/chat-widget/assets/chat/system.md"
+        },
+        opts || {}
+      );
 
-        const hasOpenAI = !!env.OPENAI_API_KEY;
-        const hasGroq = !!env.GROQ_API_KEY;
-        if (!hasOpenAI && !hasGroq) return j({ error: "No provider key set (OPENAI_API_KEY or GROQ_API_KEY)." }, 500);
+      // load config + system prompt
+      const [config, systemText] = await Promise.all([
+        fetchJSON(this.opts.configPath),
+        fetchText(this.opts.systemPath)
+      ]);
+      this.state.config = config;
+      this.state.systemPrompt = systemText;
 
-        const messages = normalizeMessages(body);
-        const temperature = Number(body?.temperature ?? 0.3);
+      // build DOM
+      this.build();
+      this.attachEvents();
 
-        let apiUrl, headers, payload;
-        if (hasOpenAI) {
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" };
-          payload = { model: "gpt-4o-mini", messages, temperature, max_tokens: 500 };
-        } else {
-          apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-          headers = { "Authorization": `Bearer ${env.GROQ_API_KEY}`, "Content-Type": "application/json" };
-          payload = { model: "llama-3.1-8b-instant", messages, temperature, max_tokens: 500 };
-        }
-
-        const upstream = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(payload) });
-        if (!upstream.ok) {
-          const txt = await upstream.text();
-          return j({
-            id: "proxy-error",
-            object: "chat.completion",
-            choices: [{ index: 0, message: { role: "assistant", content: "Upstream model error. Please try again." }, finish_reason: "stop" }],
-            error: { status: upstream.status, details: txt }
-          }, 502);
-        }
-
-        const data = await upstream.json();
-        const content =
-          data?.choices?.[0]?.message?.content ??
-          data?.reply ??
-          data?.message ?? "";
-
-        return j({
-          id: data?.id || "proxy-response",
-          object: "chat.completion",
-          created: Math.floor(Date.now() / 1000),
-          model: payload.model,
-          choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }]
-        });
-      } catch (err) {
-        return j({
-          id: "proxy-exception",
-          object: "chat.completion",
-          choices: [{ index: 0, message: { role: "assistant", content: "Server exception. Please try again." }, finish_reason: "stop" }],
-          error: { details: String(err) }
-        }, 500);
+      // greeting only once per browser tab
+      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
+        this.addAgent(config.greeting);
+        sessionStorage.setItem(SESSION_FLAG, "1");
       }
+    },
+
+    build() {
+      // Launcher
+      this.launch = el("button", "copilot-launch");
+      const avatarImg = el("img");
+      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatarImg.alt = "Open chat";
+      this.launch.appendChild(avatarImg);
+
+      // Panel
+      this.root = el("section", "copilot-container copilot-hidden");
+
+      // Header with Close (×)
+      const header = el("header", "copilot-header");
+      const avatar = el("img", "copilot-avatar");
+      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatar.alt = "Avatar";
+      const title = el("div", "copilot-title", (this.state.config.title || "Copilot"));
+      const closeBtn = el("button", "copilot-close", "&times;");
+      closeBtn.setAttribute("aria-label", "Close chat");
+      header.append(avatar, title, closeBtn);
+
+      // Messages
+      this.messages = el("div", "copilot-messages");
+
+      // Input row
+      const inputRow = el("div", "copilot-input-row");
+      this.input = el("input", "copilot-input");
+      this.input.type = "text";
+      this.input.placeholder = this.state.config.placeholder || "Type your question...";
+      const send = el("button", "copilot-send", "↥");
+      send.setAttribute("title", "Send");
+
+      inputRow.append(this.input, send);
+
+      this.root.append(header, this.messages, inputRow);
+
+      // Mount both
+      document.body.append(this.launch, this.root);
+
+      // local refs
+      this.closeBtn = closeBtn;
+      this.sendBtn = send;
+    },
+
+    attachEvents() {
+      // open/close
+      this.launch.addEventListener("click", () => this.showPanel());
+      this.closeBtn.addEventListener("click", () => this.hidePanel());
+
+      // send actions
+      this.sendBtn.addEventListener("click", () => this.handleSend());
+      this.input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          this.handleSend();
+        }
+      });
+    },
+
+    showPanel() {
+      this.launch.classList.add("copilot-hidden");
+      this.root.classList.remove("copilot-hidden");
+      this.state.open = true;
+      setTimeout(() => this.input?.focus(), 10);
+    },
+    hidePanel() {
+      this.root.classList.add("copilot-hidden");
+      this.launch.classList.remove("copilot-hidden");
+      this.state.open = false;
+    },
+
+    // UI helpers
+    addAgent(text) {
+      const row = el("div", "copilot-msg agent");
+      row.append(
+        el("span", "copilot-label", `${AGENT_LABEL}:`),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    addUser(text) {
+      const row = el("div", "copilot-msg user");
+      row.append(
+        el("span", "copilot-label", "You:"),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    scrollToBottom() {
+      this.messages.scrollTop = this.messages.scrollHeight;
+    },
+
+    async handleSend() {
+      const message = (this.input.value || "").trim();
+      if (!message) return;
+      this.addUser(message);
+      this.input.value = "";
+
+      try {
+        const reply = await this.callProxy(message);
+        this.addAgent(reply);
+      } catch (err) {
+        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
+      }
+    },
+
+    // Calls your Cloudflare Worker (/chat) specified in config.json
+    async callProxy(message) {
+      const url = this.state.config.proxyUrl;
+      if (!url) throw new Error("Missing proxyUrl in config.json");
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          system: this.state.systemPrompt
+        })
+      });
+
+      if (!res.ok) {
+        let body = "";
+        try { body = await res.text(); } catch {}
+        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
+      }
+
+      const data = await res.json();
+      if (!data || typeof data.reply !== "string") {
+        throw new Error("Invalid response from server");
+      }
+      return data.reply;
     }
+  };
 
-    return new Response("Not found", { status: 404, headers: CORS() });
-  }
-};
-
-
+  // public init
+  window.TonyChatWidget = {
+    init: (opts) => Widget.init(opts)
+  };
+})();
