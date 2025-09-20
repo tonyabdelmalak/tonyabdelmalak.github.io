@@ -1,208 +1,151 @@
-// Minimal, dependency-free widget.
-// Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
+/* ===== Container ===== */
+.copilot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 340px;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dcdcdc;
+  border-radius: 14px;
+  background: #fff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18);
+  overflow: hidden;
+  z-index: 2147483000 !important; /* always on top */
+}
 
-(function () {
-  const AGENT_LABEL = "Agent";      // Consistent name in the transcript
-  const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
+/* ===== Header ===== */
+.copilot-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f7f8fa;
+  border-bottom: 1px solid #e8e8e8;
+}
 
-  // Utility: build elements quickly
-  function el(tag, cls, html) {
-    const node = document.createElement(tag);
-    if (cls) node.className = cls;
-    if (html != null) node.innerHTML = html;
-    return node;
-  }
+.copilot-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
 
-  // Load JSON/MD
-  async function fetchText(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.text();
-  }
-  async function fetchJSON(url) {
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.json();
-  }
+.copilot-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #0f172a;
+  flex: 1 1 auto;
+}
 
-  // Widget
-  const Widget = {
-    state: {
-      config: null,
-      systemPrompt: "",
-      open: false
-    },
+/* Close (X) button in header */
+.copilot-close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 28px;
+  color: #64748b;
+}
+.copilot-close:hover { background: #eef2f7; color: #334155; }
 
-    async init(opts) {
-      // options
-      this.opts = Object.assign(
-        {
-          mode: "floating",
-          position: "bottom-right",
-          avatar: "",
-          configPath: "/chat-widget/assets/chat/config.json",
-          systemPath: "/chat-widget/assets/chat/system.md"
-        },
-        opts || {}
-      );
+/* ===== Messages area ===== */
+.copilot-messages {
+  flex: 1 1 auto;
+  padding: 12px;
+  overflow-y: auto;
+  background: #fff;
+}
 
-      // load config + system prompt
-      const [config, systemText] = await Promise.all([
-        fetchJSON(this.opts.configPath),
-        fetchText(this.opts.systemPath)
-      ]);
-      this.state.config = config;
-      this.state.systemPrompt = systemText;
+/* One extra space between turns for readability */
+.copilot-msg {
+  margin: 0 0 12px 0;           /* <— space between bubbles */
+  line-height: 1.45;
+  word-wrap: break-word;
+}
 
-      // build DOM
-      this.build();
-      this.attachEvents();
+/* Label (“Agent:” / “You:”) — bold + color-coded */
+.copilot-label {
+  font-weight: 700;              /* <— bold the speaker */
+  margin-right: 6px;
+}
 
-      // greeting only once per browser tab
-      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
-        this.addAgent(config.greeting);
-        sessionStorage.setItem(SESSION_FLAG, "1");
-      }
-    },
+.copilot-msg.agent .copilot-label { color: #4338ca; } /* indigo */
+.copilot-msg.user  .copilot-label { color: #2563eb; } /* blue   */
 
-    build() {
-      // Launcher
-      this.launch = el("button", "copilot-launch");
-      const avatarImg = el("img");
-      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatarImg.alt = "Open chat";
-      this.launch.appendChild(avatarImg);
+/* Optional subtle background for Agent to help scan */
+.copilot-msg.agent {
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
 
-      // Panel
-      this.root = el("section", "copilot-container copilot-hidden");
+/* ===== Input row ===== */
+.copilot-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid #e8e8e8;
+  background: #fff;
+}
 
-      // Header with Close (×)
-      const header = el("header", "copilot-header");
-      const avatar = el("img", "copilot-avatar");
-      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
-      avatar.alt = "Avatar";
-      const title = el("div", "copilot-title", (this.state.config.title || "Copilot"));
-      const closeBtn = el("button", "copilot-close", "&times;");
-      closeBtn.setAttribute("aria-label", "Close chat");
-      header.append(avatar, title, closeBtn);
+.copilot-input {
+  flex: 1 1 auto;
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  padding: 0 14px;
+  font-size: 14px;
+  outline: none;
+}
+.copilot-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,.18);
+}
 
-      // Messages
-      this.messages = el("div", "copilot-messages");
+/* Send button — circle with upward arrow */
+.copilot-send {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #6366f1;      /* indigo */
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+.copilot-send:hover { background: #4f46e5; }
 
-      // Input row
-      const inputRow = el("div", "copilot-input-row");
-      this.input = el("input", "copilot-input");
-      this.input.type = "text";
-      this.input.placeholder = this.state.config.placeholder || "Type your question...";
-      const send = el("button", "copilot-send", "↥");
-      send.setAttribute("title", "Send");
+/* ===== Launcher (floating button) ===== */
+.copilot-launch {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #6366f1;
+  box-shadow: 0 10px 28px rgba(0,0,0,.22);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2147483000 !important;
+}
 
-      inputRow.append(this.input, send);
+.copilot-launch img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.9);
+}
 
-      this.root.append(header, this.messages, inputRow);
-
-      // Mount both
-      document.body.append(this.launch, this.root);
-
-      // local refs
-      this.closeBtn = closeBtn;
-      this.sendBtn = send;
-    },
-
-    attachEvents() {
-      // open/close
-      this.launch.addEventListener("click", () => this.showPanel());
-      this.closeBtn.addEventListener("click", () => this.hidePanel());
-
-      // send actions
-      this.sendBtn.addEventListener("click", () => this.handleSend());
-      this.input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          this.handleSend();
-        }
-      });
-    },
-
-    showPanel() {
-      this.launch.classList.add("copilot-hidden");
-      this.root.classList.remove("copilot-hidden");
-      this.state.open = true;
-      setTimeout(() => this.input?.focus(), 10);
-    },
-    hidePanel() {
-      this.root.classList.add("copilot-hidden");
-      this.launch.classList.remove("copilot-hidden");
-      this.state.open = false;
-    },
-
-    // UI helpers
-    addAgent(text) {
-      const row = el("div", "copilot-msg agent");
-      row.append(
-        el("span", "copilot-label", `${AGENT_LABEL}:`),
-        document.createTextNode(" " + text)
-      );
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    addUser(text) {
-      const row = el("div", "copilot-msg user");
-      row.append(
-        el("span", "copilot-label", "You:"),
-        document.createTextNode(" " + text)
-      );
-      this.messages.append(row);
-      this.scrollToBottom();
-    },
-    scrollToBottom() {
-      this.messages.scrollTop = this.messages.scrollHeight;
-    },
-
-    async handleSend() {
-      const message = (this.input.value || "").trim();
-      if (!message) return;
-      this.addUser(message);
-      this.input.value = "";
-
-      try {
-        const reply = await this.callProxy(message);
-        this.addAgent(reply);
-      } catch (err) {
-        this.addAgent(`⚠️ Error: ${err.message || "Failed to fetch"}`);
-      }
-    },
-
-    // Calls your Cloudflare Worker (/chat) specified in config.json
-    async callProxy(message) {
-      const url = this.state.config.proxyUrl;
-      if (!url) throw new Error("Missing proxyUrl in config.json");
-
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message,
-          system: this.state.systemPrompt
-        })
-      });
-
-      if (!res.ok) {
-        let body = "";
-        try { body = await res.text(); } catch {}
-        throw new Error(`HTTP ${res.status} – ${body || res.statusText}`);
-      }
-
-      const data = await res.json();
-      if (!data || typeof data.reply !== "string") {
-        throw new Error("Invalid response from server");
-      }
-      return data.reply;
-    }
-  };
-
-  // public init
-  window.TonyChatWidget = {
-    init: (opts) => Widget.init(opts)
-  };
-})();
+.copilot-hidden { display: none !important; }
