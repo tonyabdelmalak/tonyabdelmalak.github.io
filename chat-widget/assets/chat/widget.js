@@ -1,20 +1,19 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// No external deps. Mounts onto <div id="chat-widget-root"></div>
+// Mounts onto <div id="chat-widget-root"></div> and talks to your Worker.
 
 (async function boot() {
   const mount = ensureMount();
   const cfg = await loadConfig();
-
-  // theme knobs from config.json
   applyTheme(cfg);
 
-  // build DOM
-  const { launcher, panel, closeBtn, scroll, note, form, input, send } = buildShell(cfg, mount);
+  // Preload system persona text (cached per page load)
+  const system = await fetchSystem(cfg.systemUrl);
 
-  // greeting
+  // Build UI
+  const { launcher, panel, closeBtn, scroll, note, form, input, send } = buildShell(cfg, mount);
   if (cfg.greeting) addBot(scroll, cfg.greeting);
 
-  // interactions
+  // Open/close
   launcher.addEventListener('click', () => {
     panel.style.display = 'block';
     launcher.classList.add('cw-hidden');
@@ -25,7 +24,7 @@
     launcher.classList.remove('cw-hidden');
   });
 
-  // submit
+  // Submit
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -45,10 +44,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
-          // If you want to pass system or history, add them here.
-          // system: await fetchSystem(cfg.systemUrl),
+          system,                      // <— persona injected here
           model: cfg.model,
           temperature: cfg.temperature
+          // history: []                // optionally include your own message history array
         }),
       });
 
@@ -57,7 +56,11 @@
       if (res.ok && (data.text || data.reply || data.message)) {
         addBot(scroll, data.text || data.reply || data.message);
       } else {
-        const detail = data?.detail?.error?.message || data?.error || 'failed';
+        const detail =
+          data?.detail?.error?.message ||
+          data?.detail?.error?.code ||
+          data?.error ||
+          'failed';
         addError(note, `Error: ${detail}`);
       }
     } catch (err) {
@@ -69,7 +72,7 @@
     }
   });
 
-  // allow Enter to submit, Shift+Enter for newline
+  // Enter to send, Shift+Enter for newline
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -92,7 +95,8 @@ async function loadConfig() {
       accent: '#4f46e5',
       radius: '14px',
       model: 'llama-3.1-8b-instant',
-      temperature: 0.2
+      temperature: 0.2,
+      systemUrl: ''
     };
   }
 }
@@ -191,12 +195,14 @@ function escapeHtml(s='') {
   return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-// Optional: fetch system prompt text if you want to inject it.
-// Not used by default because your Worker can fetch SYSTEM_URL itself.
-// async function fetchSystem(url) {
-//   if (!url) return '';
-//   try {
-//     const r = await fetch(url, { cache: 'no-store' });
-//     return await r.text();
-//   } catch { return ''; }
-// }
+async function fetchSystem(url) {
+  if (!url) return '';
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return '';
+    const text = await r.text();
+    return (text || '').toString().slice(0, 12000); // trim for safety
+  } catch {
+    return '';
+  }
+}
