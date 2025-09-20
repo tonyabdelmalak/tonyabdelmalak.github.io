@@ -1,17 +1,15 @@
-name = "tony-chat"
+name = "my-chat-agent"
 main = "src/worker.js"
 compatibility_date = "2024-09-01"
+workers_dev = true
 
 [vars]
-# Your public RAW system file with the assistant rules (guardrails)
-SYSTEM_MD_URL = "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/system.md"
+# Your public system prompt (guardrails). You can point this at the file in your repo:
+SYSTEM_URL = "https://tonyabdelmalak.github.io/chat-widget/assets/chat/system.md"
 
-# Your site + local dev (CORS allowlist)
-ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io,http://127.0.0.1:8787,http://localhost:8787"
+# Allow your site to call the worker (CORS)
+ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io"
 
-# Provider/model (use OpenAI by default; Groq works too)
-PROVIDER = "openai"
-MODEL = "gpt-4o-mini"
-# If using Groq instead:
-# PROVIDER = "groq"
-# MODEL = "llama-3.1-8b-instant"
+# GROQ model + behavior (safe defaults)
+GROQ_MODEL = "llama-3.1-70b-versatile"
+TEMPERATURE = "0.2"
