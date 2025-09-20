@@ -1,216 +1,151 @@
-/* ==========================================================================
-   Tony Chat Widget • /chat-widget/assets/chat/widget.css
-   Design goals:
-   - Blue/purple accent, soft radii, subtle depth
-   - Good legibility & spacing
-   - Works with or without the page’s styles
-   - Dark mode & reduced-motion friendly
-   ========================================================================== */
+/* === Launcher avatar size & dots bubble === */ 
 
-:root {
-  --cw-accent: #4f46e5;              /* Indigo */
-  --cw-accent-2: #7c6df0;            /* Lighter indigo */
-  --cw-bg: #ffffff;
-  --cw-fg: #0f172a;                  /* Slate-900 */
-  --cw-muted: #64748b;               /* Slate-500 */
-  --cw-panel: #ffffff;
-  --cw-radius: 12px;
-  --cw-shadow: 0 10px 30px rgba(2, 6, 23, 0.18);
-  --cw-border: 1px solid rgba(2, 6, 23, 0.08);
-}
+:root{ 
 
-/* In case the page has a super aggressive global reset */
-#chat-widget-root * { box-sizing: border-box; font: inherit; }
+  /* tweak once and the rest follows */ 
 
-/* ---------- Floating toggle button ---------- */
-#chat-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 2147483000;               /* above most things */
-  padding: 12px 16px;
-  border: none;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--cw-accent), var(--cw-accent-2));
-  color: #fff;
-  font-weight: 600;
-  letter-spacing: .2px;
-  box-shadow: 0 8px 22px rgba(79, 70, 229, .35);
-  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
-}
+  --launcher-size: 72px;         /* try 80–96px if you want bigger */ 
 
-#chat-toggle:hover { filter: brightness(1.05); }
-#chat-toggle:active { transform: translateY(1px) scale(.99); }
-#chat-toggle:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--cw-accent) 40%, white);
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px rgba(79,70,229,.25), 0 8px 22px rgba(79,70,229,.35);
-}
+  --launcher-ring: 4px;          /* the purple ring thickness */ 
 
-/* ---------- Chat panel container ---------- */
-#chat-panel {
-  position: fixed;
-  bottom: 70px;
-  right: 20px;
-  width: 340px;
-  max-width: calc(100vw - 32px);
-  height: 440px;
-  display: none;                     /* JS toggles between none/flex */
-  flex-direction: column;
-  background: var(--cw-panel);
-  color: var(--cw-fg);
-  border-radius: var(--cw-radius);
-  border: var(--cw-border);
-  box-shadow: var(--cw-shadow);
-  overflow: hidden;
-  z-index: 2147483000;
-}
+  --launcher-accent: #6366f1;    /* your purple */ 
 
-/* ---------- Header (implicit — we style first row of log as greeting) ---------- */
-#chat-panel .cw-header {
-  display: none; /* reserved if you add a header later */
-}
+} 
 
-/* ---------- Message area ---------- */
-#chat-log {
-  flex: 1;
-  padding: 12px;
-  overflow-y: auto;
-  background:
-    radial-gradient(1200px 300px at 120% 120%, rgba(79,70,229,.06), transparent 60%),
-    radial-gradient(600px 200px at -10% -20%, rgba(124,109,240,.06), transparent 60%),
-    var(--cw-bg);
-  scroll-behavior: smooth;
-}
+ 
 
-/* Bubbles (your JS writes <p>…</p>) */
-#chat-log p {
-  margin: 8px 0;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: #f8fafc;
-  box-shadow: 0 1px 0 rgba(2, 6, 23, .04) inset;
-  line-height: 1.35;
-}
+.chat-launcher{ 
 
-/* Lightweight emphasis for the speaker label (e.g., "You:" / "Agent:") */
-#chat-log p > strong {
-  color: var(--cw-muted);
-  font-weight: 700;
-  margin-right: 6px;
-}
+  position: fixed; 
 
-/* First message (the greeting) gets a little highlight */
-#chat-log p:first-child {
-  background: linear-gradient(180deg, #f5f7ff, #f9faff);
-  border: 1px solid rgba(79,70,229,.10);
-}
+  right: 20px; 
 
-/* ---------- Composer ---------- */
-#chat-panel form {
-  display: flex;
-  gap: 8px;
-  padding: 10px;
-  border-top: 1px solid rgba(2, 6, 23, 0.06);
-  background: #fff;
-}
+  bottom: 20px; 
 
-#chat-panel input[type="text"] {
-  flex: 1;
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid rgba(2, 6, 23, 0.10);
-  padding: 0 12px;
-  color: var(--cw-fg);
-  background: #fff;
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
+  width: var(--launcher-size); 
 
-#chat-panel input[type="text"]::placeholder { color: #9aa3b2; }
+  height: var(--launcher-size); 
 
-#chat-panel input[type="text"]:focus {
-  border-color: color-mix(in srgb, var(--cw-accent) 45%, white);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, .20);
-}
+  border-radius: 50%; 
 
-#chat-panel button[type="submit"] {
-  padding: 0 14px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--cw-accent), var(--cw-accent-2));
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: filter .15s ease, transform .12s ease;
-}
+  padding: 0; 
 
-#chat-panel button[type="submit"]:hover { filter: brightness(1.05); }
-#chat-panel button[type="submit"]:active { transform: translateY(1px); }
-#chat-panel button[type="submit"]:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--cw-accent) 40%, white);
-  outline-offset: 2px;
-}
+  border: var(--launcher-ring) solid var(--launcher-accent); 
 
-/* ---------- Scrollbar polish (WebKit/Chromium) ---------- */
-#chat-log::-webkit-scrollbar { width: 10px; }
-#chat-log::-webkit-scrollbar-thumb {
-  background: rgba(2, 6, 23, 0.13);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-#chat-log::-webkit-scrollbar-track {
-  background: transparent;
-}
+  background: #fff; 
 
-/* ---------- Mobile tweaks ---------- */
-@media (max-width: 560px) {
-  #chat-panel {
-    right: 12px;
-    bottom: 76px;
-    width: calc(100vw - 24px);
-    height: min(70vh, 520px);
-  }
-  #chat-toggle { bottom: 16px; right: 16px; }
-}
+  box-shadow: 0 8px 24px rgba(0,0,0,.18); 
 
-/* ---------- Dark mode ---------- */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cw-bg: #0b1220;                /* very dark blue slate */
-    --cw-fg: #e5edf9;                /* light slate */
-    --cw-panel: #0f172a;             /* slate-900 */
-    --cw-border: 1px solid rgba(148, 163, 184, 0.18);
-    --cw-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
-  }
-  #chat-log { background:
-      radial-gradient(1200px 300px at 120% 120%, rgba(79,70,229,.12), transparent 60%),
-      radial-gradient(600px 200px at -10% -20%, rgba(124,109,240,.10), transparent 60%),
-      var(--cw-bg);
-  }
-  #chat-log p {
-    background: #111827;            /* near-slate-900 */
-    box-shadow: 0 1px 0 rgba(255, 255, 255, .02) inset;
-  }
-  #chat-log p:first-child {
-    background: linear-gradient(180deg, rgba(79,70,229,.15), rgba(79,70,229,.05));
-    border: 1px solid rgba(79,70,229,.25);
-  }
-  #chat-panel form { background: #0f172a; border-top-color: rgba(148,163,184,.18); }
-  #chat-panel input[type="text"] {
-    background: #0b1220;
-    color: var(--cw-fg);
-    border-color: rgba(148,163,184,.22);
-  }
-  #chat-panel input[type="text"]::placeholder { color: #7a869a; }
-}
+  cursor: pointer; 
 
-/* ---------- Motion sensitivity ---------- */
-@media (prefers-reduced-motion: reduce) {
-  #chat-toggle,
-  #chat-panel button[type="submit"],
-  #chat-panel input[type="text"] {
-    transition: none !important;
-  }
-}
+  overflow: hidden;              /* important so the image stays circular */ 
+
+  display: inline-flex; 
+
+  align-items: center; 
+
+  justify-content: center; 
+
+  z-index: 2147483000;           /* above most things */ 
+
+} 
+
+ 
+
+/* If you’re using an <img> inside the button */ 
+
+.chat-launcher > img{ 
+
+  width: 100%; 
+
+  height: 100%; 
+
+  object-fit: cover;             /* face fills the circle */ 
+
+  border-radius: 50%; 
+
+  display: block; 
+
+} 
+
+ 
+
+/* If your launcher uses a background-image instead of <img> */ 
+
+.chat-launcher.bg{ 
+
+  background-size: cover; 
+
+  background-position: center; 
+
+  background-repeat: no-repeat; 
+
+} 
+
+ 
+
+/* 3-dot bubble that floats above the avatar */ 
+
+.chat-dots{ 
+
+  position: absolute; 
+
+  right: 6px; 
+
+  bottom: calc(100% + 8px);      /* sits just above the circle */ 
+
+  background: #fff; 
+
+  border-radius: 999px; 
+
+  padding: 6px 8px; 
+
+  box-shadow: 0 6px 18px rgba(0,0,0,.16); 
+
+  display: inline-flex; 
+
+  align-items: center; 
+
+  gap: 4px; 
+
+} 
+
+ 
+
+.chat-dots span{ 
+
+  width: 6px; 
+
+  height: 6px; 
+
+  border-radius: 50%; 
+
+  background: #9ca3af;          /* neutral gray */ 
+
+  animation: chatdot 1.2s infinite ease-in-out; 
+
+} 
+
+.chat-dots span:nth-child(2){ animation-delay: .15s; } 
+
+.chat-dots span:nth-child(3){ animation-delay: .30s; } 
+
+ 
+
+@keyframes chatdot{ 
+
+  0%, 80%, 100% { transform: translateY(0); opacity: .65; } 
+
+  40%           { transform: translateY(-3px); opacity: 1; } 
+
+} 
+
+ 
+
+/* optional: scale down on very small screens */ 
+
+@media (max-width: 420px){ 
+
+  :root{ --launcher-size: 64px; } 
+
+} 
