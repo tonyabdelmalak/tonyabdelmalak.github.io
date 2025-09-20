@@ -1,3 +1,59 @@
+/* ---------- THEME/FORMAT SHIM (safe to paste near top) ---------- */
+function applyTheme(cfg = {}) {
+  // read accent + radius from config.json and apply to CSS variables
+  const accent = cfg.accent || '#4f46e5';
+  const radius = cfg.radius || '14px';
+  const root = document.documentElement;
+  root.style.setProperty('--chat-accent', accent);
+  root.style.setProperty('--chat-radius', radius);
+}
+
+/* OPTIONAL: helper to build the minimal DOM structure if you need it.
+   If your widget already renders the same IDs/classes, skip this. */
+function ensureChatShell() {
+  if (document.querySelector('.cw-wrap')) return;
+
+  const root = document.querySelector('#chat-widget-root') || (() => {
+    const el = document.createElement('div');
+    el.id = 'chat-widget-root';
+    document.body.appendChild(el);
+    return el;
+  })();
+
+  root.insertAdjacentHTML('beforeend', `
+    <button class="cw-launcher" id="cw-launch">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <div class="cw-wrap" id="cw-wrap">
+      <div class="cw-head">
+        <button class="cw-close" id="cw-close" aria-label="Close">✕</button>
+        <h3 class="cw-title" id="cw-title">Chat</h3>
+        <p class="cw-sub" id="cw-sub">We are online!</p>
+      </div>
+      <div class="cw-body">
+        <div class="cw-scroll" id="cw-scroll"></div>
+        <div class="cw-note" id="cw-note"></div>
+        <form class="cw-input" id="cw-form">
+          <input id="cw-text" type="text" autocomplete="off" placeholder="Enter your message..." />
+          <button class="cw-send" id="cw-send" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  `);
+
+  // minimal open/close if you don't already manage it
+  const wrap = document.getElementById('cw-wrap');
+  const openBtn = document.getElementById('cw-launch');
+  const closeBtn = document.getElementById('cw-close');
+  openBtn?.addEventListener('click', () => { wrap.style.display = 'block'; openBtn.classList.add('cw-hidden'); });
+  closeBtn?.addEventListener('click', () => { wrap.style.display = 'none'; openBtn.classList.remove('cw-hidden'); });
+}
+/* ---------- END THEME/FORMAT SHIM ---------- */
+
+
 /* ===== Container ===== */
 .copilot-container {
   position: fixed;
