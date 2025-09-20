@@ -1,4 +1,4 @@
-// worker.js — Copilot proxy (OpenAI first, fallback to Groq)
+// worker.js — Copilot proxy (Groq first, fallback to OpenAI)
 
 const SYSTEM_PROMPT = `
 You are Tony’s Copilot — a friendly, concise guide for tonyabdelmalak.github.io.
@@ -55,7 +55,7 @@ export default {
           );
         }
 
-        // Decide provider: OpenAI if available, else Groq
+        // Decide provider: Groq if available, else OpenAI
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq = !!env.GROQ_API_KEY;
 
@@ -84,7 +84,7 @@ export default {
         if (hasOpenAI) {
           apiUrl = "https://api.openai.com/v1/chat/completions";
           headers = {
-            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+            "Authorization": `Bearer ${env.OpenAI_API_KEY}`,
             "Content-Type": "application/json",
           };
           payload = {
