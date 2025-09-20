@@ -1,5 +1,3 @@
-WIDGET.JS CODE:
-
 
 // Minimal, dependency-free widget.
 // Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
