@@ -1,151 +1,145 @@
-/* === Launcher avatar size & dots bubble === */ 
+:root {
+  --tcw-accent: #4f46e5;
+  --tcw-radius: 12px;
+}
+
+.tcw-launcher {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 64px;              /* bigger bubble */
+  height: 64px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background-image: url('assets/img/profile-img.jpg');  /* relative path */
+  background-size: cover;
+  background-position: center 20%;  /* lift crop so more forehead shows */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 2147483001;
+  overflow: visible;        /* let dots sit outside the circle */
+}
+
+/* Reposition the built-in launcher text (…/💬) above the head */
+.tcw-launcher > span {
+  position: absolute;
+  top: -12px;               /* move above the avatar */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 3px rgba(0,0,0,0.6);
+  pointer-events: none;     /* clicks go to the bubble, not the dots */
+}
+
+.tcw-panel {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 320px;
+  max-height: 520px;
+  background-color: #fff;
+  border-radius: var(--tcw-radius);
+  display: none;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  overflow: hidden;
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  z-index: 2147483000;
+}
+
+.tcw-header {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--tcw-accent);
+  color: #fff;
+}
+
+.tcw-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 8px;
+}
+
+.tcw-title {
+  font-weight: 600;
+}
+
+.tcw-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow-y: auto;
+  background-color: #fafafa;
+}
+
+.tcw-messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 8px;
+}
+
+.tcw-msg {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tcw-inputbar {
+  display: flex;
+  border-top: 1px solid #eee;
+  padding: 8px;
+}
+
+.tcw-inputbar textarea {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: var(--tcw-radius);
+  padding: 6px 8px;
+  resize: none;
+  font-family: inherit;
+}
+
+.tcw-inputbar button {
+  margin-left: 8px;
+  background-color: var(--tcw-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--tcw-radius);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.tcw-typing {
+  font-style: italic;
+  color: #888;
+}
+
+.tcw-greeting {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.tcw-msg strong {
+  font-weight: 600;
+}
+
+/* Custom overrides for Tony's avatar bubble and scroll fix */
+.tcw-launcher {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  background-image: url('/assets/img/profile-img.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.tcw-panel[style*="display: block"] {
+  display: flex !important;
+}
 
-:root{ 
-
-  /* tweak once and the rest follows */ 
-
-  --launcher-size: 72px;         /* try 80–96px if you want bigger */ 
-
-  --launcher-ring: 4px;          /* the purple ring thickness */ 
-
-  --launcher-accent: #6366f1;    /* your purple */ 
-
-} 
-
- 
-
-.chat-launcher{ 
-
-  position: fixed; 
-
-  right: 20px; 
-
-  bottom: 20px; 
-
-  width: var(--launcher-size); 
-
-  height: var(--launcher-size); 
-
-  border-radius: 50%; 
-
-  padding: 0; 
-
-  border: var(--launcher-ring) solid var(--launcher-accent); 
-
-  background: #fff; 
-
-  box-shadow: 0 8px 24px rgba(0,0,0,.18); 
-
-  cursor: pointer; 
-
-  overflow: hidden;              /* important so the image stays circular */ 
-
-  display: inline-flex; 
-
-  align-items: center; 
-
-  justify-content: center; 
-
-  z-index: 2147483000;           /* above most things */ 
-
-} 
-
- 
-
-/* If you’re using an <img> inside the button */ 
-
-.chat-launcher > img{ 
-
-  width: 100%; 
-
-  height: 100%; 
-
-  object-fit: cover;             /* face fills the circle */ 
-
-  border-radius: 50%; 
-
-  display: block; 
-
-} 
-
- 
-
-/* If your launcher uses a background-image instead of <img> */ 
-
-.chat-launcher.bg{ 
-
-  background-size: cover; 
-
-  background-position: center; 
-
-  background-repeat: no-repeat; 
-
-} 
-
- 
-
-/* 3-dot bubble that floats above the avatar */ 
-
-.chat-dots{ 
-
-  position: absolute; 
-
-  right: 6px; 
-
-  bottom: calc(100% + 8px);      /* sits just above the circle */ 
-
-  background: #fff; 
-
-  border-radius: 999px; 
-
-  padding: 6px 8px; 
-
-  box-shadow: 0 6px 18px rgba(0,0,0,.16); 
-
-  display: inline-flex; 
-
-  align-items: center; 
-
-  gap: 4px; 
-
-} 
-
- 
-
-.chat-dots span{ 
-
-  width: 6px; 
-
-  height: 6px; 
-
-  border-radius: 50%; 
-
-  background: #9ca3af;          /* neutral gray */ 
-
-  animation: chatdot 1.2s infinite ease-in-out; 
-
-} 
-
-.chat-dots span:nth-child(2){ animation-delay: .15s; } 
-
-.chat-dots span:nth-child(3){ animation-delay: .30s; } 
-
- 
-
-@keyframes chatdot{ 
-
-  0%, 80%, 100% { transform: translateY(0); opacity: .65; } 
-
-  40%           { transform: translateY(-3px); opacity: 1; } 
-
-} 
-
- 
-
-/* optional: scale down on very small screens */ 
-
-@media (max-width: 420px){ 
-
-  :root{ --launcher-size: 64px; } 
-
-} 
