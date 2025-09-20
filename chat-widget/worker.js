@@ -1,4 +1,4 @@
-// worker.js — Copilot proxy (Groq first) with 429 backoff + model pool
+// worker.js — Copilot proxy (OpenAI first, fallback to Groq) with 429 backoff + model pool
 // Persona stays here. We can also merge client-sent `system` addendums without losing this.
 
 const SYSTEM_PROMPT = `
@@ -506,4 +506,3 @@ userMessage: "Something went wrong on my side. Please try again."
 return new Response("Not found", { status: 404 });
 },
 };
-
