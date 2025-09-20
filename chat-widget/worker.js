@@ -1,10 +1,8 @@
 // worker.js — Copilot proxy (Groq first, fallback to OpenAI)
-// Minimal, safe upgrades:
-// - Accepts client "system" (from widget system.md) and merges with SYSTEM_PROMPT
-// - Light first-person nudge (no post-processing)
-// - Optional client model/temperature hints
-// - Keeps your CORS and routing identical
-// - Robust OpenAI key lookup (OPENAI_API_KEY or OpenAI_API_KEY)
+// - CORS unchanged (wildcard) to avoid "Failed to fetch"
+// - Groq FIRST (even if OPENAI_API_KEY exists); fallback to OpenAI only if GROQ_API_KEY missing
+// - Accepts optional client "system" (system.md) and merges with your SYSTEM_PROMPT
+// - Tiny first-person hint to keep voice in "I/my" without risky post-processing
 
 const SYSTEM_PROMPT = `
 You are Tony’s Copilot — a friendly, concise guide for tonyabdelmalak.github.io.
@@ -23,9 +21,9 @@ Projects include turnover analysis, early turnover segmentation, and workforce p
 He’s based in Los Angeles and aims to lead AI initiatives in HR analytics.
 `.trim();
 
-// A tiny nudge that keeps responses in first person without rewriting responses after the fact.
-const FIRST_PERSON_HINT = `Speak as Tony in first person ("I", "my"), never about Tony in third person.`;
+const FIRST_PERSON_HINT = `Speak as Tony in first person ("I", "my") and never refer to Tony in the third person.`;
 
+// --- CORS (unchanged) ---
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
@@ -38,32 +36,25 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    // Health check
+    // Health
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
         headers: { "Content-Type": "application/json", ...corsHeaders() },
       });
     }
 
-    // CORS preflight
+    // Preflight
     if (req.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
-    // Chat endpoint
+    // Chat
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
         const body = await req.json().catch(() => ({}));
-        const userMsg = (body?.message || "").toString().trim();
+        const userMsg = (body?.message || body?.input || "").toString().trim();
         const history = Array.isArray(body?.history) ? body.history : [];
-
-        // NEW: optional persona text from the client (e.g., widget fetches system.md)
-        const systemFromClient = (body?.system || "").toString().trim();
-
-        // Optional client hints; keep your safe defaults
-        const clientModel = (body?.model || "").toString().trim();
-        const clientTemp =
-          typeof body?.temperature === "number" ? body.temperature : undefined;
+        const systemFromClient = (body?.system || "").toString().trim(); // optional persona from widget
 
         if (!userMsg) {
           return new Response(
@@ -72,29 +63,26 @@ export default {
           );
         }
 
-        // Decide provider: Groq if available, else OpenAI (kept exactly like your original order)
+        // Provider selection: GROQ FIRST, then OpenAI
         const groqKey = env.GROQ_API_KEY;
-        const openaiKey = env.OPENAI_API_KEY || env.OpenAI_API_KEY; // tolerate casing
-        const hasOpenAI = !!openaiKey;
+        const openaiKey = env.OPENAI_API_KEY || env.OpenAI_API_KEY; // tolerate mis-casing
         const hasGroq = !!groqKey;
+        const hasOpenAI = !!openaiKey;
 
-        if (!hasOpenAI && !hasGroq) {
+        if (!hasGroq && !hasOpenAI) {
           return new Response(
-            JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
+            JSON.stringify({ error: "No model provider configured (set GROQ_API_KEY or OPENAI_API_KEY)." }),
             { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
           );
         }
 
-        // Normalize history (optional, unchanged)
+        // Normalize history
         const past = history
           .filter(m => m && m.role && m.content)
           .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12); // keep it light
+          .slice(-12);
 
-        // Build merged system prompt:
-        // 1) your existing SYSTEM_PROMPT
-        // 2) optional client persona (system.md)
-        // 3) a tiny first-person nudge
+        // Merge system prompts (your base + optional client persona + first-person hint)
         const mergedSystem = [SYSTEM_PROMPT, systemFromClient, FIRST_PERSON_HINT]
           .filter(Boolean)
           .join("\n\n");
@@ -105,23 +93,15 @@ export default {
           { role: "user", content: userMsg }
         ];
 
-        // Build request for the chosen provider
-        let apiUrl, headers, payload;
+        // Optional client hints; keep safe defaults
+        const clientModel = (body?.model || "").toString().trim();
+        const clientTemp = typeof body?.temperature === "number" ? body.temperature : undefined;
+        const temperature = typeof clientTemp === "number" ? clientTemp : 0.3;
+        const max_tokens = typeof body?.max_tokens === "number" ? body.max_tokens : 200;
 
-        if (hasOpenAI) {
-          // Keep your original order: prefer OpenAI if key present
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${openaiKey}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: clientModel || "gpt-4o-mini",
-            messages,
-            temperature: typeof clientTemp === "number" ? clientTemp : 0.3,
-            max_tokens: 200,
-          };
-        } else {
+        // Build upstream request (GROQ first)
+        let apiUrl, headers, payload;
+        if (hasGroq) {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
           headers = {
             "Authorization": `Bearer ${groqKey}`,
@@ -130,8 +110,20 @@ export default {
           payload = {
             model: clientModel || "llama-3.1-8b-instant",
             messages,
-            temperature: typeof clientTemp === "number" ? clientTemp : 0.3,
-            max_tokens: 200,
+            temperature,
+            max_tokens,
+          };
+        } else {
+          apiUrl = "https://api.openai.com/v1/chat/completions";
+          headers = {
+            "Authorization": `Bearer ${openaiKey}`,
+            "Content-Type": "application/json",
+          };
+          payload = {
+            model: clientModel || "gpt-4o-mini",
+            messages,
+            temperature,
+            max_tokens,
           };
         }
 
