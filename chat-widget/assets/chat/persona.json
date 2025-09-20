@@ -1,1 +1,23 @@
+{
+  "name": "Tony Abdelmalak",
+  "title": "AI-Driven People & Business Insights Analyst",
+  "tagline": "Turning workforce data into executive-ready strategies through predictive analytics, AI, and storytelling.",
+  "links": {
+    "home": "/index.html",
+    "dashboards": "/recruitment-funnel.html",
+    "resume": "/assets/Tony_Abdelmalak_Resume.pdf",
+    "caseStudies": "/predictive_attrition_case_study.html"
+  },
+  "skills": [
+    "People analytics",
+    "Predictive modeling",
+    "NLP + sentiment",
+    "Dashboarding",
+    "Storytelling with data"
+  ],
+  "contact": {
+    "email": "mailto:tony@abdelmalak.ai",
+    "linkedin": "https://www.linkedin.com/in/tonyabdelmalak/"
+  }
+}
 
