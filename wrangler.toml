@@ -1,15 +1,17 @@
 name = "my-chat-agent"
-main = "src/worker.js"
+main = "chat-widget/worker.js"   # <-- path fix
+
 compatibility_date = "2024-09-01"
-workers_dev = true
+
+# (optional but nice to keep)
+usage_model = "unbound"
 
 [vars]
-# Your public system prompt (guardrails). You can point this at the file in your repo:
-SYSTEM_URL = "https://tonyabdelmalak.github.io/chat-widget/assets/chat/system.md"
+ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io,https://tonyabdelmalak.com"
 
-# Allow your site to call the worker (CORS)
-ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io"
+# If you use the AI binding, keep this. If not, remove.
+# [ai]
+# binding = "AI"
 
-# GROQ model + behavior (safe defaults)
-GROQ_MODEL = "llama-3.1-70b-versatile"
-TEMPERATURE = "0.2"
+[observability]
+enabled = true
