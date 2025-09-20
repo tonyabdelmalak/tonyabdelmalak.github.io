@@ -1,3 +1,73 @@
+// Cloudflare Worker — Tony Chat Backend (GROQ)
+// Paste this whole file as worker.js and deploy.
+
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+
+// ==== Helpers ===============================================================
+
+function json(data, status = 200, cors = {}) {
+  const headers = new Headers({
+    "Content-Type": "application/json; charset=utf-8",
+    ...cors,
+  });
+  return new Response(JSON.stringify(data), { status, headers });
+}
+
+function corsHeaders(origin, env) {
+  const allow = isOriginAllowed(origin, env) ? origin : "";
+  return {
+    "Access-Control-Allow-Origin": allow,
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  };
+}
+
+function getAllowedOrigins(env) {
+  // Comma-separated list in ALLOWED_ORIGINS
+  const raw = (env.ALLOWED_ORIGINS || "").trim();
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function isOriginAllowed(origin, env) {
+  if (!origin) return false;
+  const list = getAllowedOrigins(env);
+  return list.includes(origin);
+}
+
+async function safeJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+function buildMessages(userMsg, history = [], system = "") {
+  // history may be [{role, content}, ...] from client
+  const msgs = [];
+  if (system) msgs.push({ role: "system", content: system });
+
+  if (Array.isArray(history)) {
+    // keep only last few to stay small
+    const trimmed = history.slice(-6);
+    for (const m of trimmed) {
+      // trust client roles if they look valid; otherwise coerce to user
+      if (m && typeof m === "object" && m.role && m.content) {
+        msgs.push({ role: m.role, content: String(m.content) });
+      }
+    }
+  }
+  if (userMsg) msgs.push({ role: "user", content: String(userMsg) });
+  return msgs;
+}
+
+// ==== Worker ================================================================
+
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -5,25 +75,33 @@ export default {
       const origin = request.headers.get("Origin") || "";
       const cors = corsHeaders(origin, env);
 
-      // Preflight
+      // --- Preflight ---
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers: cors });
       }
 
-      // Health + config (handy for debugging)
+      // --- Simple health ---
       if (url.pathname === "/health") {
         return json({ ok: true, ts: Date.now() }, 200, cors);
       }
+
+      // --- Introspective config for quick checks ---
       if (url.pathname === "/config") {
-        return json({
-          allowedOrigins: getAllowedOrigins(env),
-          systemUrl: env.SYSTEM_URL || null,
-          model: env.GROQ_MODEL || "llama-3.1-70b-versatile",
-          temperature: Number(env.TEMPERATURE ?? 0.2)
-        }, 200, cors);
+        return json(
+          {
+            allowedOrigins: getAllowedOrigins(env),
+            // If you host a system.md file, expose its URL for debugging (optional)
+            systemUrl: env.SYSTEM_URL || null,
+            // We intentionally hard-lock the model here
+            model: "llama-3.1-8b-instant",
+            temperature: Number(env.TEMPERATURE ?? 0.2),
+          },
+          200,
+          cors
+        );
       }
 
-      // Chat endpoint
+      // --- Chat endpoint ---
       if (url.pathname === "/chat" && request.method === "POST") {
         if (!isOriginAllowed(origin, env)) {
           return json({ error: "Forbidden origin" }, 403, cors);
@@ -32,99 +110,90 @@ export default {
           return json({ error: "Missing GROQ_API_KEY secret" }, 500, cors);
         }
 
-        const body = await safeJson(request);
-        const userMsg = (body?.message || "").toString().trim();
-        const history = Array.isArray(body?.history) ? body.history : [];
-        if (!userMsg) return json({ error: "Missing 'message'." }, 400, cors);
-
-        // Load system.md (guardrails)
-        const systemUrl = env.SYSTEM_URL || "";
-        let systemFromUrl = "";
-        if (systemUrl) {
-          try {
-            const r = await fetch(systemUrl, { cf: { cacheTtl: 600, cacheEverything: true } });
-            if (r.ok) systemFromUrl = await r.text();
-          } catch (_) {}
+        // Read body with a couple of accepted shapes
+        let body = null;
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: "Invalid JSON body" }, 400, cors);
         }
 
-        const hardRules = [
-          "You are Tony’s portfolio assistant.",
-          "Only answer with facts that are in the system message or clearly stated by the user.",
-          "If unsure, say you’re not sure and offer to open the relevant page on tonyabdelmalak.github.io.",
-          "Be concise, specific, and professional; avoid speculation."
-        ].join(" ");
-
-        const system = [hardRules, systemFromUrl && "\n--- SYSTEM.md ---\n" + systemFromUrl]
-          .filter(Boolean).join("\n");
-
-        // Normalize history (‘ai’ -> ‘assistant’)
-        const mapped = history
-          .filter(m => m && typeof m.content === "string")
-          .map(m => ({
-            role: m.role === "ai" ? "assistant" : (m.role === "assistant" ? "assistant" : "user"),
-            content: m.content
-          }));
-
-        const messages = [
-          { role: "system", content: system },
-          ...mapped.slice(-6),
-          { role: "user", content: userMsg }
-        ];
-
-        const model = env.GROQ_MODEL || "llama-3.1-70b-versatile";
+        // Accepted shapes:
+        // 1) { message: "hi", history?: [{role,content}], system?: "..."}
+        // 2) { messages: [{role,content}...] } (already complete)
+        const system = typeof body.system === "string" ? body.system : "";
         const temperature = Number(env.TEMPERATURE ?? 0.2);
 
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        let messages = [];
+        if (Array.isArray(body.messages)) {
+          messages = body.messages;
+        } else {
+          const userMsg = body.message || body.input || "";
+          const history = Array.isArray(body.history) ? body.history : [];
+          messages = buildMessages(userMsg, history, system);
+        }
+
+        // Hard-lock to a known good model to avoid env typos
+        const model = "llama-3.1-8b-instant";
+
+        // Log what we're about to call (appears in Cloudflare Logs)
+        console.log("Groq call", { model, temperature, count: messages.length });
+
+        const groqRes = await fetch(GROQ_ENDPOINT, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${env.GROQ_API_KEY}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model, temperature, messages, stream: false
-          })
+            model,
+            temperature,
+            messages,
+            stream: false,
+          }),
         });
 
         if (!groqRes.ok) {
-          const e = await safeJson(groqRes);
-          return json({ error: "GROQ error", detail: e }, 502, cors);
+          // Loud error logging: status + raw body
+          const raw = await groqRes.text().catch(() => "");
+          console.error("GroqError", groqRes.status, raw);
+
+          // Try to parse JSON for client; fall back to raw
+          let detail;
+          try {
+            detail = JSON.parse(raw);
+          } catch {
+            detail = raw;
+          }
+          return json(
+            { error: "GROQ", status: groqRes.status, detail },
+            502,
+            cors
+          );
         }
 
-        const data = await groqRes.json();
-        const reply = (data?.choices?.[0]?.message?.content || "").trim();
+        const data = await safeJson(groqRes);
+        const reply =
+          data?.choices?.[0]?.message?.content ??
+          data?.choices?.[0]?.message ??
+          "";
 
-        return json({ reply }, 200, cors);
+        return json(
+          {
+            reply,
+            model,
+            usage: data?.usage || null,
+          },
+          200,
+          cors
+        );
       }
 
-      return new Response("Not found", { status: 404, headers: cors });
+      // Fallback: 404
+      return json({ error: "Not found" }, 404, cors);
     } catch (err) {
-      return new Response("Server error", { status: 500 });
+      console.error("Worker crash", err && err.stack ? err.stack : String(err));
+      return json({ error: "Server error" }, 500, { "Content-Type": "application/json" });
     }
-  }
+  },
 };
-
-/* ---------- helpers ---------- */
-function getAllowedOrigins(env) {
-  const raw = (env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-  return raw.length ? raw : ["*"];
-}
-function isOriginAllowed(origin, env) {
-  const allowed = getAllowedOrigins(env);
-  if (allowed.includes("*")) return true;
-  return allowed.some(a => a === origin);
-}
-function corsHeaders(origin, env) {
-  const allow = isOriginAllowed(origin, env) ? origin : "";
-  return {
-    "Access-Control-Allow-Origin": allow || "https://tonyabdelmalak.github.io",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Allow-Methods": "POST, OPTIONS, GET",
-    "Access-Control-Max-Age": "86400"
-  };
-}
-async function safeJson(resOrReq) { try { return await resOrReq.json(); } catch { return null; } }
-function json(obj, status = 200, headers = {}) {
-  return new Response(JSON.stringify(obj), {
-    status, headers: { "Content-Type": "application/json; charset=utf-8", ...headers }
-  });
-}
