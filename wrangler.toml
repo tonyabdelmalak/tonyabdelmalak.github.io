@@ -7,7 +7,8 @@ compatibility_date = "2024-09-01"
 usage_model = "unbound"
 
 [vars]
-ALLOWED_ORIGINS = "https://tonyabdelmalak.github.io,https://tonyabdelmalak.com"
+ALLOWED_ORIGINS = "https://tonyabdelmalak.com,https://www.tonyabdelmalak.com,https://tonyabdelmalak.github.io"
+
 
 # If you use the AI binding, keep this. If not, remove.
 # [ai]
