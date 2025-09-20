@@ -1,208 +1,243 @@
-// Chat Widget — /chat-widget/assets/chat/widget.js
-// Mounts onto <div id="chat-widget-root"></div> and talks to your Worker.
+// Minimal, dependency-free widget.
+// Exposes window.TonyChatWidget.init({ avatar, configPath, systemPath, position, mode })
 
-(async function boot() {
-  const mount = ensureMount();
-  const cfg = await loadConfig();
-  applyTheme(cfg);
+(function () {
+  const AGENT_LABEL = "Tony";      // Consistent name in the transcript
+  const SESSION_FLAG = "copilot_greeted"; // Per-tab; resets when tab closes
 
-  // Preload system persona text (cached per page load)
-  const system = await fetchSystem(cfg.systemUrl);
+  // Utility: build elements quickly
+  function el(tag, cls, html) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (html != null) node.innerHTML = html;
+    return node;
+  }
 
-  // Build UI
-  const { launcher, panel, closeBtn, scroll, note, form, input, send } = buildShell(cfg, mount);
-  if (cfg.greeting) addBot(scroll, cfg.greeting);
+  // Load JSON/MD
+  async function fetchText(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.text();
+  }
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.json();
+  }
 
-  // Open/close
-  launcher.addEventListener('click', () => {
-    panel.style.display = 'block';
-    launcher.classList.add('cw-hidden');
-    input.focus();
-  });
-  closeBtn.addEventListener('click', () => {
-    panel.style.display = 'none';
-    launcher.classList.remove('cw-hidden');
-  });
-
-  // Submit
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
-
-    addUser(scroll, text);
-    input.value = '';
-    input.focus();
-
-    const stopTyping = showTyping(scroll);
-
-    try {
-      send.disabled = true;
-
-      const res = await fetch(cfg.workerUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          system,                      // <— persona injected here
-          model: cfg.model,
-          temperature: cfg.temperature
-          // history: []                // optionally include your own message history array
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (res.ok && (data.text || data.reply || data.message)) {
-        addBot(scroll, data.text || data.reply || data.message);
-      } else {
-        const detail =
-          data?.detail?.error?.message ||
-          data?.detail?.error?.code ||
-          data?.error ||
-          'failed';
-        addError(note, `Error: ${detail}`);
-      }
-    } catch (err) {
-      addError(note, `Network error: ${String(err)}`);
-    } finally {
-      stopTyping();
-      send.disabled = false;
-      scrollToEnd(scroll);
-    }
-  });
-
-  // Enter to send, Shift+Enter for newline
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      form.dispatchEvent(new Event('submit'));
-    }
-  });
-})();
-
-// ---------------- helpers ----------------
-
-async function loadConfig() {
-  try {
-    const res = await fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' });
-    return await res.json();
-  } catch {
-    return {
-      workerUrl: '/chat',
-      title: 'Chat',
-      greeting: 'Hi! Ask me anything.',
-      accent: '#4f46e5',
-      radius: '14px',
-      model: 'llama-3.1-8b-instant',
-      temperature: 0.2,
-      systemUrl: ''
+  // Debounce utility
+  function debounce(fn, wait = 700) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), wait);
     };
   }
-}
 
-function applyTheme(cfg = {}) {
-  const root = document.documentElement;
-  root.style.setProperty('--chat-accent', cfg.accent || '#4f46e5');
-  root.style.setProperty('--chat-radius', cfg.radius || '14px');
-}
+  const Widget = {
+    state: {
+      config: null,
+      systemPrompt: "",
+      open: false,
+      inFlight: false
+    },
 
-function ensureMount() {
-  let root = document.querySelector('#chat-widget-root');
-  if (!root) {
-    root = document.createElement('div');
-    root.id = 'chat-widget-root';
-    document.body.appendChild(root);
-  }
-  return root;
-}
+    async init(opts) {
+      // options
+      this.opts = Object.assign(
+        {
+          mode: "floating",
+          position: "bottom-right",
+          avatar: "",
+          configPath: "/chat-widget/assets/chat/config.json",
+          systemPath: "/chat-widget/assets/chat/system.md"
+        },
+        opts || {}
+      );
 
-function buildShell(cfg, mount) {
-  mount.innerHTML = `
-    <button class="cw-launcher" id="cw-launch" aria-label="Open chat">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/></svg>
-    </button>
+      // load config + system prompt
+      const [config, systemText] = await Promise.all([
+        fetchJSON(this.opts.configPath),
+        fetchText(this.opts.systemPath)
+      ]);
+      this.state.config = config;
+      this.state.systemPrompt = systemText;
 
-    <div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">
-      <div class="cw-head">
-        <button class="cw-close" id="cw-close" aria-label="Close">✕</button>
-        <h3 class="cw-title" id="cw-title">${escapeHtml(cfg.title || "What's on your mind?")}</h3>
-        <p class="cw-sub" id="cw-sub">We’re online</p>
-      </div>
-      <div class="cw-body">
-        <div class="cw-scroll" id="cw-scroll"></div>
-        <div class="cw-note" id="cw-note"></div>
-        <form class="cw-input" id="cw-form">
-          <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…" />
-          <button class="cw-send" id="cw-send" type="submit">Send</button>
-        </form>
-      </div>
-    </div>
-  `;
+      // build DOM
+      this.build();
+      this.attachEvents();
 
-  return {
-    launcher: mount.querySelector('#cw-launch'),
-    panel: mount.querySelector('#cw-panel'),
-    closeBtn: mount.querySelector('#cw-close'),
-    scroll: mount.querySelector('#cw-scroll'),
-    note: mount.querySelector('#cw-note'),
-    form: mount.querySelector('#cw-form'),
-    input: mount.querySelector('#cw-text'),
-    send: mount.querySelector('#cw-send')
+      // greeting only once per browser tab
+      if (!sessionStorage.getItem(SESSION_FLAG) && config.greeting) {
+        this.addAgent(config.greeting);
+        sessionStorage.setItem(SESSION_FLAG, "1");
+      }
+    },
+
+    build() {
+      // Launcher
+      this.launch = el("button", "copilot-launch");
+      const avatarImg = el("img");
+      avatarImg.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatarImg.alt = "Open chat";
+      this.launch.appendChild(avatarImg);
+
+      // Panel
+      this.root = el("section", "copilot-container copilot-hidden");
+
+      // Header with Close (×)
+      const header = el("header", "copilot-header");
+      const avatar = el("img", "copilot-avatar");
+      avatar.src = this.opts.avatar || (this.state.config.brand?.avatar ?? "");
+      avatar.alt = "Avatar";
+      const title = el("div", "copilot-title", (this.state.config.title || "Copilot"));
+      const closeBtn = el("button", "copilot-close", "&times;");
+      closeBtn.setAttribute("aria-label", "Close chat");
+      header.append(avatar, title, closeBtn);
+
+      // Messages
+      this.messages = el("div", "copilot-messages");
+
+      // Input row
+      const inputRow = el("div", "copilot-input-row");
+      this.input = el("input", "copilot-input");
+      this.input.type = "text";
+      this.input.placeholder = this.state.config.placeholder || "Type your question...";
+      const send = el("button", "copilot-send", "↥");
+      send.setAttribute("title", "Send");
+
+      // Toast area for soft error messages
+      this.toastEl = el("div", "copilot-toast copilot-hidden");
+
+      inputRow.append(this.input, send);
+
+      this.root.append(header, this.messages, inputRow, this.toastEl);
+
+      // Mount both
+      document.body.append(this.launch, this.root);
+
+      // local refs
+      this.closeBtn = closeBtn;
+      this.sendBtn = send;
+    },
+
+    attachEvents() {
+      // open/close
+      this.launch.addEventListener("click", () => this.showPanel());
+      this.closeBtn.addEventListener("click", () => this.hidePanel());
+
+      // send actions (debounced)
+      const debouncedSend = debounce(() => this.handleSend(), 700);
+      this.sendBtn.addEventListener("click", debouncedSend);
+      this.input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          debouncedSend();
+        }
+      });
+    },
+
+    showPanel() {
+      this.launch.classList.add("copilot-hidden");
+      this.root.classList.remove("copilot-hidden");
+      this.state.open = true;
+      setTimeout(() => this.input?.focus(), 10);
+    },
+    hidePanel() {
+      this.root.classList.add("copilot-hidden");
+      this.launch.classList.remove("copilot-hidden");
+      this.state.open = false;
+    },
+
+    // UI helpers
+    addAgent(text) {
+      const row = el("div", "copilot-msg agent");
+      row.append(
+        el("span", "copilot-label", `${AGENT_LABEL}:`),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    addUser(text) {
+      const row = el("div", "copilot-msg user");
+      row.append(
+        el("span", "copilot-label", "You:"),
+        document.createTextNode(" " + text)
+      );
+      this.messages.append(row);
+      this.scrollToBottom();
+    },
+    scrollToBottom() {
+      this.messages.scrollTop = this.messages.scrollHeight;
+    },
+    showToast(msg) {
+      if (!this.toastEl) return;
+      this.toastEl.textContent = msg;
+      this.toastEl.classList.remove("copilot-hidden");
+      setTimeout(() => this.toastEl.classList.add("copilot-hidden"), 4000);
+    },
+
+    async handleSend() {
+      if (this.state.inFlight) return; // single-flight guard
+
+      const message = (this.input.value || "").trim();
+      if (!message) return;
+      this.addUser(message);
+      this.input.value = "";
+      this.state.inFlight = true;
+      this.sendBtn.disabled = true;
+
+      try {
+        const reply = await this.callProxy(message);
+        this.addAgent(reply);
+      } catch (err) {
+        this.showToast(err.userMessage || "⚠️ Busy right now, please try again in a few seconds.");
+        this.addAgent(`⚠️ ${err.message || "Failed to fetch"}`);
+      } finally {
+        this.state.inFlight = false;
+        this.sendBtn.disabled = false;
+      }
+    },
+
+    // Calls your Cloudflare Worker (/chat) specified in config.json
+    async callProxy(message) {
+      const url = this.state.config.proxyUrl;
+      if (!url) throw new Error("Missing proxyUrl in config.json");
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          system: this.state.systemPrompt
+        })
+      });
+
+      if (!res.ok) {
+        // try parse structured error
+        let userMessage = "";
+        try {
+          const err = await res.json();
+          if (err.userMessage) userMessage = err.userMessage;
+        } catch {}
+        const detail = await res.text().catch(() => "");
+        const error = new Error(`HTTP ${res.status}`);
+        error.userMessage = userMessage || null;
+        error.detail = detail;
+        throw error;
+      }
+
+      const data = await res.json();
+      if (!data || typeof data.reply !== "string") {
+        throw new Error("Invalid response from server");
+      }
+      return data.reply;
+    }
   };
-}
 
-function addBot(mount, text) {
-  const row = document.createElement('div');
-  row.className = 'cw-row bot';
-  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addUser(mount, text) {
-  const row = document.createElement('div');
-  row.className = 'cw-row user';
-  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addError(noteEl, msg) {
-  noteEl.textContent = msg;
-  setTimeout(() => (noteEl.textContent = ''), 6000);
-}
-
-function showTyping(mount) {
-  const row = document.createElement('div');
-  row.className = 'cw-row bot';
-  row.innerHTML = `
-    <div class="cw-bubble">
-      <span class="cw-typing">
-        <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>
-      </span>
-    </div>`;
-  mount.appendChild(row);
-  scrollToEnd(mount);
-  return () => row.remove();
-}
-
-function scrollToEnd(el) {
-  el.scrollTop = el.scrollHeight;
-}
-
-function escapeHtml(s='') {
-  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-async function fetchSystem(url) {
-  if (!url) return '';
-  try {
-    const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) return '';
-    const text = await r.text();
-    return (text || '').toString().slice(0, 12000); // trim for safety
-  } catch {
-    return '';
-  }
-}
+  // public init
+  window.TonyChatWidget = {
+    init: (opts) => Widget.init(opts)
+  };
+})();
