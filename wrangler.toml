@@ -1,18 +1,38 @@
 name = "my-chat-agent"
-main = "chat-widget/worker.js"   # <-- path fix
-
+main = "chat-widget/worker.js"
 compatibility_date = "2024-09-01"
+account_id = "59fea97fab54fbd4d4168ccaa1fa3410"
+workers_dev = true
 
-# (optional but nice to keep)
-usage_model = "unbound"
+# Remove the old Durable Object class named "Chat"
+[[migrations]]
+tag = "remove-chat-do-1"
+deleted_classes = ["Chat"]
 
+# -----------------------------
+# Default (production) variables
+# -----------------------------
 [vars]
-ALLOWED_ORIGINS = "https://tonyabdelmalak.com,https://www.tonyabdelmalak.com,https://tonyabdelmalak.github.io"
+# Point this to your live system.md file on your site
+SYSTEM_URL = "https://tonyabdelmalak.github.io/chat-widget/assets/chat/system.md"
 
+# -----------------------------
+# Dev environment (local preview)
+# Run with: wrangler dev --env dev
+# -----------------------------
+[env.dev]
+vars = { SYSTEM_URL = "http://127.0.0.1:8788/chat-widget/assets/chat/system.md" }
 
-# If you use the AI binding, keep this. If not, remove.
-# [ai]
-# binding = "AI"
+# -----------------------------
+# Staging environment (optional)
+# Deploy with: wrangler deploy --env staging
+# -----------------------------
+[env.staging]
+vars = { SYSTEM_URL = "https://staging.tonyabdelmalak.com/chat-widget/assets/chat/system.md" }
 
-[observability]
-enabled = true
+# -----------------------------
+# Preview environment (optional)
+# Deploy with: wrangler deploy --env preview
+# -----------------------------
+[env.preview]
+vars = { SYSTEM_URL = "https://preview.tonyabdelmalak.com/chat-widget/assets/chat/system.md" }
