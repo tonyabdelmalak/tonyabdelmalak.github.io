@@ -1,11 +1,15 @@
-
 {
-  "proxyUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "title": "Ask Tony’s Copilot",
+  "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+  "systemUrl": "/chat-widget/assets/chat/system.md",
+  "model": "llama-3.1-8b-instant",
+  "temperature": 0.2,
+  "title": "What's on your mind?",
+  "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m building next.",
   "brand": {
-    "accent": "#4f46e5",
-    "radius": "12px"
-  },
+  "accent": "#4f46e5",
+  "radius": "14px",
+  "rateLimit": 10
+},
 
   "model": "llama3-8b-8192",
   "rateLimit": 10,
