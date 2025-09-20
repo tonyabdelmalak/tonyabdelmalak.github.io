@@ -2,99 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tony Abdelmalak | AI-Driven People & Business Insights Analyst</title>
 
-    <!-- Chat widget CSS + JS -->
-  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
+  <!-- 1) Site-wide CSS (your main styles live here) -->
+  <link rel="stylesheet" href="/assets/css/style.css" />
+
+  <!-- 2) Chat widget CSS + JS -->
+  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css" />
   <script defer src="/chat-widget/assets/chat/widget.js"></script>
-  
-  <!-- Inter font -->
+
+  <!-- 3) (Optional) Vertical side-rail -->
+  <link rel="stylesheet" href="/assets/ui/side-rail.css" />
+  <script defer src="/assets/ui/side-rail.js"></script>
+
+  <!-- 4) Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Page styles (small, safe) -->
-  <style>
-    :root {
-      --primary:#0f172a;
-      --fg:#0b1220;
-      --muted:#475569;
-      --bg:#f8fafc;
-      --brand:#2563eb;
-      --brand2:#1e3a8a;
-    }
-  </style>
-
-  <!-- Site styles -->
-  <link rel="stylesheet" href="/assets/css/site.css">
-</head>
-  
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--fg); background:var(--bg);
-    }
-    header{
-      background: linear-gradient(135deg,var(--brand2),var(--brand));
-      color:#fff; padding:28px 20px;
-      box-shadow:0 10px 30px rgba(2,6,23,.25);
-    }
-    .wrap{max-width:1100px;margin:0 auto}
-    h1{margin:0 0 6px 0; font-size:clamp(22px,3vw,34px); line-height:1.2}
-    p.lede{margin:6px 0 0 0; opacity:.95}
-    main{padding:28px 20px}
-    .card{
-      background:#fff; border:1px solid #e5e7eb; border-radius:14px;
-      padding:18px; margin-bottom:16px; box-shadow:0 8px 24px rgba(2,6,23,.06);
-    }
-    .btn{
-      display:inline-block; padding:10px 14px; border-radius:10px; color:#fff;
-      background:linear-gradient(135deg,var(--brand2),var(--brand)); text-decoration:none;
-      font-weight:600;
-    }
-  </style>
-
-  <!-- Side rail (optional; remove if not using) -->
-  <link rel="stylesheet" href="/assets/ui/side-rail.css" />
-  <script src="/assets/ui/side-rail.js" defer></script>
-
-  <!-- Chat widget -->
-  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
-  <script defer src="/chat-widget/assets/chat/widget.js"></script>
 </head>
 <body>
-  <header>
+  <!-- Header / Hero -->
+  <header class="navbar">
     <div class="wrap">
-      <h1>AI-Driven People & Business Insights Analyst</h1>
-      <p class="lede">Turning workforce data into executive-ready strategies through predictive analytics, AI, and storytelling.</p>
+      <h1>AI-Driven People &amp; Business Insights Analyst</h1>
+      <p class="lede">
+        Turning workforce data into executive-ready strategies through predictive analytics, AI, and storytelling.
+      </p>
     </div>
   </header>
 
+  <!-- Main content -->
   <main>
     <div class="wrap">
-      <div class="card">
-        <h2 style="margin:0 0 10px 0">Welcome</h2>
-        <p style="margin:0 0 12px 0;color:var(--muted)">
+      <section class="card">
+        <h2>Welcome</h2>
+        <p class="muted">
           This is a clean baseline while your chat backend runs on Cloudflare Workers with GROQ.
-          Use the vertical rail on the left for quick links; chat avatar is bottom-right.
+          Use the vertical rail on the left for quick links; the chat avatar appears at the bottom-right.
         </p>
         <a class="btn" href="/recruitment-funnel.html">Open a dashboard</a>
-      </div>
-      <div class="card">
-        <h3 style="margin:0 0 10px 0">Tips</h3>
-        <ul style="margin:0; padding-left:18px; color:var(--muted); line-height:1.6">
-          <li>If chat says it can’t reach the backend, confirm <code>workerUrl</code> in <code>/chat-widget/assets/chat/config.json</code>.</li>
-          <li>Make sure your Worker shows at <code>/health</code> and <code>/config</code>.</li>
+      </section>
+
+      <section class="card">
+        <h3>Tips</h3>
+        <ul class="muted">
+          <li>If chat can’t reach the backend, confirm <code>workerUrl</code> in <code>/chat-widget/assets/chat/config.json</code>.</li>
+          <li>Verify the Worker at <code>/health</code> (should be OK).</li>
           <li>CORS: your Worker must allow <code>https://tonyabdelmalak.github.io</code> in <code>ALLOWED_ORIGINS</code>.</li>
         </ul>
-      </div>
+      </section>
     </div>
   </main>
 
-    <!-- Chat widget mount point -->
+  <!-- (Optional) Vertical side-rail markup (icons/links) -->
+  <aside id="side-rail" aria-label="Quick links">
+    <!-- Your side-rail script will hydrate this container -->
+  </aside>
+
+  <!-- Chat widget mount point (required) -->
   <div id="chat-widget-root"></div>
 
+  <noscript>
+    <div style="position:fixed;bottom:8px;left:8px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;">
+      JavaScript is disabled — the chat widget requires JS to run.
+    </div>
+  </noscript>
 </body>
 </html>
