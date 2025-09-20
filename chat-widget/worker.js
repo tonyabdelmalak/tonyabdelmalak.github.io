@@ -1,140 +1,153 @@
-// worker.js — Copilot proxy (OpenAI first, fallback to Groq)
-
-const SYSTEM_PROMPT = `
-You are Tony’s Copilot — a friendly, concise guide for tonyabdelmalak.github.io.
-Priorities:
-1) Help visitors understand Tony’s work, dashboards, and background.
-2) If asked for private/sensitive info, decline and point to public resources.
-3) Keep replies brief (≤60 words) unless returning code. Use short sentences/bullets.
-4) No medical/legal/financial advice—suggest a professional.
-
-Style: Warm, expert, no fluff. If unsure, say so. One smart follow-up max.
-
-Background:
-Tony Abdelmalak is a People & Business Insights Analyst who pivoted into AI-driven HR analytics.
-He uses Tableau, SQL, and Python to turn workforce/business data into exec-ready insights.
-Projects include turnover analysis, early turnover segmentation, and workforce planning models.
-He’s based in Los Angeles and aims to lead AI initiatives in HR analytics.
-`.trim();
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "content-type, authorization",
-  };
-}
+// worker.js — Cloudflare Worker for GROQ chat with strict CORS + persona support
 
 export default {
-  async fetch(req, env) {
-    const url = new URL(req.url);
+  async fetch(request, env, ctx) {
+    try {
+      const url = new URL(request.url);
+      const origin = request.headers.get("Origin") || "";
+      const cors = buildCorsHeaders(origin, env);
 
-    // Health check
-    if (url.pathname === "/health") {
-      return new Response(JSON.stringify({ ok: true, ts: Date.now() }), {
-        headers: { "Content-Type": "application/json", ...corsHeaders() },
-      });
-    }
-
-    // CORS preflight
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders() });
-    }
-
-    // Chat endpoint
-    if (url.pathname === "/chat" && req.method === "POST") {
-      try {
-        const body = await req.json().catch(() => ({}));
-        const userMsg = (body?.message || "").toString().trim();
-        const history = Array.isArray(body?.history) ? body.history : [];
-
-        if (!userMsg) {
-          return new Response(
-            JSON.stringify({ error: "Missing 'message' in request body." }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
-        }
-
-        // Decide provider: OpenAI if available, else Groq
-        const hasOpenAI = !!env.OPENAI_API_KEY;
-        const hasGroq = !!env.GROQ_API_KEY;
-
-        if (!hasOpenAI && !hasGroq) {
-          return new Response(
-            JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
-        }
-
-        // Normalize history (optional)
-        const past = history
-          .filter(m => m && m.role && m.content)
-          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12); // keep it light
-
-        const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...past,
-          { role: "user", content: userMsg }
-        ];
-
-        // Build request for the chosen provider
-        let apiUrl, headers, payload;
-
-        if (hasOpenAI) {
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: "gpt-4o-mini",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
-          };
-        } else {
-          apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: "llama-3.1-8b-instant",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
-          };
-        }
-
-        const resp = await fetch(apiUrl, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(payload),
+      // Preflight
+      if (request.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            ...cors,
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "content-type, authorization",
+            "Access-Control-Max-Age": "86400"
+          }
         });
+      }
 
-        if (!resp.ok) {
-          const txt = await resp.text();
-          return new Response(
-            JSON.stringify({ error: "Upstream error", status: resp.status, details: txt }),
-            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
-        }
+      // Health
+      if (url.pathname === "/health") {
+        return json({ ok: true, ts: Date.now() }, 200, cors);
+      }
 
-        const data = await resp.json();
-        const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
-
-        return new Response(JSON.stringify({ reply }), {
-          headers: { "Content-Type": "application/json", ...corsHeaders() },
-        });
-      } catch (err) {
-        return new Response(
-          JSON.stringify({ error: "Server error", details: String(err) }),
-          { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+      // Config
+      if (url.pathname === "/config") {
+        return json(
+          {
+            allowedOrigins: getAllowedOrigins(env),
+            model: env.GROQ_MODEL || "llama-3.1-8b-instant",
+            temperature: Number(env.TEMPERATURE ?? 0.2),
+          },
+          200,
+          cors
         );
       }
-    }
 
-    return new Response("Not found", { status: 404 });
+      // Chat
+      if (url.pathname === "/chat" && request.method === "POST") {
+        if (!isOriginAllowed(origin, env)) {
+          return json({ error: "Forbidden origin", origin }, 403, cors);
+        }
+        if (!env.GROQ_API_KEY) {
+          return json({ error: "Missing GROQ_API_KEY secret" }, 500, cors);
+        }
+
+        let body;
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: "Invalid JSON body" }, 400, cors);
+        }
+
+        const userMsg = (body?.message ?? "").toString().slice(0, 4000);
+        const system   = (body?.system  ?? "").toString().slice(0, 12000); // <— persona
+        const history  = Array.isArray(body?.history) ? body.history.slice(-6) : [];
+
+        if (!userMsg) {
+          return json({ error: "Empty message" }, 400, cors);
+        }
+
+        const messages = [];
+        if (system) messages.push({ role: "system", content: system }); // persona injected here
+        for (const m of history) {
+          if (m && typeof m === "object" && typeof m.content === "string" && m.role) {
+            messages.push({ role: m.role, content: m.content });
+          }
+        }
+        messages.push({ role: "user", content: userMsg });
+
+        const model = env.GROQ_MODEL || "llama-3.1-8b-instant";
+        const temperature = Number(env.TEMPERATURE ?? (typeof body.temperature === 'number' ? body.temperature : 0.2));
+
+        let groqRes;
+        try {
+          groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.GROQ_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              temperature,
+              messages,
+              stream: false
+            })
+          });
+        } catch (err) {
+          return json({ error: "Network to GROQ failed", detail: String(err) }, 502, cors);
+        }
+
+        if (!groqRes.ok) {
+          const detail = await safeJson(groqRes);
+          return json({ error: "GROQ error", status: groqRes.status, detail }, 502, cors);
+        }
+
+        const data = await groqRes.json();
+        const text =
+          data?.choices?.[0]?.message?.content ??
+          data?.choices?.[0]?.text ?? "";
+
+        return json({ text }, 200, cors);
+      }
+
+      return json({ error: "Not found" }, 404, cors);
+    } catch (err) {
+      return new Response(JSON.stringify({ error: "Worker crashed", detail: String(err) }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
+    }
   },
 };
+
+/* ---------------- helpers ---------------- */
+
+function getAllowedOrigins(env) {
+  const raw = (env.ALLOWED_ORIGINS || "").trim();
+  if (!raw) return [];
+  return raw.split(/[, \n]+/).map(s => s.trim()).filter(Boolean);
+}
+
+function isOriginAllowed(origin, env) {
+  if (!origin) return false;
+  return getAllowedOrigins(env).includes(origin);
+}
+
+function buildCorsHeaders(origin, env) {
+  const headers = { "Vary": "Origin" };
+  if (origin && isOriginAllowed(origin, env)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
+}
+
+function json(obj, status = 200, headers = {}) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+}
+
+async function safeJson(res) {
+  try { return await res.json(); }
+  catch {
+    try { return await res.text(); }
+    catch { return null; }
+  }
+}
