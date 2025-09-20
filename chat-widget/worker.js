@@ -1,4 +1,10 @@
 // worker.js — Copilot proxy (Groq first, fallback to OpenAI)
+// Minimal, safe upgrades:
+// - Accepts client "system" (from widget system.md) and merges with SYSTEM_PROMPT
+// - Light first-person nudge (no post-processing)
+// - Optional client model/temperature hints
+// - Keeps your CORS and routing identical
+// - Robust OpenAI key lookup (OPENAI_API_KEY or OpenAI_API_KEY)
 
 const SYSTEM_PROMPT = `
 You are Tony’s Copilot — a friendly, concise guide for tonyabdelmalak.github.io.
@@ -16,6 +22,9 @@ He uses Tableau, SQL, and Python to turn workforce/business data into exec-ready
 Projects include turnover analysis, early turnover segmentation, and workforce planning models.
 He’s based in Los Angeles and aims to lead AI initiatives in HR analytics.
 `.trim();
+
+// A tiny nudge that keeps responses in first person without rewriting responses after the fact.
+const FIRST_PERSON_HINT = `Speak as Tony in first person ("I", "my"), never about Tony in third person.`;
 
 function corsHeaders() {
   return {
@@ -48,6 +57,14 @@ export default {
         const userMsg = (body?.message || "").toString().trim();
         const history = Array.isArray(body?.history) ? body.history : [];
 
+        // NEW: optional persona text from the client (e.g., widget fetches system.md)
+        const systemFromClient = (body?.system || "").toString().trim();
+
+        // Optional client hints; keep your safe defaults
+        const clientModel = (body?.model || "").toString().trim();
+        const clientTemp =
+          typeof body?.temperature === "number" ? body.temperature : undefined;
+
         if (!userMsg) {
           return new Response(
             JSON.stringify({ error: "Missing 'message' in request body." }),
@@ -55,9 +72,11 @@ export default {
           );
         }
 
-        // Decide provider: Groq if available, else OpenAI
-        const hasOpenAI = !!env.OPENAI_API_KEY;
-        const hasGroq = !!env.GROQ_API_KEY;
+        // Decide provider: Groq if available, else OpenAI (kept exactly like your original order)
+        const groqKey = env.GROQ_API_KEY;
+        const openaiKey = env.OPENAI_API_KEY || env.OpenAI_API_KEY; // tolerate casing
+        const hasOpenAI = !!openaiKey;
+        const hasGroq = !!groqKey;
 
         if (!hasOpenAI && !hasGroq) {
           return new Response(
@@ -66,14 +85,22 @@ export default {
           );
         }
 
-        // Normalize history (optional)
+        // Normalize history (optional, unchanged)
         const past = history
           .filter(m => m && m.role && m.content)
           .map(m => ({ role: m.role, content: m.content.toString().trim() }))
           .slice(-12); // keep it light
 
+        // Build merged system prompt:
+        // 1) your existing SYSTEM_PROMPT
+        // 2) optional client persona (system.md)
+        // 3) a tiny first-person nudge
+        const mergedSystem = [SYSTEM_PROMPT, systemFromClient, FIRST_PERSON_HINT]
+          .filter(Boolean)
+          .join("\n\n");
+
         const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: mergedSystem },
           ...past,
           { role: "user", content: userMsg }
         ];
@@ -82,27 +109,28 @@ export default {
         let apiUrl, headers, payload;
 
         if (hasOpenAI) {
+          // Keep your original order: prefer OpenAI if key present
           apiUrl = "https://api.openai.com/v1/chat/completions";
           headers = {
-            "Authorization": `Bearer ${env.OpenAI_API_KEY}`,
+            "Authorization": `Bearer ${openaiKey}`,
             "Content-Type": "application/json",
           };
           payload = {
-            model: "gpt-4o-mini",
+            model: clientModel || "gpt-4o-mini",
             messages,
-            temperature: 0.3,
+            temperature: typeof clientTemp === "number" ? clientTemp : 0.3,
             max_tokens: 200,
           };
         } else {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
           headers = {
-            "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+            "Authorization": `Bearer ${groqKey}`,
             "Content-Type": "application/json",
           };
           payload = {
-            model: "llama-3.1-8b-instant",
+            model: clientModel || "llama-3.1-8b-instant",
             messages,
-            temperature: 0.3,
+            temperature: typeof clientTemp === "number" ? clientTemp : 0.3,
             max_tokens: 200,
           };
         }
@@ -122,7 +150,10 @@ export default {
         }
 
         const data = await resp.json();
-        const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+        const reply =
+          data?.choices?.[0]?.message?.content?.trim() ||
+          data?.choices?.[0]?.text?.trim() ||
+          "Sorry—no response was generated.";
 
         return new Response(JSON.stringify({ reply }), {
           headers: { "Content-Type": "application/json", ...corsHeaders() },
