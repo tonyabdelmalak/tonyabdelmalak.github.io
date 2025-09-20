@@ -1,207 +1,202 @@
-/* ---------- THEME/FORMAT SHIM (safe to paste near top) ---------- */
-function applyTheme(cfg = {}) {
-  // read accent + radius from config.json and apply to CSS variables
-  const accent = cfg.accent || '#4f46e5';
-  const radius = cfg.radius || '14px';
-  const root = document.documentElement;
-  root.style.setProperty('--chat-accent', accent);
-  root.style.setProperty('--chat-radius', radius);
+// Chat Widget — /chat-widget/assets/chat/widget.js
+// No external deps. Mounts onto <div id="chat-widget-root"></div>
+
+(async function boot() {
+  const mount = ensureMount();
+  const cfg = await loadConfig();
+
+  // theme knobs from config.json
+  applyTheme(cfg);
+
+  // build DOM
+  const { launcher, panel, closeBtn, scroll, note, form, input, send } = buildShell(cfg, mount);
+
+  // greeting
+  if (cfg.greeting) addBot(scroll, cfg.greeting);
+
+  // interactions
+  launcher.addEventListener('click', () => {
+    panel.style.display = 'block';
+    launcher.classList.add('cw-hidden');
+    input.focus();
+  });
+  closeBtn.addEventListener('click', () => {
+    panel.style.display = 'none';
+    launcher.classList.remove('cw-hidden');
+  });
+
+  // submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+
+    addUser(scroll, text);
+    input.value = '';
+    input.focus();
+
+    const stopTyping = showTyping(scroll);
+
+    try {
+      send.disabled = true;
+
+      const res = await fetch(cfg.workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          // If you want to pass system or history, add them here.
+          // system: await fetchSystem(cfg.systemUrl),
+          model: cfg.model,
+          temperature: cfg.temperature
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && (data.text || data.reply || data.message)) {
+        addBot(scroll, data.text || data.reply || data.message);
+      } else {
+        const detail = data?.detail?.error?.message || data?.error || 'failed';
+        addError(note, `Error: ${detail}`);
+      }
+    } catch (err) {
+      addError(note, `Network error: ${String(err)}`);
+    } finally {
+      stopTyping();
+      send.disabled = false;
+      scrollToEnd(scroll);
+    }
+  });
+
+  // allow Enter to submit, Shift+Enter for newline
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.dispatchEvent(new Event('submit'));
+    }
+  });
+})();
+
+// ---------------- helpers ----------------
+
+async function loadConfig() {
+  try {
+    const res = await fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' });
+    return await res.json();
+  } catch {
+    return {
+      workerUrl: '/chat',
+      title: 'Chat',
+      greeting: 'Hi! Ask me anything.',
+      accent: '#4f46e5',
+      radius: '14px',
+      model: 'llama-3.1-8b-instant',
+      temperature: 0.2
+    };
+  }
 }
 
-/* OPTIONAL: helper to build the minimal DOM structure if you need it.
-   If your widget already renders the same IDs/classes, skip this. */
-function ensureChatShell() {
-  if (document.querySelector('.cw-wrap')) return;
+function applyTheme(cfg = {}) {
+  const root = document.documentElement;
+  root.style.setProperty('--chat-accent', cfg.accent || '#4f46e5');
+  root.style.setProperty('--chat-radius', cfg.radius || '14px');
+}
 
-  const root = document.querySelector('#chat-widget-root') || (() => {
-    const el = document.createElement('div');
-    el.id = 'chat-widget-root';
-    document.body.appendChild(el);
-    return el;
-  })();
+function ensureMount() {
+  let root = document.querySelector('#chat-widget-root');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'chat-widget-root';
+    document.body.appendChild(root);
+  }
+  return root;
+}
 
-  root.insertAdjacentHTML('beforeend', `
-    <button class="cw-launcher" id="cw-launch">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>
-      </svg>
+function buildShell(cfg, mount) {
+  mount.innerHTML = `
+    <button class="cw-launcher" id="cw-launch" aria-label="Open chat">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/></svg>
     </button>
 
-    <div class="cw-wrap" id="cw-wrap">
+    <div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">
       <div class="cw-head">
         <button class="cw-close" id="cw-close" aria-label="Close">✕</button>
-        <h3 class="cw-title" id="cw-title">Chat</h3>
-        <p class="cw-sub" id="cw-sub">We are online!</p>
+        <h3 class="cw-title" id="cw-title">${escapeHtml(cfg.title || "What's on your mind?")}</h3>
+        <p class="cw-sub" id="cw-sub">We’re online</p>
       </div>
       <div class="cw-body">
         <div class="cw-scroll" id="cw-scroll"></div>
         <div class="cw-note" id="cw-note"></div>
         <form class="cw-input" id="cw-form">
-          <input id="cw-text" type="text" autocomplete="off" placeholder="Enter your message..." />
+          <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…" />
           <button class="cw-send" id="cw-send" type="submit">Send</button>
         </form>
       </div>
     </div>
-  `);
+  `;
 
-  // minimal open/close if you don't already manage it
-  const wrap = document.getElementById('cw-wrap');
-  const openBtn = document.getElementById('cw-launch');
-  const closeBtn = document.getElementById('cw-close');
-  openBtn?.addEventListener('click', () => { wrap.style.display = 'block'; openBtn.classList.add('cw-hidden'); });
-  closeBtn?.addEventListener('click', () => { wrap.style.display = 'none'; openBtn.classList.remove('cw-hidden'); });
-}
-/* ---------- END THEME/FORMAT SHIM ---------- */
-
-
-/* ===== Container ===== */
-.copilot-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 340px;
-  max-height: 560px;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #dcdcdc;
-  border-radius: 14px;
-  background: #fff;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  font-size: 14px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.18);
-  overflow: hidden;
-  z-index: 2147483000 !important; /* always on top */
+  return {
+    launcher: mount.querySelector('#cw-launch'),
+    panel: mount.querySelector('#cw-panel'),
+    closeBtn: mount.querySelector('#cw-close'),
+    scroll: mount.querySelector('#cw-scroll'),
+    note: mount.querySelector('#cw-note'),
+    form: mount.querySelector('#cw-form'),
+    input: mount.querySelector('#cw-text'),
+    send: mount.querySelector('#cw-send')
+  };
 }
 
-/* ===== Header ===== */
-.copilot-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: #f7f8fa;
-  border-bottom: 1px solid #e8e8e8;
+function addBot(mount, text) {
+  const row = document.createElement('div');
+  row.className = 'cw-row bot';
+  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
+  mount.appendChild(row);
+  scrollToEnd(mount);
 }
 
-.copilot-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  flex: 0 0 auto;
+function addUser(mount, text) {
+  const row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
+  mount.appendChild(row);
+  scrollToEnd(mount);
 }
 
-.copilot-title {
-  font-weight: 700;
-  font-size: 15px;
-  color: #0f172a;
-  flex: 1 1 auto;
+function addError(noteEl, msg) {
+  noteEl.textContent = msg;
+  setTimeout(() => (noteEl.textContent = ''), 6000);
 }
 
-/* Close (X) button in header */
-.copilot-close {
-  appearance: none;
-  border: none;
-  background: transparent;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 28px;
-  color: #64748b;
-}
-.copilot-close:hover { background: #eef2f7; color: #334155; }
-
-/* ===== Messages area ===== */
-.copilot-messages {
-  flex: 1 1 auto;
-  padding: 12px;
-  overflow-y: auto;
-  background: #fff;
+function showTyping(mount) {
+  const row = document.createElement('div');
+  row.className = 'cw-row bot';
+  row.innerHTML = `
+    <div class="cw-bubble">
+      <span class="cw-typing">
+        <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>
+      </span>
+    </div>`;
+  mount.appendChild(row);
+  scrollToEnd(mount);
+  return () => row.remove();
 }
 
-/* One extra space between turns for readability */
-.copilot-msg {
-  margin: 0 0 12px 0;           /* <— space between bubbles */
-  line-height: 1.45;
-  word-wrap: break-word;
+function scrollToEnd(el) {
+  el.scrollTop = el.scrollHeight;
 }
 
-/* Label (“Agent:” / “You:”) — bold + color-coded */
-.copilot-label {
-  font-weight: 700;              /* <— bold the speaker */
-  margin-right: 6px;
+function escapeHtml(s='') {
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
-.copilot-msg.agent .copilot-label { color: #4338ca; } /* indigo */
-.copilot-msg.user  .copilot-label { color: #2563eb; } /* blue   */
-
-/* Optional subtle background for Agent to help scan */
-.copilot-msg.agent {
-  background: #f8fafc;
-  border: 1px solid #eef2f7;
-  border-radius: 10px;
-  padding: 8px 10px;
-}
-
-/* ===== Input row ===== */
-.copilot-input-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-top: 1px solid #e8e8e8;
-  background: #fff;
-}
-
-.copilot-input {
-  flex: 1 1 auto;
-  height: 42px;
-  border: 1px solid #d1d5db;
-  border-radius: 9999px;
-  padding: 0 14px;
-  font-size: 14px;
-  outline: none;
-}
-.copilot-input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,.18);
-}
-
-/* Send button — circle with upward arrow */
-.copilot-send {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: #6366f1;      /* indigo */
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-.copilot-send:hover { background: #4f46e5; }
-
-/* ===== Launcher (floating button) ===== */
-.copilot-launch {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: #6366f1;
-  box-shadow: 0 10px 28px rgba(0,0,0,.22);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  z-index: 2147483000 !important;
-}
-
-.copilot-launch img {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.9);
-}
-
-.copilot-hidden { display: none !important; }
+// Optional: fetch system prompt text if you want to inject it.
+// Not used by default because your Worker can fetch SYSTEM_URL itself.
+// async function fetchSystem(url) {
+//   if (!url) return '';
+//   try {
+//     const r = await fetch(url, { cache: 'no-store' });
+//     return await r.text();
+//   } catch { return ''; }
+// }
