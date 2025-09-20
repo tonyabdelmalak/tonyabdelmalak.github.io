@@ -6,7 +6,7 @@
   "title": "What's on your mind?",
   "greeting": "Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m building next.",
   "brand": {
-  "accent": "#4f46e5",
+  "accent": "#001f3f",
   "radius": "14px",
   "rateLimit": 10
 },
