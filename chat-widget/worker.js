@@ -1,5 +1,6 @@
 // worker.js — Copilot proxy (Groq first, fallback to OpenAI)
 
+// Keep as fallback only
 const SYSTEM_PROMPT = `
 I am Tony — a friendly, concise guide who's happy to answer any questions you have. 
 Priorities:
@@ -47,6 +48,7 @@ export default {
         const body = await req.json().catch(() => ({}));
         const userMsg = (body?.message || "").toString().trim();
         const history = Array.isArray(body?.history) ? body.history : [];
+        const clientSystem = (body?.system || "").toString().trim(); // <— uses widget-sent system
 
         if (!userMsg) {
           return new Response(
@@ -72,8 +74,13 @@ export default {
           .map(m => ({ role: m.role, content: m.content.toString().trim() }))
           .slice(-12); // keep it light
 
+        // Use the client-provided system if present; fallback to local constant
+        const systemText = (clientSystem && clientSystem.length > 0)
+          ? clientSystem.slice(0, 16000) // protect context window
+          : SYSTEM_PROMPT;
+
         const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemText },
           ...past,
           { role: "user", content: userMsg }
         ];
@@ -81,28 +88,29 @@ export default {
         // Build request for the chosen provider
         let apiUrl, headers, payload;
 
-        if (hasOpenAI) {
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.OpenAI_API_KEY}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: "gpt-4o-mini",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
-          };
-        } else {
+        if (hasGroq) {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
           headers = {
             "Authorization": `Bearer ${env.GROQ_API_KEY}`,
             "Content-Type": "application/json",
           };
           payload = {
-            model: "llama-3.1-8b-instant",
+            model: body?.model || "llama-3.1-8b-instant",
             messages,
-            temperature: 0.3,
+            temperature: typeof body?.temperature === "number" ? body.temperature : 0.3,
+            max_tokens: 200,
+          };
+        } else {
+          apiUrl = "https://api.openai.com/v1/chat/completions";
+          headers = {
+            // FIX: correct env var name
+            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          };
+          payload = {
+            model: body?.model || "gpt-4o-mini",
+            messages,
+            temperature: typeof body?.temperature === "number" ? body.temperature : 0.3,
             max_tokens: 200,
           };
         }
