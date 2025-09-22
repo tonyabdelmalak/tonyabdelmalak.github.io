@@ -126,8 +126,8 @@ function buildShell(cfg, mount) {
     <div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">
       <div class="cw-head">
         <button class="cw-close" id="cw-close" aria-label="Close">✕</button>
-        <h3 class="cw-title" id="cw-title">${escapeHtml(cfg.title || "What's on your mind?")}</h3>
-        <p class="cw-sub" id="cw-sub">We’re online</p>
+        <h3 class="cw-title" id="cw-title">${escapeHtml(cfg.title || "Thanks for taking the time to chat. What's on your mind?")}</h3>
+        <p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>
       </div>
       <div class="cw-body">
         <div class="cw-scroll" id="cw-scroll"></div>
