@@ -101,6 +101,24 @@ async function loadConfig() {
   }
 }
 
+function normalizeMarkdown(t='') {
+  // Turn leading bold blocks into headings
+  t = t.replace(/(^|\n)\s*\*\*([^*]+)\*\*\s*/g, (m, p1, p2) => `${p1}\n## ${p2.trim()}\n`);
+
+  // Ensure line breaks before Markdown headings
+  t = t.replace(/\s*(###[^\n]+)/g, '\n\n$1')
+       .replace(/\s*(##[^\n]+)/g, '\n\n$1');
+
+  // Put each list item on its own line
+  t = t.replace(/\s*\*\s/g, '\n- ')   // “* ” → “- ”
+       .replace(/\s*\+\s/g, '\n  - '); // “+ ” → indented “- ”
+
+  // Collapse excess blank lines
+  t = t.replace(/\n{3,}/g, '\n\n').trim();
+
+  return t;
+}
+
 function applyTheme(cfg = {}) {
   const root = document.documentElement;
   root.style.setProperty('--chat-accent', cfg.accent || '#4f46e5');
