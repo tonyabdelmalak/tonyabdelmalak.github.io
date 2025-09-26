@@ -173,7 +173,14 @@ function buildShell(cfg, mount) {
 function addBot(mount, text) {
   const row = document.createElement('div');
   row.className = 'cw-row bot';
-  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = normalizeMarkdown(text); // <- format then render as text
+  bubble.style.whiteSpace = 'pre-wrap';
+  bubble.style.overflowWrap = 'anywhere';
+
+  row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
 }
