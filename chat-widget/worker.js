@@ -1,5 +1,4 @@
-
-// worker.js — Copilot proxy (Groq first, fallback to OpenAI)
+// worker.js — Copilot proxy (Groq first, OpenAI fallback)
 
 const SYSTEM_PROMPT = `
 I am Tony — a friendly, concise guide who's happy to answer any questions you have. 
@@ -20,7 +19,7 @@ I'm based in Los Angeles and aim to lead AI initiatives in HR analytics.
 
 function corsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "*",                    // lock to your domain later
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "content-type, authorization",
   };
@@ -46,19 +45,38 @@ export default {
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
         const body = await req.json().catch(() => ({}));
-        const userMsg = (body?.message || "").toString().trim();
-        const history = Array.isArray(body?.history) ? body.history : [];
 
+        const userMsg = (body?.message || "").toString().trim();
         if (!userMsg) {
-          return new Response(
-            JSON.stringify({ error: "Missing 'message' in request body." }),
-            { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
+          return new Response(JSON.stringify({ error: "Missing 'message' in request body." }), {
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders() },
+          });
         }
 
-        // Decide provider: Groq if available, else OpenAI
-        const hasOpenAI = !!env.OPENAI_API_KEY;
-        const hasGroq = !!env.GROQ_API_KEY;
+        // Honor widget-provided persona + model settings
+        const clientSystem = (body?.system || "").toString().trim();
+        const systemPrompt = clientSystem || SYSTEM_PROMPT;
+
+        const model = (body?.model || "llama-3.1-8b-instant").toString();
+        const temperature = Number.isFinite(+body?.temperature) ? +body.temperature : 0.2;
+
+        // Trim/normalize history (optional)
+        const history = Array.isArray(body?.history) ? body.history : [];
+        const past = history
+          .filter((m) => m && m.role && m.content)
+          .map((m) => ({ role: m.role, content: m.content.toString().trim() }))
+          .slice(-12);
+
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...past,
+          { role: "user", content: userMsg },
+        ];
+
+        // Provider selection
+        const hasOpenAI = !!env.OPENAI_API_KEY;   // <-- fixed case
+        const hasGroq   = !!env.GROQ_API_KEY;
 
         if (!hasOpenAI && !hasGroq) {
           return new Response(
@@ -67,45 +85,23 @@ export default {
           );
         }
 
-        // Normalize history (optional)
-        const past = history
-          .filter(m => m && m.role && m.content)
-          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12); // keep it light
-
-        const messages = [
-          { role: "system", content: SYSTEM_PROMPT },
-          ...past,
-          { role: "user", content: userMsg }
-        ];
-
-        // Build request for the chosen provider
         let apiUrl, headers, payload;
 
-        if (hasOpenAI) {
-          apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.OpenAI_API_KEY}`,
-            "Content-Type": "application/json",
-          };
-          payload = {
-            model: "gpt-4o-mini",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
-          };
-        } else {
+        if (hasGroq) {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
           headers = {
             "Authorization": `Bearer ${env.GROQ_API_KEY}`,
             "Content-Type": "application/json",
           };
-          payload = {
-            model: "llama-3.1-8b-instant",
-            messages,
-            temperature: 0.3,
-            max_tokens: 200,
+          payload = { model, messages, temperature, max_tokens: 400 };
+        } else {
+          apiUrl = "https://api.openai.com/v1/chat/completions";
+          headers = {
+            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,   // <-- fixed
+            "Content-Type": "application/json",
           };
+          // Pick a small/cheap default; override via body.model if you want
+          payload = { model: "gpt-4o-mini", messages, temperature, max_tokens: 400 };
         }
 
         const resp = await fetch(apiUrl, {
@@ -116,14 +112,21 @@ export default {
 
         if (!resp.ok) {
           const txt = await resp.text();
+          // Shape error so the widget shows the real reason (rate limit, invalid model, auth, etc.)
           return new Response(
-            JSON.stringify({ error: "Upstream error", status: resp.status, details: txt }),
+            JSON.stringify({
+              detail: { error: { message: txt } },
+              error: "Upstream error",
+              status: resp.status,
+            }),
             { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
           );
         }
 
         const data = await resp.json();
-        const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+        const reply =
+          data?.choices?.[0]?.message?.content?.trim() ||
+          "Sorry—no response was generated.";
 
         return new Response(JSON.stringify({ reply }), {
           headers: { "Content-Type": "application/json", ...corsHeaders() },
@@ -136,6 +139,6 @@ export default {
       }
     }
 
-    return new Response("Not found", { status: 404 });
+    return new Response("Not found", { status: 404, headers: corsHeaders() });
   },
 };
