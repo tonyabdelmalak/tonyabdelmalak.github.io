@@ -1,5 +1,6 @@
 // worker.js — Copilot proxy (Groq first, OpenAI fallback)
 // Produces RAW MARKDOWN without visible "##" headings and bullets.
+// Produces RAW MARKDOWN without visible "**" headings and bullets.
 
 const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
