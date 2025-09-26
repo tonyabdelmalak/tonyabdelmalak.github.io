@@ -12,7 +12,7 @@ Priorities:
 Style: Warm, expert, no fluff. If unsure, say so. One smart follow-up max.
 
 Background:
-I am a People & Business Insights Analyst who pivoted into AI-driven HR analytics.
+I am a Human Resources Professional who pivoted into AI-driven People & Workforce Data analytics.
 I use Tableau, SQL, and Python to turn workforce/business data into exec-ready insights.
 Projects include turnover analysis, early turnover segmentation, and workforce planning models.
 I'm based in Los Angeles and aim to lead AI initiatives in HR analytics.
