@@ -88,11 +88,16 @@ export default {
         const resp = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(payload) });
 
         if (!resp.ok) {
-          const txt = await resp.text();
-          return new Response(JSON.stringify({ error: "Upstream error", status: resp.status, details: txt }), {
-            status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() }
-          });
-        }
+  const txt = await resp.text();
+  return new Response(
+    JSON.stringify({
+      error: "Upstream error",
+      status: resp.status,
+      details: txt    // <-- keep the provider’s message
+    }),
+    { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+  );
+}
 
         const data = await resp.json();
         const reply = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
