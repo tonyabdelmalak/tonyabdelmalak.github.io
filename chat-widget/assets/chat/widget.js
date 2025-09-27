@@ -221,32 +221,29 @@ function formatAssistant(text) {
   return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
 }
 
-  // Path B (fixed): synthesize bullets from "Label: details" without echoing the title
+  // Path B (fixed): treat 1+ labeled items as a list (keeps headings clean)
 var lines = t.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
-
-// collect labeled bullet candidates
 var labeled = lines.filter(function (s) {
   return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s);
 });
 
-// choose a title line ONLY if it's a non-bullet, short, no colon
+// choose a title ONLY if it's a non-bullet, short, no colon
 var titleLine = lines.find(function (s) {
   return !/^[-*]\s+/.test(s) && !/:/.test(s) && s.length <= 80;
 }) || "";
 
 if (labeled.length >= 1) {
   function labelOf(s) { return s.split(":")[0].trim(); }
-  var title = collapse(titleLine);
+  var title = collapse(titleLine) || "Here are a few highlights:";
   var bullets = labeled.slice(0, 4).map(function (s) {
     var lbl = labelOf(s);
     var body = s.split(":").slice(1).join(":").trim().replace(/\.$/, "");
     var item = (title && lbl.toLowerCase() === title.toLowerCase())
-      ? collapse(body)                                    // avoid "Title — Title: body"
+      ? collapse(body)                                  // avoid "Title — Title: …"
       : "<strong>" + lbl + "</strong> — " + collapse(body);
     return "<li>" + item + "</li>";
   }).join("");
-
-  return (title ? "<p>" + title + "</p>" : "") + "<ul>" + bullets + "</ul>";
+  return "<p>" + title + "</p><ul>" + bullets + "</ul>";
 }
 
   // Path C: fallback — first 2–3 short paragraphs
