@@ -1,39 +1,9 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
-// Conversational formatter (intro + bullets/numbered) with a local “topics” view.
-// - Safer config loading (absolute + relative retry)
-// - Robust response parsing (supports text/reply/message/content/choices[0].message.content)
-// - No double system prompt in HISTORY
-// - Persona context included in POST body to improve accuracy
-// - Avatar launcher + injected minimal CSS for Topics (tny-*) view
+// Adds: consistent formatting, optional persona + site-source context (RAG-lite),
+// avatar launcher, and robust response parsing. Structure/paths unchanged.
 
 /* ===================== Config & State ===================== */
-
-// Detect a base for assets so this works on a root domain or a subpath.
-var __SCRIPT_BASE__ = (function () {
-  // Try to infer from the last loaded script tag
-  var scripts = document.getElementsByTagName('script');
-  var me = scripts[scripts.length - 1];
-  var src = (me && me.src) ? me.src : "";
-  // If script is /chat-widget/assets/chat/widget.js, base is /chat-widget/
-  var m = src.match(/^(.*\/chat-widget\/)assets\/chat\/widget\.js(\?.*)?$/);
-  if (m) return m[1];
-  // Fallback: try to find /chat-widget/ in current path
-  if (location.pathname.indexOf('/chat-widget/') !== -1) {
-    return location.pathname.split('/chat-widget/')[0] + '/chat-widget/';
-  }
-  // As a last resort, assume root
-  return '/chat-widget/';
-})();
-
-function assetUrl(p) {
-  // Normalize "assets/..." or "/chat-widget/assets/..." to a usable path
-  if (!p) return p;
-  if (p.startsWith('http')) return p;
-  if (p.startsWith('/')) return p; // absolute works on custom domains
-  // relative inside /chat-widget/
-  return __SCRIPT_BASE__ + p.replace(/^\.?\//, '');
-}
 
 const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
@@ -44,9 +14,10 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = assetUrl('assets/img/profile-img.jpg'); // base-aware
-var HISTORY = []; // only user/assistant turns; system sent separately
-var __TONY_PERSONA__ = {}; // loaded below
+var TONY_AVATAR_URL = "/assets/img/profile-img.jpg"; // keep as-is (rooted on your domain)
+var HISTORY = [];                // only user/assistant turns
+var __TONY_PERSONA__ = {};       // optional, from persona.json
+var __TONY_SOURCES__ = [];       // optional, from sources.json (RAG-lite)
 
 /* ===================== Boot ===================== */
 
@@ -55,17 +26,20 @@ var __TONY_PERSONA__ = {}; // loaded below
     var mount = ensureMount();
     loadConfig().then(function (cfg) {
       applyTheme(cfg);
-
       fetchSystem(cfg.systemUrl).then(function (system) {
-        // DO NOT push system into HISTORY to avoid double-application server-side.
+        // IMPORTANT: do NOT push system into HISTORY to avoid double-apply
 
-        // Load persona JSON for accurate examples
-        fetchJSON(assetUrl('assets/chat/persona.json')).then(function (persona) {
-          __TONY_PERSONA__ = persona || {};
+        // Load persona + sources in parallel (both optional; safe if missing)
+        Promise.all([
+          fetchJSON('/chat-widget/assets/chat/persona.json').catch(function(){ return {}; }),
+          loadSources('/chat-widget/assets/chat/sources.json').catch(function(){ return []; })
+        ]).then(function (arr) {
+          __TONY_PERSONA__ = arr[0] || {};
+          __TONY_SOURCES__ = arr[1] || [];
 
           var ui = buildShell(cfg, mount);
 
-          // === Avatar launcher (Tony’s face + tiny bubble) ===
+          // === Avatar launcher (Tony's face + tiny bubble) ===
           ui.launcher.classList.add('cw-launcher--avatar');
           ui.launcher.innerHTML = `
             <div class="cw-avatar-wrapper" aria-label="Open chat with Tony">
@@ -74,8 +48,8 @@ var __TONY_PERSONA__ = {}; // loaded below
             </div>
           `;
 
-          // Inject minimal styles for launcher + Topics (tny-*)
-          (function injectStyles () {
+          // Inject minimal styles (launcher + Topics view)
+          (function () {
             if (document.querySelector('style[data-cw-avatar-styles]')) return;
             var css = `
               .cw-launcher--avatar{width:auto;height:auto;padding:0;border:0;background:transparent;box-shadow:none;border-radius:999px}
@@ -122,7 +96,7 @@ var __TONY_PERSONA__ = {}; // loaded below
             ui.input.value = "";
             ui.input.focus();
 
-            // Local topics intercept
+            // Local /topics shortcut
             if (wantsTopics(text)) {
               var stopTypingLocal = showTyping(ui.scroll);
               sleep(250).then(function () {
@@ -143,17 +117,19 @@ var __TONY_PERSONA__ = {}; // loaded below
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 message: text,
-                system: system,
+                system: system,                         // system sent separately (not in HISTORY)
                 model: cfg.model,
                 temperature: cfg.temperature,
                 history: HISTORY.slice(-12),
-                context: { persona: __TONY_PERSONA__ }
+                context: {
+                  persona: __TONY_PERSONA__,           // optional
+                  sources: __TONY_SOURCES__,           // optional (site pages/resume chunks)
+                  creative_mode: true                  // hint: be creative, but ground in sources
+                }
               })
             })
             .then(function (res) {
-              if (res.ok) {
-                return res.json().catch(function(){ return {}; });
-              }
+              if (res.ok) return res.json().catch(function(){ return {}; });
               return res.text().then(function (txt) { throw new Error("HTTP " + res.status + ": " + txt); });
             })
             .then(function (data) {
@@ -161,7 +137,6 @@ var __TONY_PERSONA__ = {}; // loaded below
                 (data && (data.text || data.reply || data.message || data.content)) ||
                 (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
                 "";
-
               if (!raw) return addError(ui.note, "Error: invalid response");
 
               var html = formatAssistant(raw);
@@ -195,12 +170,12 @@ var __TONY_PERSONA__ = {}; // loaded below
 
 /* ===================== Conversational Formatter ===================== */
 /*
-  Strategy (XSS-safe):
-    1) Escape ALL model text.
-    2) Convert markdown bold/code/links.
-    3) If there are list lines (-, *, or 1.), render as <ul>/<ol>.
-    4) Else, convert "Label: details" lines into bullets with <strong>Label</strong> — details.
-    5) Else, split into short paragraphs (no lookbehind).
+  XSS-safe steps:
+  1) Escape ALL model text.
+  2) Convert markdown bold/code/links.
+  3) If list lines (-, *, 1.) exist, render as <ul>/<ol> with a short intro.
+  4) Else, transform "Label: details" lines into bullets with <strong>Label</strong> — details.
+  5) Else, short paragraphs (no regex lookbehind).
 */
 
 function formatAssistant(text) {
@@ -216,32 +191,25 @@ function formatAssistant(text) {
   // Escape EVERYTHING first (so raw HTML from model can't run)
   t = escapeHtml(t);
 
-  // Light Markdown touches after escaping:
-  // **bold**
-  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  // `inline code`
-  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
-  // [text](http...)
-  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  // Light Markdown touches after escaping
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");                 // **bold**
+  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");                            // `code`
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,                     // [text](http)
+             '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-  // Split into lines for list detection
   var lines = t.split("\n").map(function (s) { return s.trim(); });
-
-  // Path A: If list items (bulleted or numbered), render intro + list
   var hasBullets = lines.some(function (l) { return /^[-*]\s+/.test(l); });
   var hasNumbers = lines.some(function (l) { return /^\d+\.\s+/.test(l); });
 
+  // Path A: If list items (bulleted or numbered), render intro + list
   if (hasBullets || hasNumbers) {
-    // Collect intro (non-list lines until first list item)
-    var intro = [];
-    var firstListIdx = -1;
+    var intro = [], firstListIdx = -1;
     for (var i = 0; i < lines.length; i++) {
       if (/^([-*]|\d+\.)\s+/.test(lines[i])) { firstListIdx = i; break; }
       if (lines[i]) intro.push(lines[i]);
     }
     var introText = normalizeIntro(collapse(intro.join(" ")));
 
-    // Build items (max 5)
     var itemLines = (firstListIdx >= 0 ? lines.slice(firstListIdx) : [])
       .filter(function (l) { return /^([-*]|\d+\.)\s+/.test(l); })
       .slice(0, 5);
@@ -268,7 +236,6 @@ function formatAssistant(text) {
   });
 
   if (labeled.length >= 1) {
-    // Intro = first non-labeled, non-bullet chunk
     var introLines = [];
     for (var k = 0; k < lines.length; k++) {
       var L = lines[k];
@@ -327,7 +294,7 @@ function labelizeHTML(s) {
   if (!m) return s;
   var label = m[1].trim();
   var rest  = m[2].trim();
-  // Tidy
+  // Final tidy
   rest = rest.replace(/^[—:-]\s*/, "").replace(/\s{2,}/g, " ").replace(/\s+\.$/, ".");
   return "<strong>" + label + "</strong> — " + rest;
 }
@@ -391,6 +358,75 @@ function makeTopicBubble(opts) {
   return row;
 }
 
+/* ===================== Retrieval helpers (RAG-lite, optional) ===================== */
+
+function fetchJSON(url) {
+  return safeFetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .catch(function () { return {}; });
+}
+
+function loadSources(sourcesJsonUrl) {
+  // Reads /chat-widget/assets/chat/sources.json if present.
+  return fetchJSON(sourcesJsonUrl).then(function (cfg) {
+    var list = (cfg && cfg.sources) || [];
+    var maxBytes = cfg && cfg.maxBytesPerSource ? cfg.maxBytesPerSource : 12000;
+    if (!list.length) return [];
+
+    var tasks = list.map(function (item) {
+      var url = item && item.url;
+      if (!url) return Promise.resolve(null);
+      var abs = url; // same-origin paths like /index.html, /about/index.html, or /assets/resume/resume.txt
+      return fetch(abs, { cache: 'no-store' })
+        .then(function (r) {
+          if (!r.ok) throw new Error("Fetch fail " + r.status);
+          var ct = (r.headers.get('content-type') || '').toLowerCase();
+          if (ct.includes('text/html')) return r.text().then(htmlToText);
+          if (ct.includes('text/plain') || ct.includes('text/markdown')) return r.text();
+          // Unknown types -> ignore (recommend .txt alongside PDFs)
+          return "";
+        })
+        .then(function (txt) {
+          txt = (txt || "").replace(/\s{2,}/g, " ").trim();
+          if (!txt) return null;
+          if (maxBytes && txt.length > maxBytes) txt = txt.slice(0, maxBytes);
+          var chunks = chunkText(txt, 1200, 200);
+          return { title: item.title || url, url: url, chunks: chunks };
+        })
+        .catch(function () { return null; });
+    });
+
+    return Promise.all(tasks).then(function (arr) { return arr.filter(Boolean); });
+  });
+}
+
+function htmlToText(html) {
+  try {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    ['script','style','noscript','template','iframe'].forEach(function(sel){
+      doc.querySelectorAll(sel).forEach(function(n){ n.remove(); });
+    });
+    var main = doc.querySelector('main') || doc.body;
+    var text = main.textContent || "";
+    return text.replace(/\s{2,}/g, " ").trim();
+  } catch (e) {
+    return (html || "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
+  }
+}
+
+function chunkText(s, size, overlap) {
+  var out = [], i = 0, n = s.length, ov = overlap || 0;
+  if (!s) return out;
+  while (i < n) {
+    var end = Math.min(i + size, n);
+    out.push(s.slice(i, end));
+    if (end === n) break;
+    i = end - ov;
+    if (i < 0) i = 0;
+  }
+  return out;
+}
+
 /* ===================== DOM + UI ===================== */
 
 function ensureMount() {
@@ -443,7 +479,7 @@ function addAssistant(mount, text) {
   row.className = 'cw-row bot';
   var bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.textContent = text; // plain greeting etc.
+  bubble.textContent = text;
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
@@ -454,7 +490,7 @@ function addAssistantHTML(mount, html) {
   row.className = 'cw-row bot';
   var bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.innerHTML = html; // formatted output
+  bubble.innerHTML = html;
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
@@ -468,28 +504,18 @@ function addUser(mount, text) {
   scrollToEnd(mount);
 }
 
-/* ===================== Helpers ===================== */
-
-function fetchJSON(url) {
-  return safeFetch(url, { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : {}; })
-    .catch(function () { return {}; });
-}
+/* ===================== Config, System, Net ===================== */
 
 function loadConfig() {
-  var primary = '/chat-widget/assets/chat/config.json';
-  var relative = 'chat-widget/assets/chat/config.json';
-  return fetch(primary, { cache: 'no-store' })
+  // Absolute path first (works on custom domain root); if that 404s, retry relative.
+  return fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
     .then(function (res) {
       if (res.ok) return res.json();
-      // Retry relative if absolute path 404s (subpath-safe)
-      return fetch(relative, { cache: 'no-store' }).then(function (res2) {
-        if (res2.ok) return res2.json();
-        throw new Error("config.json " + res.status + " & " + res2.status);
-      });
+      return fetch('chat-widget/assets/chat/config.json', { cache: 'no-store' })
+        .then(function (res2) { if (res2.ok) return res2.json(); throw new Error("config.json " + res.status + " & " + res2.status); });
     })
     .catch(function () {
-      // Fallback defaults (edit workerUrl if your route differs)
+      // Fallback defaults (kept aligned with your current structure)
       return {
         workerUrl: '/chat',
         title: 'Chat',
@@ -550,7 +576,7 @@ function fetchSystem(url) {
 function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
 function safeFetch(url, options) {
-  // Try absolute; if it fails at networking level, retry relative.
+  // Try absolute; if it fails (network-level), retry relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
