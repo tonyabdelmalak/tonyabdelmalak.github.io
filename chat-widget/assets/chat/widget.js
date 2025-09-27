@@ -15,7 +15,77 @@ var DEFAULT_CONFIG = {
   brand: { accent: "#3e5494", radius: "14px" },
 };
 
-var CONFIG = null; // will be populated by loadConfig() then possibly overridden by init()
+// ===== Config loader (subpath-safe, resilient) =====
+var CONFIG = null; // populated by loadConfig(), may be overridden by init()
+
+// Fallback shallowMerge if not already defined
+if (typeof shallowMerge !== 'function') {
+  function shallowMerge(a, b) {
+    var out = {};
+    a = a || {}; b = b || {};
+    Object.keys(a).forEach(function (k) { out[k] = a[k]; });
+    Object.keys(b).forEach(function (k) {
+      if (b[k] !== undefined) out[k] = b[k];
+    });
+    return out;
+  }
+}
+
+// Try hard to find the script tag that loaded widget.js
+function resolveWidgetBase() {
+  var el = document.currentScript;
+  if (!el || !el.src) {
+    var scripts = document.getElementsByTagName('script');
+    for (var i = scripts.length - 1; i >= 0; i--) {
+      var src = scripts[i].getAttribute('src') || '';
+      if (/\/assets\/chat\/widget\.js(?:\?.*)?$/i.test(src)) { el = scripts[i]; break; }
+    }
+  }
+  var src = (el && el.src) || '';
+
+  // Expected: https(s)://<host>/<repo>/chat-widget/assets/chat/widget.js
+  var m = src.match(/^(.*)\/assets\/chat\/widget\.js(?:\?.*)?$/i);
+  if (m && m[1]) return m[1];
+
+  // Fallback: strip filename (last segment)
+  if (src) return src.replace(/\/[^\/?#]+(?:\?.*)?$/, '');
+
+  // Last resort: guess from location (handles local dev)
+  // e.g., https://<host>/<repo>/index.html  -> base ~ https://<host>/<repo>/chat-widget
+  var locBase = window.location.origin + window.location.pathname.replace(/\/index\.html?$/i, '');
+  return locBase.replace(/\/$/, '');
+}
+
+function toAbsolute(url, base) {
+  try { return new URL(url, base).toString(); } catch (e) { return url; }
+}
+
+function loadConfig() {
+  var base = resolveWidgetBase();                 // .../chat-widget
+  var cfgUrl = base + '/assets/chat/config.json'; // .../chat-widget/assets/chat/config.json
+  var sysUrl = base + '/assets/chat/system.md';   // default system if config omits it
+
+  return safeFetch(cfgUrl, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .catch(function () { return {}; })
+    .then(function (fileCfg) {
+      // DEFAULT_CONFIG should exist in your file; fall back to {} if not
+      var merged = shallowMerge(typeof DEFAULT_CONFIG === 'object' ? DEFAULT_CONFIG : {}, fileCfg || {});
+
+      // Ensure URLs are present and absolute (subpath-safe)
+      if (!merged.systemUrl) merged.systemUrl = sysUrl;
+      if (merged.systemUrl) merged.systemUrl = toAbsolute(merged.systemUrl, base);
+      if (merged.workerUrl) merged.workerUrl = toAbsolute(merged.workerUrl, base);
+
+      // Optional brand defaults (do not overwrite if provided)
+      merged.brand = merged.brand || {};
+      if (!merged.brand.accent) merged.brand.accent = '#3e5494';
+      if (!merged.brand.radius) merged.brand.radius = '14px';
+
+      CONFIG = merged;
+      return merged;
+    });
+}
 
 var TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
