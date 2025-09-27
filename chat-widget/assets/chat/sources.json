@@ -1,0 +1,9 @@
+{
+  "maxBytesPerSource": 12000,
+  "sources": [
+    { "title": "Home",         "url": "/index.html" },
+    { "title": "Dashboards",   "url": "/recruitment-funnel.html" },
+    { "title": "Case Study",   "url": "/predictive_attrition_case_study.html" },
+    { "title": "Resume (Text)","url": "/assets/resume/resume.txt" }
+  ]
+}
