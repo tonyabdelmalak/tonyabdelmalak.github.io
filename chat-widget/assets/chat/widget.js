@@ -164,7 +164,7 @@ function deriveSourcesFromPersona(persona) {
     if (links.home)       out.push({ title: "Home",       url: links.home });
     if (links.dashboards) out.push({ title: "Dashboards", url: links.dashboards });
     if (links.caseStudies)out.push({ title: "Case Study", url: links.caseStudies });
-    if (links.resume)     out.push({ title: "Resume",     url: links.resume }); // PDF may be skipped by loader (harmless)
+    if (links.resume)     out.push({ title: "Resume",     url: links.resume }); // PDF will be skipped but harmless
     return out;
   } catch (e) {
     return [];
@@ -242,7 +242,6 @@ function chunkText(s, size, overlap) {
 /*
   Improvements:
   - Treat "*" and "•" as bullets.
-  - Catch inline bullet labels like "- Predictive staffing models:" and render as list items.
   - Escape all content before formatting.
   - Deduplicate consecutive duplicate bullets.
   - Normalize intros like "Some highlights include".
@@ -254,9 +253,8 @@ function formatAssistant(text) {
   // Normalize whitespace and bullets
   t = t.replace(/\r\n/g, "\n")
        .replace(/\t/g, " ")
-       .replace(/\u2022/g, "- ")           // • → -
-       .replace(/^\*\s+/gm, "- ")          // leading "*" → "-"
-       .replace(/^\s*[-*]\s+([A-Z].+?:)/gm, "- $1") // inline label bullets → bullets
+       .replace(/\u2022/g, "- ")    // • → -
+       .replace(/^\*\s+/gm, "- ")   // * → -
        .replace(/\s{2,}/g, " ")
        .replace(/\n{3,}/g, "\n\n");
 
@@ -269,9 +267,9 @@ function formatAssistant(text) {
   t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
                 '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
-  var lines = t.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
-  var hasBullets = lines.some(function (l) { return /^[-*]\s+/.test(l); });
-  var hasNumbers = lines.some(function (l) { return /^\d+\.\s+/.test(l); });
+  var lines = t.split("\n").map(collapse).filter(Boolean);
+  var hasBullets = lines.some(l => /^[-*]\s+/.test(l));
+  var hasNumbers = lines.some(l => /^\d+\.\s+/.test(l));
 
   // ===== Path A: lists =====
   if (hasBullets || hasNumbers) {
@@ -283,7 +281,7 @@ function formatAssistant(text) {
     var introText = normalizeIntro(collapse(intro.join(" ")));
 
     var rawItems = (firstListIdx >= 0 ? lines.slice(firstListIdx) : [])
-      .filter(function (l) { return /^([-*]|\d+\.)\s+/.test(l); })
+      .filter(l => /^([-*]|\d+\.)\s+/.test(l))
       .slice(0, 8);
 
     var seen = new Set();
@@ -307,9 +305,9 @@ function formatAssistant(text) {
   }
 
   // ===== Path B: labeled lines =====
-  var labeled = lines.filter(function (s) {
-    return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s);
-  });
+  var labeled = lines.filter(s =>
+    /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s)
+  );
 
   if (labeled.length >= 1) {
     var introLines = [];
@@ -341,7 +339,7 @@ function formatAssistant(text) {
 
   // ===== Path C: fallback =====
   var sentences = t.split(/(?:\.\s+|\n{2,})/).map(collapse).filter(Boolean).slice(0, 3);
-  return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
+  return sentences.map(s => "<p>" + s + "</p>").join("");
 }
 
 // Remove boilerplate intros
@@ -358,7 +356,7 @@ function normalizeIntro(s) {
   return s;
 }
 
-// Smarter label handling (expects escaped input)
+// Smarter label handling
 function labelizeHTML(s) {
   s = s.replace(/^(.{2,80}?)\s+I built\b/i, "$1: I built");
   s = s.replace(/^(.{2,80}?)\s*[—-]\s+/i, "$1: ");
@@ -371,18 +369,22 @@ function labelizeHTML(s) {
 
 function collapse(s) { return (s || "").replace(/\s{2,}/g, " ").trim(); }
 
-// Safer HTML → text (used before pushing to HISTORY)
 function stripHtml(html) {
   try {
     var doc = new DOMParser().parseFromString(String(html || ""), "text/html");
     ["script","style","noscript","template","iframe"].forEach(function(sel){
       doc.querySelectorAll(sel).forEach(function(n){ n.remove(); });
     });
-    return (doc.body.textContent || "").replace(/\s{2,}/g, " ").trim();
+    return (doc.body.textContent || "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
   } catch (e) {
+    // Fallback to the old approach if DOMParser isn't available
     var tmp = document.createElement("div");
     tmp.innerHTML = String(html || "");
-    return (tmp.textContent || tmp.innerText || "").replace(/\s{2,}/g, " ").trim();
+    return (tmp.textContent || tmp.innerText || "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
   }
 }
 
