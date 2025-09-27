@@ -250,3 +250,77 @@ function buildShell(cfg, mount) {
         <button class="cw-close" id="cw-close" aria-label="Close">✕</button>
         <h3 class="cw-title" id="cw-title">${escapeHtml(cfg.title || "Thanks for taking the time to chat. What's on your mind?")}</h3>
         <p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>
+      </div>
+      <div class="cw-body">
+        <div class="cw-scroll" id="cw-scroll"></div>
+        <div class="cw-note" id="cw-note"></div>
+        <form class="cw-input" id="cw-form">
+          <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…" />
+          <button class="cw-send" id="cw-send" type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  return {
+    launcher: mount.querySelector('#cw-launch'),
+    panel: mount.querySelector('#cw-panel'),
+    closeBtn: mount.querySelector('#cw-close'),
+    scroll: mount.querySelector('#cw-scroll'),
+    note: mount.querySelector('#cw-note'),
+    form: mount.querySelector('#cw-form'),
+    input: mount.querySelector('#cw-text'),
+    send: mount.querySelector('#cw-send')
+  };
+}
+
+function addUser(mount, text) {
+  const row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addError(noteEl, msg) {
+  noteEl.textContent = msg;
+  setTimeout(() => (noteEl.textContent = ''), 6000);
+}
+
+function showTyping(mount) {
+  const row = document.createElement('div');
+  row.className = 'cw-row bot';
+  row.innerHTML = `
+    <div class="cw-bubble">
+      <span class="cw-typing">
+        <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>
+      </span>
+    </div>`;
+  mount.appendChild(row);
+  scrollToEnd(mount);
+  return () => row.remove();
+}
+
+function scrollToEnd(el) {
+  el.scrollTop = el.scrollHeight;
+}
+
+function escapeHtml(s='') {
+  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function fetchSystem(url) {
+  if (!url) return '';
+  try {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) return '';
+    const text = await r.text();
+    return (text || '').toString().slice(0, 12000); // trim for safety
+  } catch {
+    return '';
+  }
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
