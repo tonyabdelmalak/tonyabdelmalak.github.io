@@ -14,10 +14,10 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/img/profile-img.jpg"; // unchanged
-var HISTORY = [];                // only user/assistant turns
-var __TONY_PERSONA__ = {};       // from persona.json (your schema)
-var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.links
+var TONY_AVATAR_URL = "/assets/img/profile-img.jpg";
+var HISTORY = [];
+var __TONY_PERSONA__ = {};
+var __TONY_SOURCES__ = [];
 
 /* ===================== Boot ===================== */
 
@@ -27,7 +27,6 @@ var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.li
     loadConfig().then(function (cfg) {
       applyTheme(cfg);
       fetchSystem(cfg.systemUrl).then(function (system) {
-        // Load persona + sources (both optional; safe if missing)
         Promise.all([
           fetchJSON('/chat-widget/assets/chat/persona.json').catch(function(){ return {}; }),
           fetchJSON('/chat-widget/assets/chat/sources.json').catch(function(){ return {}; })
@@ -35,8 +34,6 @@ var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.li
           __TONY_PERSONA__ = arr[0] || {};
           var sourcesCfg = arr[1] || {};
           var fromFile = Array.isArray(sourcesCfg.sources) ? sourcesCfg.sources : [];
-
-          // If sources.json missing/empty, derive from persona.links automatically
           var derived = deriveSourcesFromPersona(__TONY_PERSONA__);
           var effectiveSources = (fromFile.length ? fromFile : derived);
 
@@ -102,14 +99,14 @@ var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.li
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     message: text,
-                    system: system,                   // system sent separately (not in HISTORY)
+                    system: system,
                     model: cfg.model,
                     temperature: cfg.temperature,
                     history: HISTORY.slice(-12),
                     context: {
-                      persona: __TONY_PERSONA__,     // your schema as-is
-                      sources: __TONY_SOURCES__,     // site pages/resume (text-chunked)
-                      creative_mode: true            // hint to be creative but grounded
+                      persona: __TONY_PERSONA__,
+                      sources: __TONY_SOURCES__,
+                      creative_mode: true
                     }
                   })
                 })
@@ -129,7 +126,7 @@ var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.li
                   HISTORY.push({ role: "assistant", content: stripHtml(html) });
                 })
                 .catch(function (err) {
-                  addError(ui.note, "Network error: " + String(err && err.message || err));
+                  addError(ui.note, "Network error: " + String((err && err.message) || err));
                 })
                 .finally(function () {
                   stopTyping();
@@ -160,18 +157,17 @@ function deriveSourcesFromPersona(persona) {
   try {
     var out = [];
     var links = (persona && persona.links) || {};
-    // Only same-origin paths are useful here:
     if (links.home)       out.push({ title: "Home",       url: links.home });
     if (links.dashboards) out.push({ title: "Dashboards", url: links.dashboards });
     if (links.caseStudies)out.push({ title: "Case Study", url: links.caseStudies });
-    if (links.resume)     out.push({ title: "Resume",     url: links.resume }); // PDF may be skipped by loader (harmless)
+    if (links.resume)     out.push({ title: "Resume",     url: links.resume });
     return out;
   } catch (e) {
     return [];
   }
 }
 
-/* ===================== Retrieval helpers (RAG-lite, safe) ===================== */
+/* ===================== Retrieval helpers ===================== */
 
 function fetchJSON(url) {
   return safeFetch(url, { cache: 'no-store' })
@@ -179,7 +175,6 @@ function fetchJSON(url) {
     .catch(function () { return {}; });
 }
 
-// Accepts an array of {title,url}; fetches each, extracts text for HTML/plain, skips others (e.g., PDFs)
 function loadSources(sourcesList, maxBytesPerSource) {
   var list = Array.isArray(sourcesList) ? sourcesList : [];
   if (!list.length) return Promise.resolve([]);
@@ -194,7 +189,6 @@ function loadSources(sourcesList, maxBytesPerSource) {
         var ct = (r.headers.get('content-type') || '').toLowerCase();
         if (ct.includes('text/html'))      return r.text().then(htmlToText);
         if (ct.includes('text/plain') || ct.includes('text/markdown')) return r.text();
-        // PDFs and others are skipped (no error)
         return "";
       })
       .then(function (txt) {
@@ -240,25 +234,32 @@ function chunkText(s, size, overlap) {
 
 /* ===================== Conversational Formatter ===================== */
 /*
-  Improvements:
-  - Treat "*" and "•" as bullets.
-  - Catch inline bullet labels like "- Predictive staffing models:" and render as list items.
-  - Escape all content before formatting.
-  - Deduplicate consecutive duplicate bullets.
-  - Normalize intros like "Some highlights include".
-  - Smarter "Label: detail" parsing.
+  Changes:
+  - Force "Follow-up:" to start a new bullet/line, even when inline.
+  - Keep "Follow-up:" as its own labeled item (no merging with the next case study).
+  - Normalize bullet/label rendering and strip duplicate intros.
 */
 function formatAssistant(text) {
   var t = (text || "").trim();
 
-  // Normalize whitespace and bullets
-  t = t.replace(/\r\n/g, "\n")
-       .replace(/\t/g, " ")
-       .replace(/\u2022/g, "- ")           // • → -
-       .replace(/^\*\s+/gm, "- ")          // leading "*" → "-"
-       .replace(/^\s*[-*]\s+([A-Z].+?:)/gm, "- $1") // inline label bullets → bullets
-       .replace(/\s{2,}/g, " ")
+  // --- PRE-NORMALIZE ---
+  t = t.replace(/\r\n/g, "\n").replace(/\t/g, " ");
+
+  // If "Follow-up" appears mid-line, break it into its own bullet.
+  // Examples handled: "…visibility. Follow-up: Want a quick…" OR "…visibility — Follow up - Want…"
+  t = t.replace(/(?:\s+|\s*[-–—]\s*)Follow-?\s?up\s*[:–—-]\s*/gi, "\n- Follow-up: ");
+
+  // Bullet normalization
+  t = t.replace(/\u2022/g, "- ")         // • → -
+       .replace(/^\*\s+/gm, "- ")        // leading "*" → "-"
+       .replace(/^\s*[-*]\s+([A-Z].+?:)/gm, "- $1")
        .replace(/\n{3,}/g, "\n\n");
+
+  // Remove duplicate "- - "
+  t = t.replace(/^- -\s+/gm, "- ");
+
+  // Remove noisy intros that get repeated by models
+  t = t.replace(/^Some highlights include\s*[—:-]?\s*/gim, "Here are a few highlights:\n");
 
   // Escape first
   t = escapeHtml(t);
@@ -284,7 +285,7 @@ function formatAssistant(text) {
 
     var rawItems = (firstListIdx >= 0 ? lines.slice(firstListIdx) : [])
       .filter(function (l) { return /^([-*]|\d+\.)\s+/.test(l); })
-      .slice(0, 8);
+      .slice(0, 10);
 
     var seen = new Set();
     var items = rawItems.map(function (l) {
@@ -322,12 +323,16 @@ function formatAssistant(text) {
     var introText2 = normalizeIntro(collapse(introLines.join(" ")));
 
     var seen2 = new Set();
-    var bullets = labeled.slice(0, 6).map(function (s) {
-      var lbl  = s.split(":")[0].trim();
-      var body = s.split(":").slice(1).join(":").trim().replace(/\.$/, "");
-      var itemHtml = (introText2 && lbl.toLowerCase() === introText2.toLowerCase())
-        ? collapse(body)
+    var bullets = labeled.slice(0, 8).map(function (s) {
+      var idx = s.indexOf(":");
+      var lbl  = s.slice(0, idx).trim();
+      var body = s.slice(idx + 1).trim().replace(/\.$/, "");
+
+      // Keep Follow-up as its own label (no em dash merge with next study)
+      var itemHtml = (lbl.toLowerCase() === "follow-up" || lbl.toLowerCase() === "follow-up")
+        ? "<strong>Follow-up:</strong> " + collapse(body)
         : "<strong>" + lbl + "</strong> — " + collapse(body);
+
       var key = itemHtml.toLowerCase();
       if (seen2.has(key)) return null;
       seen2.add(key);
@@ -344,22 +349,26 @@ function formatAssistant(text) {
   return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
 }
 
-// Remove boilerplate intros
 function normalizeIntro(s) {
   s = collapse(s || "");
   if (!s) return s;
   s = s.replace(/^Some highlights include\s*[—:-]?\s*/i, "");
-  s = s.replace(/^Here (are|'re) (a few )?highlights\s*[—:-]?\s*/i, "");
-  s = s.replace(/^Highlights\s*[—:-]?\s*/i, "");
+  s = s.replace(/^Here (are|'re) (a few )?highlights\s*[—:-]?\s*/i, "Here are a few highlights:");
+  s = s.replace(/^Highlights\s*[—:-]?\s*/i, "Here are a few highlights:");
   if (s.length > 160) {
     var sents = s.split(/(?:\.\s+|\n{2,})/).slice(0, 2).join(". ");
-    s = s || s.slice(0, 160);
+    s = sents || s.slice(0, 160);
   }
   return s;
 }
 
 // Smarter label handling (expects escaped input)
 function labelizeHTML(s) {
+  // Keep Follow-up clean if it slipped through as plain text
+  if (/^follow-?\s?up\s*[:]/i.test(s)) {
+    return "<strong>Follow-up:</strong> " + collapse(s.replace(/^follow-?\s?up\s*[:]\s*/i, ""));
+  }
+  // Normalize common "Label —" into "Label: "
   s = s.replace(/^(.{2,80}?)\s+I built\b/i, "$1: I built");
   s = s.replace(/^(.{2,80}?)\s*[—-]\s+/i, "$1: ");
   var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
@@ -371,7 +380,6 @@ function labelizeHTML(s) {
 
 function collapse(s) { return (s || "").replace(/\s{2,}/g, " ").trim(); }
 
-// Safer HTML → text (used before pushing to HISTORY)
 function stripHtml(html) {
   try {
     var doc = new DOMParser().parseFromString(String(html || ""), "text/html");
@@ -517,7 +525,6 @@ function addUser(mount, text) {
 /* ===================== Config, System, Net ===================== */
 
 function loadConfig() {
-  // Absolute path first; on subpaths, retry relative.
   return fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
     .then(function (res) {
       if (res.ok) return res.json();
@@ -585,7 +592,6 @@ function fetchSystem(url) {
 function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
 function safeFetch(url, options) {
-  // Try absolute; if network fails, retry relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
