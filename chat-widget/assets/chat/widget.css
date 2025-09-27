@@ -1,68 +1,197 @@
-/* Conversational “topics” bubbles */
-.tny-chat {
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  line-height: 1.5;
-  color: #0f172a;
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 12px 16px;
+:root {
+  --chat-accent: #4f46e5;      /* overwritten by JS from config.accent */
+  --chat-radius: 14px;         /* overwritten by JS from config.radius */
+  --chat-shadow: 0 10px 36px rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.12);
+  --chat-bg: #ffffff;
+  --chat-fg: #0f172a;
+  --chat-muted: #64748b;
+  --chat-border: #4a64a5;
+  --chat-user: #eef2ff;        /* user bubble */
+  --chat-bot: #f8fafc;         /* bot bubble */
 }
 
-.tny-bubble {
-  display: inline-block;
-  padding: 12px 14px;
-  border-radius: 16px;
-  margin: 8px 0;
-  box-shadow: 0 4px 14px rgba(2, 6, 23, 0.08);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chat-bg: #0b1220;
+    --chat-fg: #e5e7eb;
+    --chat-muted: #9aa4b2;
+    --chat-border: #1f2a44;
+    --chat-user: #101a34;
+    --chat-bot: #0f1a2b;
+  }
 }
 
-.tny-bubble--you {
-  background: #f1f5f9;
-  align-self: flex-start;
+/* ---------- Launcher button ---------- */
+.cw-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2147483646;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border: none;
+  border-radius: 999px;
+  background: var(--chat-accent);
+  color: #fff;
+  box-shadow: var(--chat-shadow);
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .2s ease;
+}
+.cw-launcher:hover { transform: translateY(-2px); }
+.cw-launcher:active { transform: translateY(0); }
+.cw-launcher:disabled { opacity:.6; cursor:not-allowed; }
+
+.cw-launcher svg { width: 28px; height: 28px; }
+
+/* ---------- Panel shell ---------- */
+.cw-wrap {
+  position: fixed;
+  right: 22px;
+  bottom: 94px;
+  z-index: 2147483646;
+  width: 360px;
+  max-height: calc(100vh - 140px);
+  border-radius: var(--chat-radius);
+  background: var(--chat-bg);
+  color: var(--chat-fg);
+  box-shadow: var(--chat-shadow);
+  display: none;                /* toggled by JS */
+  overflow: hidden;
+  border: 1px solid var(--chat-border);
 }
 
-.tny-bubble--tony {
-  background: #eef2ff;
-  border: 1px solid #4a64a5;   /* border color you liked */
+@media (max-width: 480px) {
+  .cw-wrap {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 88px;
+    max-height: calc(100vh - 120px);
+  }
 }
 
-.tny-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
+/* ---------- Header ---------- */
+.cw-head {
+  position: relative;
+  background: linear-gradient(135deg, var(--chat-accent), color-mix(in oklab, var(--chat-accent) 70%, #111 30%));
+  color: #fff;
+  padding: 14px 16px;
 }
-
-.tny-row--you { justify-content: flex-start; }
-.tny-row--tony { justify-content: flex-start; }
-
-.tny-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex: 0 0 36px;
-  background: #c7d2fe;
-  border: 2px solid #3457b1;    /* inner box color you picked */
-  background-size: cover;
-  background-position: center;
-}
-
-.tny-content { max-width: 680px; }
-
-.tny-content h4 {
-  margin: 0 0 6px 0;
-  font-size: 15px;              /* <- fixed typo */
+.cw-title {
   font-weight: 700;
-  color: #1e293b;
+  letter-spacing:.2px;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+.cw-sub {
+  margin: 0;
+  opacity: .9;
+  font-size: 12px;
 }
 
-.tny-content p {
-  margin: 6px 0;
+.cw-close {
+  position:absolute;
+  right:10px; top:10px;
+  width:34px; height:34px;
+  border:none; border-radius:999px;
+  display:inline-flex; align-items:center; justify-content:center;
+  background: rgba(255,255,255,.22);
+  color:#fff; cursor:pointer;
+  transition: background .15s ease, transform .15s ease;
+}
+.cw-close:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
+
+/* ---------- Body / messages ---------- */
+.cw-body {
+  display:flex;
+  flex-direction:column;
+  height: 420px;
+  background: var(--chat-bg);
+}
+.cw-scroll {
+  padding: 14px 14px 6px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.tny-list { margin: 6px 0; padding-left: 18px; }
-.tny-list li { margin: 6px 0; }
+/* bubbles */
+.cw-row { display:flex; gap:10px; }
+.cw-row.user { justify-content:flex-end; }
 
-/* Optional: a subtle separator when we inject the topics block inside cw-scroll */
-.tny-section-sep {
-  height: 8px;
+.cw-bubble {
+  max-width: 86%;
+  border-radius: calc(var(--chat-radius) - 6px);
+  padding: 10px 12px;
+  line-height: 1.45;
+  border: 1px solid var(--chat-border);
+  font-size: 14px;
+
+  /* keep formatting robust */
+  white-space: pre-wrap;     /* keeps \n visible */
+  overflow-wrap: anywhere;   /* breaks long words/URLs */
+  word-break: break-word;    /* extra safety on older engines */
 }
+
+.cw-row.bot .cw-bubble { background: var(--chat-bot); }
+.cw-row.user .cw-bubble {
+  background: var(--chat-user);
+  border-color: color-mix(in srgb, var(--chat-accent) 30%, var(--chat-border));
+}
+
+/* ---------- Input row ---------- */
+.cw-input {
+  display:flex;
+  gap:10px;
+  padding: 10px;
+  border-top: 1px solid var(--chat-border);
+  background: color-mix(in srgb, var(--chat-bg) 92%, #000 8%);
+}
+.cw-input input[type="text"] {
+  flex:1;
+  outline:none;
+  border:1px solid var(--chat-border);
+  background: var(--chat-bg);
+  color: var(--chat-fg);
+  border-radius: calc(var(--chat-radius) - 6px);
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.cw-send {
+  min-width: 90px;
+  border:none;
+  border-radius: calc(var(--chat-radius) - 6px);
+  background: var(--chat-accent);
+  color:#fff; font-weight:600;
+  padding: 10px 14px;
+  cursor:pointer;
+  transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+}
+.cw-send:hover { transform: translateY(-1px); }
+.cw-send:disabled { opacity:.6; cursor:not-allowed; }
+
+/* ---------- System row (errors, tips) ---------- */
+.cw-note {
+  margin: 8px 14px 0;
+  font-size: 12px;
+  color: var(--chat-muted);
+}
+
+/* ---------- Typing dots ---------- */
+.cw-typing {
+  display:inline-flex; gap:3px; align-items:center;
+}
+.cw-dot {
+  width:6px; height:6px; border-radius:999px; background: var(--chat-muted);
+  animation: cw-blink 1s infinite ease-in-out;
+}
+.cw-dot:nth-child(2){ animation-delay:.15s }
+.cw-dot:nth-child(3){ animation-delay:.3s }
+@keyframes cw-blink { 0%,80%,100%{opacity:.35} 40%{opacity:1} }
+
+/* ---------- Utility ---------- */
+.cw-hidden { display:none !important; }
