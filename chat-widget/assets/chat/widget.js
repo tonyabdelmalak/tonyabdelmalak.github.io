@@ -145,7 +145,9 @@ function boot() {
             HISTORY.push({ role: "assistant", content: stripHtml(fmt.fullHtml || fmt.html) });
           })
           .catch(function (err) {
-            addError(ui.note, "Network error: " + String(err && err.message || err));
+            var msg = "Network error: " + String((err && err.message) || err);
+            addError(ui.note, msg);          // keep visible in the note area
+            addAssistant(ui.scroll, msg);    // also show as a chat bubble
           })
           .finally(function () {
             stopTyping();
@@ -497,8 +499,9 @@ function buildShell(cfg, mount) {
 /* ===================== Utilities ===================== */
 
 function addError(noteEl, msg) {
+  // Make errors sticky (don’t auto-clear); the next successful send can clear this explicitly if desired.
   noteEl.textContent = msg;
-  setTimeout(function () { noteEl.textContent = ''; }, 6000);
+}, 6000);
 }
 
 function showTyping(mount) {
