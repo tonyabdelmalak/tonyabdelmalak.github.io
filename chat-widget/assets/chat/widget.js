@@ -1,7 +1,7 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
-// Adds: consistent formatting, optional persona + site-source context (RAG-lite),
-// avatar launcher, and robust response parsing. Structure/paths unchanged.
+// Consistent formatting + optional persona/sources context (RAG-lite).
+// Keeps your existing folder tree & paths intact.
 
 /* ===================== Config & State ===================== */
 
@@ -14,10 +14,10 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/img/profile-img.jpg"; // keep as-is (rooted on your domain)
+var TONY_AVATAR_URL = "/assets/img/profile-img.jpg"; // unchanged
 var HISTORY = [];                // only user/assistant turns
-var __TONY_PERSONA__ = {};       // optional, from persona.json
-var __TONY_SOURCES__ = [];       // optional, from sources.json (RAG-lite)
+var __TONY_PERSONA__ = {};       // from persona.json (your schema)
+var __TONY_SOURCES__ = [];       // from sources.json OR derived from persona.links
 
 /* ===================== Boot ===================== */
 
@@ -27,139 +27,125 @@ var __TONY_SOURCES__ = [];       // optional, from sources.json (RAG-lite)
     loadConfig().then(function (cfg) {
       applyTheme(cfg);
       fetchSystem(cfg.systemUrl).then(function (system) {
-        // IMPORTANT: do NOT push system into HISTORY to avoid double-apply
-
-        // Load persona + sources in parallel (both optional; safe if missing)
+        // Load persona + sources (both optional; safe if missing)
         Promise.all([
           fetchJSON('/chat-widget/assets/chat/persona.json').catch(function(){ return {}; }),
-          loadSources('/chat-widget/assets/chat/sources.json').catch(function(){ return []; })
+          fetchJSON('/chat-widget/assets/chat/sources.json').catch(function(){ return {}; })
         ]).then(function (arr) {
           __TONY_PERSONA__ = arr[0] || {};
-          __TONY_SOURCES__ = arr[1] || [];
+          var sourcesCfg = arr[1] || {};
+          var fromFile = Array.isArray(sourcesCfg.sources) ? sourcesCfg.sources : [];
 
-          var ui = buildShell(cfg, mount);
+          // If sources.json missing/empty, derive from persona.links automatically
+          var derived = deriveSourcesFromPersona(__TONY_PERSONA__);
+          var effectiveSources = (fromFile.length ? fromFile : derived);
 
-          // === Avatar launcher (Tony's face + tiny bubble) ===
-          ui.launcher.classList.add('cw-launcher--avatar');
-          ui.launcher.innerHTML = `
-            <div class="cw-avatar-wrapper" aria-label="Open chat with Tony">
-              <img src="${TONY_AVATAR_URL}" alt="Tony" class="cw-avatar-img" />
-              <div class="cw-avatar-bubble" title="Chat">💬</div>
-            </div>
-          `;
+          loadSources(effectiveSources, (sourcesCfg && sourcesCfg.maxBytesPerSource) || 12000)
+            .then(function (loadedSources) {
+              __TONY_SOURCES__ = loadedSources || [];
 
-          // Inject minimal styles (launcher + Topics view)
-          (function () {
-            if (document.querySelector('style[data-cw-avatar-styles]')) return;
-            var css = `
-              .cw-launcher--avatar{width:auto;height:auto;padding:0;border:0;background:transparent;box-shadow:none;border-radius:999px}
-              .cw-avatar-wrapper{position:relative;display:inline-block;cursor:pointer;line-height:0}
-              .cw-avatar-img{width:64px;height:64px;border-radius:999px;object-fit:cover;box-shadow:0 6px 16px rgba(0,0,0,.25);display:block}
-              .cw-avatar-bubble{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#3e5494;color:#fff;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);transform:translateZ(0)}
-              .cw-hidden.cw-launcher--avatar{display:none!important}
-              /* Topics microview */
-              .tny-section-sep{height:1px;background:#eee;margin:12px 0}
-              .tny-chat{margin:12px 0}
-              .tny-row{display:flex;gap:10px;margin:10px 0;align-items:flex-start}
-              .tny-row--tony .tny-avatar{width:32px;height:32px;border-radius:999px;background-size:cover;background-position:center;flex:0 0 auto}
-              .tny-bubble{background:#f7f7fb;border:1px solid #e5e7eb;padding:10px 12px;border-radius:12px;max-width:640px}
-              .tny-content h4{margin:0 0 4px 0;font-size:14px}
-              .tny-content p{margin:0;font-size:13px;line-height:1.4}
-            `;
-            var s = document.createElement('style');
-            s.setAttribute('data-cw-avatar-styles', 'true');
-            s.textContent = css;
-            document.head.appendChild(s);
-          })();
+              var ui = buildShell(cfg, mount);
 
-          if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
+              // Avatar launcher
+              ui.launcher.classList.add('cw-launcher--avatar');
+              ui.launcher.innerHTML = `
+                <div class="cw-avatar-wrapper" aria-label="Open chat with Tony">
+                  <img src="${TONY_AVATAR_URL}" alt="Tony" class="cw-avatar-img" />
+                  <div class="cw-avatar-bubble" title="Chat">💬</div>
+                </div>
+              `;
 
-          // open/close
-          ui.launcher.addEventListener('click', function () {
-            ui.panel.style.display = 'block';
-            ui.launcher.classList.add('cw-hidden');
-            ui.input.focus();
-          });
-          ui.closeBtn.addEventListener('click', function () {
-            ui.panel.style.display = 'none';
-            ui.launcher.classList.remove('cw-hidden');
-          });
+              injectStyles();
 
-          // submit
-          ui.form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            var text = (ui.input.value || "").trim();
-            if (!text) return;
+              if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
 
-            addUser(ui.scroll, text);
-            HISTORY.push({ role: "user", content: text });
-            ui.input.value = "";
-            ui.input.focus();
-
-            // Local /topics shortcut
-            if (wantsTopics(text)) {
-              var stopTypingLocal = showTyping(ui.scroll);
-              sleep(250).then(function () {
-                stopTypingLocal();
-                renderTopicsInto(ui.scroll);
-                HISTORY.push({ role: "assistant", content: "Here are topics I’m happy to cover." });
-                scrollToEnd(ui.scroll);
+              // open/close
+              ui.launcher.addEventListener('click', function () {
+                ui.panel.style.display = 'block';
+                ui.launcher.classList.add('cw-hidden');
+                ui.input.focus();
               });
-              return;
-            }
+              ui.closeBtn.addEventListener('click', function () {
+                ui.panel.style.display = 'none';
+                ui.launcher.classList.remove('cw-hidden');
+              });
 
-            var stopTyping = showTyping(ui.scroll);
-            ui.send.disabled = true;
+              // submit
+              ui.form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var text = (ui.input.value || "").trim();
+                if (!text) return;
 
-            // Send to Worker
-            safeFetch(cfg.workerUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: text,
-                system: system,                         // system sent separately (not in HISTORY)
-                model: cfg.model,
-                temperature: cfg.temperature,
-                history: HISTORY.slice(-12),
-                context: {
-                  persona: __TONY_PERSONA__,           // optional
-                  sources: __TONY_SOURCES__,           // optional (site pages/resume chunks)
-                  creative_mode: true                  // hint: be creative, but ground in sources
+                addUser(ui.scroll, text);
+                HISTORY.push({ role: "user", content: text });
+                ui.input.value = "";
+                ui.input.focus();
+
+                // Local /topics shortcut
+                if (wantsTopics(text)) {
+                  var stopTypingLocal = showTyping(ui.scroll);
+                  sleep(250).then(function () {
+                    stopTypingLocal();
+                    renderTopicsInto(ui.scroll);
+                    HISTORY.push({ role: "assistant", content: "Here are topics I’m happy to cover." });
+                    scrollToEnd(ui.scroll);
+                  });
+                  return;
                 }
-              })
-            })
-            .then(function (res) {
-              if (res.ok) return res.json().catch(function(){ return {}; });
-              return res.text().then(function (txt) { throw new Error("HTTP " + res.status + ": " + txt); });
-            })
-            .then(function (data) {
-              var raw =
-                (data && (data.text || data.reply || data.message || data.content)) ||
-                (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
-                "";
-              if (!raw) return addError(ui.note, "Error: invalid response");
 
-              var html = formatAssistant(raw);
-              addAssistantHTML(ui.scroll, html);
-              HISTORY.push({ role: "assistant", content: stripHtml(html) });
-            })
-            .catch(function (err) {
-              addError(ui.note, "Network error: " + String(err && err.message || err));
-            })
-            .finally(function () {
-              stopTyping();
-              ui.send.disabled = false;
-              scrollToEnd(ui.scroll);
+                var stopTyping = showTyping(ui.scroll);
+                ui.send.disabled = true;
+
+                // Send to Worker
+                safeFetch(cfg.workerUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    message: text,
+                    system: system,                   // system sent separately (not in HISTORY)
+                    model: cfg.model,
+                    temperature: cfg.temperature,
+                    history: HISTORY.slice(-12),
+                    context: {
+                      persona: __TONY_PERSONA__,     // your schema as-is
+                      sources: __TONY_SOURCES__,     // site pages/resume (text-chunked)
+                      creative_mode: true            // hint to be creative but grounded
+                    }
+                  })
+                })
+                .then(function (res) {
+                  if (res.ok) return res.json().catch(function(){ return {}; });
+                  return res.text().then(function (txt) { throw new Error("HTTP " + res.status + ": " + txt); });
+                })
+                .then(function (data) {
+                  var raw =
+                    (data && (data.text || data.reply || data.message || data.content)) ||
+                    (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ||
+                    "";
+                  if (!raw) return addError(ui.note, "Error: invalid response");
+
+                  var html = formatAssistant(raw);
+                  addAssistantHTML(ui.scroll, html);
+                  HISTORY.push({ role: "assistant", content: stripHtml(html) });
+                })
+                .catch(function (err) {
+                  addError(ui.note, "Network error: " + String(err && err.message || err));
+                })
+                .finally(function () {
+                  stopTyping();
+                  ui.send.disabled = false;
+                  scrollToEnd(ui.scroll);
+                });
+              });
+
+              // Enter to send, Shift+Enter newline
+              ui.input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  ui.form.dispatchEvent(new Event('submit'));
+                }
+              });
             });
-          });
-
-          // Enter to send, Shift+Enter newline
-          ui.input.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              ui.form.dispatchEvent(new Event('submit'));
-            }
-          });
         });
       });
     });
@@ -168,40 +154,110 @@ var __TONY_SOURCES__ = [];       // optional, from sources.json (RAG-lite)
   }
 })();
 
+/* ===================== Derive sources from persona.links ===================== */
+
+function deriveSourcesFromPersona(persona) {
+  try {
+    var out = [];
+    var links = (persona && persona.links) || {};
+    // Only same-origin paths are useful here:
+    if (links.home)       out.push({ title: "Home",       url: links.home });
+    if (links.dashboards) out.push({ title: "Dashboards", url: links.dashboards });
+    if (links.caseStudies)out.push({ title: "Case Study", url: links.caseStudies });
+    if (links.resume)     out.push({ title: "Resume",     url: links.resume }); // PDF will be skipped but harmless
+    return out;
+  } catch (e) {
+    return [];
+  }
+}
+
+/* ===================== Retrieval helpers (RAG-lite, safe) ===================== */
+
+function fetchJSON(url) {
+  return safeFetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : {}; })
+    .catch(function () { return {}; });
+}
+
+// Accepts an array of {title,url}; fetches each, extracts text for HTML/plain, skips others (e.g., PDFs)
+function loadSources(sourcesList, maxBytesPerSource) {
+  var list = Array.isArray(sourcesList) ? sourcesList : [];
+  if (!list.length) return Promise.resolve([]);
+
+  var tasks = list.map(function (item) {
+    var url = item && item.url;
+    if (!url) return Promise.resolve(null);
+
+    return fetch(url, { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error("Fetch fail " + r.status);
+        var ct = (r.headers.get('content-type') || '').toLowerCase();
+        if (ct.includes('text/html'))      return r.text().then(htmlToText);
+        if (ct.includes('text/plain') || ct.includes('text/markdown')) return r.text();
+        // PDFs and others are skipped (no error)
+        return "";
+      })
+      .then(function (txt) {
+        txt = (txt || "").replace(/\s{2,}/g, " ").trim();
+        if (!txt) return null;
+        var cap = maxBytesPerSource || 12000;
+        if (txt.length > cap) txt = txt.slice(0, cap);
+        var chunks = chunkText(txt, 1200, 200);
+        return { title: item.title || url, url: url, chunks: chunks };
+      })
+      .catch(function () { return null; });
+  });
+
+  return Promise.all(tasks).then(function (arr) { return arr.filter(Boolean); });
+}
+
+function htmlToText(html) {
+  try {
+    var doc = new DOMParser().parseFromString(html, 'text/html');
+    ['script','style','noscript','template','iframe'].forEach(function(sel){
+      doc.querySelectorAll(sel).forEach(function(n){ n.remove(); });
+    });
+    var main = doc.querySelector('main') || doc.body;
+    var text = main.textContent || "";
+    return text.replace(/\s{2,}/g, " ").trim();
+  } catch (e) {
+    return (html || "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
+  }
+}
+
+function chunkText(s, size, overlap) {
+  var out = [], i = 0, n = s.length, ov = overlap || 0;
+  if (!s) return out;
+  while (i < n) {
+    var end = Math.min(i + size, n);
+    out.push(s.slice(i, end));
+    if (end === n) break;
+    i = end - ov;
+    if (i < 0) i = 0;
+  }
+  return out;
+}
+
 /* ===================== Conversational Formatter ===================== */
-/*
-  XSS-safe steps:
-  1) Escape ALL model text.
-  2) Convert markdown bold/code/links.
-  3) If list lines (-, *, 1.) exist, render as <ul>/<ol> with a short intro.
-  4) Else, transform "Label: details" lines into bullets with <strong>Label</strong> — details.
-  5) Else, short paragraphs (no regex lookbehind).
-*/
 
 function formatAssistant(text) {
   var t = (text || "").trim();
 
-  // Normalize whitespace and bullets
   t = t.replace(/\r\n/g, "\n")
        .replace(/\t/g, " ")
        .replace(/\u2022/g, "- ")
        .replace(/\s{2,}/g, " ")
        .replace(/\n{3,}/g, "\n\n");
 
-  // Escape EVERYTHING first (so raw HTML from model can't run)
   t = escapeHtml(t);
-
-  // Light Markdown touches after escaping
-  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");                 // **bold**
-  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");                            // `code`
-  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,                     // [text](http)
-             '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
   var lines = t.split("\n").map(function (s) { return s.trim(); });
   var hasBullets = lines.some(function (l) { return /^[-*]\s+/.test(l); });
   var hasNumbers = lines.some(function (l) { return /^\d+\.\s+/.test(l); });
 
-  // Path A: If list items (bulleted or numbered), render intro + list
   if (hasBullets || hasNumbers) {
     var intro = [], firstListIdx = -1;
     for (var i = 0; i < lines.length; i++) {
@@ -230,7 +286,6 @@ function formatAssistant(text) {
     return introHtml + "<" + listTag + ">" + items + "</" + listTag + ">";
   }
 
-  // Path B: Labeled lines (“Thing: detail”) -> intro + bullets
   var labeled = lines.filter(function (s) {
     return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s);
   });
@@ -259,17 +314,10 @@ function formatAssistant(text) {
     return "<p>" + title + "</p><ul>" + bullets + "</ul>";
   }
 
-  // Path C: fallback — short paragraphs (max 3) (no lookbehind)
-  var sentences = t
-    .split(/(?:\.\s+|\n{2,})/)   // split on period+space OR blank lines
-    .map(collapse)
-    .filter(Boolean)
-    .slice(0, 3);
-
+  var sentences = t.split(/(?:\.\s+|\n{2,})/).map(collapse).filter(Boolean).slice(0, 3);
   return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
 }
 
-// Remove boilerplate openers that cause echoes
 function normalizeIntro(s) {
   s = collapse(s || "");
   if (!s) return s;
@@ -285,16 +333,12 @@ function normalizeIntro(s) {
 
 // Safe helper: expects already-escaped input, returns HTML with <strong> label
 function labelizeHTML(s) {
-  // Normalize grammar so headings always parse as "Label: detail"
   s = s.replace(/^(.{2,80}?)\s+I built\b/i, "$1: I built");
-  // If model used dash instead of colon, normalize too:
   s = s.replace(/^(.{2,80}?)\s*[—-]\s+/i, "$1: ");
-  // Standard "Label: detail" splitter
   var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
   if (!m) return s;
   var label = m[1].trim();
   var rest  = m[2].trim();
-  // Final tidy
   rest = rest.replace(/^[—:-]\s*/, "").replace(/\s{2,}/g, " ").replace(/\s+\.$/, ".");
   return "<strong>" + label + "</strong> — " + rest;
 }
@@ -356,75 +400,6 @@ function makeTopicBubble(opts) {
   row.appendChild(avatar);
   row.appendChild(bubble);
   return row;
-}
-
-/* ===================== Retrieval helpers (RAG-lite, optional) ===================== */
-
-function fetchJSON(url) {
-  return safeFetch(url, { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : {}; })
-    .catch(function () { return {}; });
-}
-
-function loadSources(sourcesJsonUrl) {
-  // Reads /chat-widget/assets/chat/sources.json if present.
-  return fetchJSON(sourcesJsonUrl).then(function (cfg) {
-    var list = (cfg && cfg.sources) || [];
-    var maxBytes = cfg && cfg.maxBytesPerSource ? cfg.maxBytesPerSource : 12000;
-    if (!list.length) return [];
-
-    var tasks = list.map(function (item) {
-      var url = item && item.url;
-      if (!url) return Promise.resolve(null);
-      var abs = url; // same-origin paths like /index.html, /about/index.html, or /assets/resume/resume.txt
-      return fetch(abs, { cache: 'no-store' })
-        .then(function (r) {
-          if (!r.ok) throw new Error("Fetch fail " + r.status);
-          var ct = (r.headers.get('content-type') || '').toLowerCase();
-          if (ct.includes('text/html')) return r.text().then(htmlToText);
-          if (ct.includes('text/plain') || ct.includes('text/markdown')) return r.text();
-          // Unknown types -> ignore (recommend .txt alongside PDFs)
-          return "";
-        })
-        .then(function (txt) {
-          txt = (txt || "").replace(/\s{2,}/g, " ").trim();
-          if (!txt) return null;
-          if (maxBytes && txt.length > maxBytes) txt = txt.slice(0, maxBytes);
-          var chunks = chunkText(txt, 1200, 200);
-          return { title: item.title || url, url: url, chunks: chunks };
-        })
-        .catch(function () { return null; });
-    });
-
-    return Promise.all(tasks).then(function (arr) { return arr.filter(Boolean); });
-  });
-}
-
-function htmlToText(html) {
-  try {
-    var doc = new DOMParser().parseFromString(html, 'text/html');
-    ['script','style','noscript','template','iframe'].forEach(function(sel){
-      doc.querySelectorAll(sel).forEach(function(n){ n.remove(); });
-    });
-    var main = doc.querySelector('main') || doc.body;
-    var text = main.textContent || "";
-    return text.replace(/\s{2,}/g, " ").trim();
-  } catch (e) {
-    return (html || "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
-  }
-}
-
-function chunkText(s, size, overlap) {
-  var out = [], i = 0, n = s.length, ov = overlap || 0;
-  if (!s) return out;
-  while (i < n) {
-    var end = Math.min(i + size, n);
-    out.push(s.slice(i, end));
-    if (end === n) break;
-    i = end - ov;
-    if (i < 0) i = 0;
-  }
-  return out;
 }
 
 /* ===================== DOM + UI ===================== */
@@ -507,7 +482,7 @@ function addUser(mount, text) {
 /* ===================== Config, System, Net ===================== */
 
 function loadConfig() {
-  // Absolute path first (works on custom domain root); if that 404s, retry relative.
+  // Absolute path first; on subpaths, retry relative.
   return fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
     .then(function (res) {
       if (res.ok) return res.json();
@@ -515,7 +490,6 @@ function loadConfig() {
         .then(function (res2) { if (res2.ok) return res2.json(); throw new Error("config.json " + res.status + " & " + res2.status); });
     })
     .catch(function () {
-      // Fallback defaults (kept aligned with your current structure)
       return {
         workerUrl: '/chat',
         title: 'Chat',
@@ -576,7 +550,7 @@ function fetchSystem(url) {
 function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
 function safeFetch(url, options) {
-  // Try absolute; if it fails (network-level), retry relative.
+  // Try absolute; if network fails, retry relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
@@ -585,4 +559,28 @@ function safeFetch(url, options) {
     } catch (e) {}
     throw new Error("fetch failed: " + url);
   });
+}
+
+/* ===================== Styles (avatar + topics) ===================== */
+
+function injectStyles () {
+  if (document.querySelector('style[data-cw-avatar-styles]')) return;
+  var css = `
+    .cw-launcher--avatar{width:auto;height:auto;padding:0;border:0;background:transparent;box-shadow:none;border-radius:999px}
+    .cw-avatar-wrapper{position:relative;display:inline-block;cursor:pointer;line-height:0}
+    .cw-avatar-img{width:64px;height:64px;border-radius:999px;object-fit:cover;box-shadow:0 6px 16px rgba(0,0,0,.25);display:block}
+    .cw-avatar-bubble{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#3e5494;color:#fff;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);transform:translateZ(0)}
+    .cw-hidden.cw-launcher--avatar{display:none!important}
+    .tny-section-sep{height:1px;background:#eee;margin:12px 0}
+    .tny-chat{margin:12px 0}
+    .tny-row{display:flex;gap:10px;margin:10px 0;align-items:flex-start}
+    .tny-row--tony .tny-avatar{width:32px;height:32px;border-radius:999px;background-size:cover;background-position:center;flex:0 0 auto}
+    .tny-bubble{background:#f7f7fb;border:1px solid #e5e7eb;padding:10px 12px;border-radius:12px;max-width:640px}
+    .tny-content h4{margin:0 0 4px 0;font-size:14px}
+    .tny-content p{margin:0;font-size:13px;line-height:1.4}
+  `;
+  var s = document.createElement('style');
+  s.setAttribute('data-cw-avatar-styles', 'true');
+  s.textContent = css;
+  document.head.appendChild(s);
 }
