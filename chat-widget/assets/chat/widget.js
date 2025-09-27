@@ -1,6 +1,7 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
-// Includes a conversational formatter (intro + bullets) and a local “topics” view.
+// Conversational formatter (intro + bullets) with optional "Show more" toggle.
+// Also includes a local “topics” view.
 
 /* ===================== Config & State ===================== */
 
@@ -15,6 +16,13 @@ const TONY_TOPICS = [
 
 var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // change if needed
 var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
+
+/* Toggle behavior: how much to show before offering "Show more" */
+var FORMAT_LIMITS = {
+  list: Infinity,       // show all bullets by default
+  sentences: Infinity,  // show all sentences by default
+  moreThresholdChars: 1400 // if formatted HTML > this, show a "Show more/less" toggle
+};
 
 /* ===================== Boot ===================== */
 
@@ -87,9 +95,9 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
             var raw = data && (data.text || data.reply || data.message);
             if (!raw) return addError(ui.note, "Error: invalid response");
 
-            var html = formatAssistant(raw);          // << fixed formatter (renders <strong>, bullets)
-            addAssistantHTML(ui.scroll, html);
-            HISTORY.push({ role: "assistant", content: stripHtml(html) });
+            var fmt = formatAssistant(raw);     // returns {html, fullHtml, truncated}
+            addAssistantFormatted(ui.scroll, fmt);
+            HISTORY.push({ role: "assistant", content: stripHtml(fmt.fullHtml || fmt.html) });
           })
           .catch(function (err) {
             addError(ui.note, "Network error: " + String(err && err.message || err));
@@ -120,10 +128,10 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
   Strategy (XSS-safe):
     1) Escape ALL model text.
     2) Convert markdown bold **text** -> <strong>text</strong>.
-    3) If there are list lines (- or *), render as <ul><li>…</li></ul>.
-    4) Else, convert "Label: details" into "<strong>Label</strong> — details".
-    5) Else, split into short paragraphs.
-  Only our generated tags (<p>, <ul>, <li>, <strong>) are injected.
+    3) If there are list lines (- or *), render as <ul><li>…</li></ul> (no cap).
+    4) Else, convert "Label: details" into "<strong>Label</strong> — details" (no cap).
+    5) Else, split into paragraphs (no cap).
+  If formatted HTML is very long, we generate a shortened version + a "Show more/less" toggle.
 */
 
 function formatAssistant(text) {
@@ -137,14 +145,17 @@ function formatAssistant(text) {
        .replace(/\n{3,}/g, "\n\n");
 
   // Escape EVERYTHING first (so raw HTML from model can't run)
-  t = escapeHtml(t);
+  var escaped = escapeHtml(t);
 
   // Convert markdown bold **text** into <strong>text</strong>
-  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  var htmlFull = "";
+  var htmlShort = "";
 
   // Path A: model already produced bullets
-  if (/^[-*]\s+/m.test(t)) {
-    var lines = t.split("\n").map(function (l) { return l.trim(); });
+  if (/^[-*]\s+/m.test(escaped)) {
+    var lines = escaped.split("\n").map(function (l) { return l.trim(); });
     var intro = [];
     var items = [];
     var inList = false;
@@ -156,36 +167,76 @@ function formatAssistant(text) {
     });
 
     var introHtml = collapse(intro.join(" ").trim());
-    var listHtml = items.slice(0, 5).map(function (it) {
+
+    var listHtmlAll = items.map(function (it) {
       it = collapse(it);
-      it = labelizeHTML(it); // adds <strong>Label</strong> — rest (both already escaped)
+      it = labelizeHTML(it); // adds <strong>Label</strong> — rest
       return "<li>" + it + "</li>";
     }).join("");
 
-    return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
+    htmlFull = (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtmlAll + "</ul>";
+
+    var listLimit = FORMAT_LIMITS.list;
+    if (isFinite(listLimit) && items.length > listLimit) {
+      var listHtmlShort = items.slice(0, listLimit).map(function (it) {
+        it = collapse(it);
+        it = labelizeHTML(it);
+        return "<li>" + it + "</li>";
+      }).join("");
+      htmlShort = (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtmlShort + "</ul>";
+    }
+  }
+  else {
+    // Path B: synthesize bullets from "Label: details"
+    var parts = escaped.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
+
+    if (labeled.length >= 2) {
+      var head = collapse(escaped.split(":")[0]);
+      if (head.length > 160) head = "Here are a few highlights:";
+
+      var bulletsAll = labeled.map(function (s) {
+        s = s.replace(/\.$/, "");
+        s = collapse(s);
+        return "<li>" + labelizeHTML(s) + "</li>";
+      }).join("");
+
+      htmlFull = "<p>" + head + "</p><ul>" + bulletsAll + "</ul>";
+
+      var listLimitB = FORMAT_LIMITS.list;
+      if (isFinite(listLimitB) && labeled.length > listLimitB) {
+        var bulletsShort = labeled.slice(0, listLimitB).map(function (s) {
+          s = s.replace(/\.$/, "");
+          s = collapse(s);
+          return "<li>" + labelizeHTML(s) + "</li>";
+        }).join("");
+        htmlShort = "<p>" + head + "</p><ul>" + bulletsShort + "</ul>";
+      }
+    } else {
+      // Path C: plain paragraphs
+      var sentencesAll = escaped.split(/(?<=\.)\s+/).map(collapse).filter(Boolean);
+      htmlFull = sentencesAll.map(function (s) { return "<p>" + s + "</p>"; }).join("");
+
+      var sentLimit = FORMAT_LIMITS.sentences;
+      if (isFinite(sentLimit) && sentencesAll.length > sentLimit) {
+        var sentencesShort = sentencesAll.slice(0, sentLimit);
+        htmlShort = sentencesShort.map(function (s) { return "<p>" + s + "</p>"; }).join("");
+      }
+    }
   }
 
-  // Path B: synthesize bullets from "Label: details"
-  var parts = t.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
-  var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
-
-  if (labeled.length >= 2) {
-    var head = collapse(t.split(":")[0]);
-    if (head.length > 160) head = "Here are a few highlights:";
-    var bullets = labeled.slice(0, 4).map(function (s) {
-      s = s.replace(/\.$/, "");
-      s = collapse(s);
-      return "<li>" + labelizeHTML(s) + "</li>";
-    }).join("");
-    return "<p>" + head + "</p><ul>" + bullets + "</ul>";
+  // Decide whether we need a toggle
+  var needsToggle = false;
+  var shortHtml = htmlFull;
+  if (htmlFull.length > FORMAT_LIMITS.moreThresholdChars && htmlShort) {
+    needsToggle = true;
+    shortHtml = htmlShort;
   }
 
-  // Path C: fallback — first 2–3 short paragraphs
-  var sentences = t.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
-  return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
+  return { html: shortHtml, fullHtml: htmlFull, truncated: needsToggle };
 }
 
-// Safe helper: expects already-escaped input, returns HTML with <strong> label
+// expects already-escaped input, returns HTML with <strong> label
 function labelizeHTML(s) {
   var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
   if (!m) return s;
@@ -200,6 +251,69 @@ function stripHtml(html) {
   var tmp = document.createElement('div');
   tmp.innerHTML = html;
   return tmp.textContent || tmp.innerText || "";
+}
+
+/* ===================== Render helpers ===================== */
+
+function addAssistantFormatted(mount, fmt) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.innerHTML = fmt.html;
+
+  // Toggle
+  if (fmt.truncated) {
+    var toggle = document.createElement('button');
+    toggle.type = "button";
+    toggle.textContent = "Show more";
+    toggle.style.display = "inline-block";
+    toggle.style.marginTop = "6px";
+    toggle.style.fontSize = "12px";
+    toggle.style.border = "none";
+    toggle.style.background = "transparent";
+    toggle.style.color = "var(--chat-muted)";
+    toggle.style.cursor = "pointer";
+    toggle.addEventListener('click', function () {
+      var expanded = toggle.getAttribute('data-expanded') === '1';
+      if (expanded) {
+        bubble.innerHTML = fmt.html;
+        toggle.textContent = "Show more";
+        toggle.setAttribute('data-expanded', '0');
+      } else {
+        bubble.innerHTML = fmt.fullHtml;
+        toggle.textContent = "Show less";
+        toggle.setAttribute('data-expanded', '1');
+      }
+      scrollToEnd(mount);
+    });
+    bubble.appendChild(document.createElement('br'));
+    bubble.appendChild(toggle);
+  }
+
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addAssistant(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = text; // plain greeting etc.
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addUser(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
+  mount.appendChild(row);
+  scrollToEnd(mount);
 }
 
 /* ===================== Topics View ===================== */
@@ -253,7 +367,7 @@ function makeTopicBubble(opts) {
   return row;
 }
 
-/* ===================== DOM + UI ===================== */
+/* ===================== DOM + Shell ===================== */
 
 function ensureMount() {
   var root = document.querySelector('#chat-widget-root');
@@ -300,67 +414,7 @@ function buildShell(cfg, mount) {
   };
 }
 
-function addAssistant(mount, text) {
-  var row = document.createElement('div');
-  row.className = 'cw-row bot';
-  var bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.textContent = text; // plain greeting etc.
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addAssistantHTML(mount, html) {
-  var row = document.createElement('div');
-  row.className = 'cw-row bot';
-  var bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.innerHTML = html; // formatted output
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addUser(mount, text) {
-  var row = document.createElement('div');
-  row.className = 'cw-row user';
-  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-/* ===================== Helpers ===================== */
-
-function loadConfig() {
-  return safeFetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
-    .then(function (res) {
-      if (!res.ok) throw new Error("config.json " + res.status);
-      return res.json();
-    })
-    .catch(function () {
-      // fallback defaults
-      return {
-        workerUrl: '/chat',
-        title: 'Chat',
-        greeting: '',
-        accent: '#4f46e5',
-        radius: '14px',
-        model: 'llama-3.1-8b-instant',
-        temperature: 0.2,
-        systemUrl: ''
-      };
-    });
-}
-
-function applyTheme(cfg) {
-  cfg = cfg || {};
-  var accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#4f46e5';
-  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
-  var root = document.documentElement;
-  root.style.setProperty('--chat-accent', accent);
-  root.style.setProperty('--chat-radius', radius);
-}
+/* ===================== Utilities ===================== */
 
 function addError(noteEl, msg) {
   noteEl.textContent = msg;
