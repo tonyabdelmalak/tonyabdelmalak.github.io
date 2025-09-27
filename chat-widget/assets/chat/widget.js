@@ -1,6 +1,8 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Mounts onto <div id="chat-widget-root"></div> and talks to your Worker.
-// Sends message history and locally renders a "topics" view when asked.
+// Vanilla JS, no modules. Renders a floating chat + sends requests to your Cloudflare Worker.
+// Also renders a local "topics" view when the user asks for topics.
+
+/* ===================== Config & State ===================== */
 
 const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
@@ -11,195 +13,161 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-const TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg";
-const HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
+var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // replace if you have a different path
+var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
 
-/* ----------------------------- BOOT ----------------------------- */
+/* ===================== Boot ===================== */
 
-(async function boot() {
-  const mount = ensureMount();
-  const cfg = await loadConfig();
-  applyTheme(cfg);
+(function boot() {
+  try {
+    var mount = ensureMount();
+    loadConfig().then(function (cfg) {
+      applyTheme(cfg);
+      fetchSystem(cfg.systemUrl).then(function (system) {
+        if (system) HISTORY.push({ role: "system", content: system });
 
-  const system = await fetchSystem(cfg.systemUrl);
-  if (system) HISTORY.push({ role: "system", content: system });
+        var ui = buildShell(cfg, mount);
+        if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
 
-  const { launcher, panel, closeBtn, scroll, note, form, input, send } = buildShell(cfg, mount);
-  if (cfg.greeting) addAssistant(scroll, cfg.greeting);
+        // open/close
+        ui.launcher.addEventListener('click', function () {
+          ui.panel.style.display = 'block';
+          ui.launcher.classList.add('cw-hidden');
+          ui.input.focus();
+        });
+        ui.closeBtn.addEventListener('click', function () {
+          ui.panel.style.display = 'none';
+          ui.launcher.classList.remove('cw-hidden');
+        });
 
-  launcher.addEventListener('click', () => {
-    panel.style.display = 'block';
-    launcher.classList.add('cw-hidden');
-    input.focus();
-  });
-  closeBtn.addEventListener('click', () => {
-    panel.style.display = 'none';
-    launcher.classList.remove('cw-hidden');
-  });
+        // submit
+        ui.form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var text = (ui.input.value || "").trim();
+          if (!text) return;
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = input.value.trim();
-    if (!text) return;
+          addUser(ui.scroll, text);
+          HISTORY.push({ role: "user", content: text });
+          ui.input.value = "";
+          ui.input.focus();
 
-    addUser(scroll, text);
-    HISTORY.push({ role: "user", content: text });
-    input.value = '';
-    input.focus();
+          // Local "topics" intercept
+          if (wantsTopics(text)) {
+            var stopTypingLocal = showTyping(ui.scroll);
+            sleep(250).then(function () {
+              stopTypingLocal();
+              renderTopicsInto(ui.scroll);
+              var ack = "Here are topics I’m happy to cover.";
+              HISTORY.push({ role: "assistant", content: ack });
+              scrollToEnd(ui.scroll);
+            });
+            return;
+          }
 
-    // Local intercept: topics
-    if (wantsTopics(text)) {
-      const stopTypingLocal = showTyping(scroll);
-      await sleep(250);
-      stopTypingLocal();
-      renderTopicsInto(scroll);
-      const ack = "Here are topics I’m happy to cover.";
-      HISTORY.push({ role: "assistant", content: ack });
-      scrollToEnd(scroll);
-      return;
-    }
+          var stopTyping = showTyping(ui.scroll);
+          ui.send.disabled = true;
 
-    const stopTyping = showTyping(scroll);
-    try {
-      send.disabled = true;
+          // send to Worker
+          safeFetch(cfg.workerUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              system: system,
+              model: cfg.model,
+              temperature: cfg.temperature,
+              history: HISTORY.slice(-12)
+            })
+          }).then(function (res) {
+            return res.ok ? res.json().catch(function(){ return {}; }) : res.text().then(function(txt){
+              throw new Error("HTTP " + res.status + ": " + txt);
+            });
+          }).then(function (data) {
+            var reply = data && (data.text || data.reply || data.message);
+            if (reply) {
+              addAssistant(ui.scroll, reply);
+              HISTORY.push({ role: "assistant", content: reply });
+            } else {
+              addError(ui.note, "Error: invalid response");
+            }
+          }).catch(function (err) {
+            addError(ui.note, "Network error: " + String(err && err.message || err));
+          }).finally(function () {
+            stopTyping();
+            ui.send.disabled = false;
+            scrollToEnd(ui.scroll);
+          });
+        });
 
-      const res = await fetch(cfg.workerUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          system,
-          model: cfg.model,
-          temperature: cfg.temperature,
-          history: HISTORY.slice(-12)
-        }),
+        // Enter to send, Shift+Enter for newline
+        ui.input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            ui.form.dispatchEvent(new Event('submit'));
+          }
+        });
       });
-
-      const data = await res.json().catch(() => ({}));
-      const reply = res.ok && (data.text || data.reply || data.message);
-      if (reply) {
-        addAssistant(scroll, reply);
-        HISTORY.push({ role: "assistant", content: reply });
-      } else {
-        const detail = data?.detail?.error?.message || data?.detail?.error?.code || data?.error || 'failed';
-        addError(note, `Error: ${detail}`);
-      }
-    } catch (err) {
-      addError(note, `Network error: ${String(err)}`);
-    } finally {
-      stopTyping();
-      send.disabled = false;
-      scrollToEnd(scroll);
-    }
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      form.dispatchEvent(new Event('submit'));
-    }
-  });
+    });
+  } catch (err) {
+    console.error("[widget] boot error:", err);
+  }
 })();
 
-/* -------------------------- TOPICS RENDER -------------------------- */
+/* ===================== Topics Render ===================== */
 
-function wantsTopics(t = "") {
-  const s = t.toLowerCase().trim();
+function wantsTopics(t) {
+  var s = (t || "").toLowerCase().trim();
   return s === "/topics" ||
          /\b(topics?|what can (you|u) cover|what do you cover|what can you talk about|what else)\b/.test(s);
 }
 
 function renderTopicsInto(scrollEl) {
-  const sep = document.createElement('div');
+  var sep = document.createElement('div');
   sep.className = 'tny-section-sep';
   scrollEl.appendChild(sep);
 
-  const root = document.createElement('div');
+  var root = document.createElement('div');
   root.className = 'tny-chat';
 
   root.appendChild(makeTopicBubble({
     who: 'tony',
-    html: `<div class="tny-content"><h4>Hi, I’m Tony.</h4><p>Here are topics I’m happy to cover. Ask me about any of these and I’ll dive in.</p></div>`
+    html: '<div class="tny-content"><h4>Hi, I’m Tony.</h4><p>Here are topics I’m happy to cover. Ask me about any of these and I’ll dive in.</p></div>'
   }));
 
-  TONY_TOPICS.forEach(t => {
+  for (var i = 0; i < TONY_TOPICS.length; i++) {
+    var t = TONY_TOPICS[i];
     root.appendChild(makeTopicBubble({
       who: 'tony',
-      html: `<div class="tny-content"><h4>${escapeHtml(t.title)}</h4><p>${escapeHtml(t.body)}</p></div>`
+      html: '<div class="tny-content"><h4>' + escapeHtml(t.title) + '</h4><p>' + escapeHtml(t.body) + '</p></div>'
     }));
-  });
+  }
 
   scrollEl.appendChild(root);
 }
 
-function makeTopicBubble({ who, html }) {
-  const row = document.createElement('div');
-  row.className = `tny-row tny-row--${who}`;
+function makeTopicBubble(opts) {
+  var row = document.createElement('div');
+  row.className = 'tny-row tny-row--' + opts.who;
 
-  const avatar = document.createElement('div');
+  var avatar = document.createElement('div');
   avatar.className = 'tny-avatar';
-  if (who === 'tony' && TONY_AVATAR_URL) {
-    avatar.style.backgroundImage = `url('${TONY_AVATAR_URL}')`;
+  if (opts.who === 'tony' && TONY_AVATAR_URL) {
+    avatar.style.backgroundImage = "url('" + TONY_AVATAR_URL + "')";
   }
 
-  const bubble = document.createElement('div');
-  bubble.className = `tny-bubble tny-bubble--${who}`;
-  bubble.innerHTML = html;
+  var bubble = document.createElement('div');
+  bubble.className = 'tny-bubble tny-bubble--' + opts.who;
+  bubble.innerHTML = opts.html;
 
   row.appendChild(avatar);
   row.appendChild(bubble);
   return row;
 }
 
-/* --------------------------- HELPERS --------------------------- */
-
-async function loadConfig() {
-  try {
-    const res = await fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' });
-    return await res.json();
-  } catch {
-    return {
-      workerUrl: '/chat',
-      title: 'Chat',
-      greeting: 'Hi! Ask me anything.',
-      accent: '#4f46e5',
-      radius: '14px',
-      model: 'llama-3.1-8b-instant',
-      temperature: 0.2,
-      systemUrl: ''
-    };
-  }
-}
-
-function addAssistant(mount, text) {
-  const row = document.createElement('div');
-  row.className = 'cw-row bot';
-  const bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.textContent = text;
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addUser(mount, text) {
-  const row = document.createElement('div');
-  row.className = 'cw-row user';
-  row.innerHTML = `<div class="cw-bubble">${escapeHtml(text)}</div>`;
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function applyTheme(cfg = {}) {
-  const root = document.documentElement;
-  const accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#4f46e5';
-  const radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
-  root.style.setProperty('--chat-accent', accent);
-  root.style.setProperty('--chat-radius', radius);
-}
+/* ===================== DOM + UI ===================== */
 
 function ensureMount() {
-  let root = document.querySelector('#chat-widget-root');
+  var root = document.querySelector('#chat-widget-root');
   if (!root) {
     root = document.createElement('div');
     root.id = 'chat-widget-root';
@@ -208,41 +176,144 @@ function ensureMount() {
   return root;
 }
 
+function buildShell(cfg, mount) {
+  mount.innerHTML = ''
+    + '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">'
+    + '  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+    + '    <path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>'
+    + '  </svg>'
+    + '</button>'
+    + '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">'
+    + '  <div class="cw-head">'
+    + '    <button class="cw-close" id="cw-close" aria-label="Close">✕</button>'
+    + '    <h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>'
+    + '    <p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>'
+    + '  </div>'
+    + '  <div class="cw-body">'
+    + '    <div class="cw-scroll" id="cw-scroll"></div>'
+    + '    <div class="cw-note" id="cw-note"></div>'
+    + '    <form class="cw-input" id="cw-form">'
+    + '      <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>'
+    + '      <button class="cw-send" id="cw-send" type="submit">Send</button>'
+    + '    </form>'
+    + '  </div>'
+    + '</div>';
+
+  return {
+    launcher: mount.querySelector('#cw-launch'),
+    panel: mount.querySelector('#cw-panel'),
+    closeBtn: mount.querySelector('#cw-close'),
+    scroll: mount.querySelector('#cw-scroll'),
+    note: mount.querySelector('#cw-note'),
+    form: mount.querySelector('#cw-form'),
+    input: mount.querySelector('#cw-text'),
+    send: mount.querySelector('#cw-send')
+  };
+}
+
+function addAssistant(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addUser(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+/* ===================== Helpers ===================== */
+
+function loadConfig() {
+  return safeFetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error("config.json " + res.status);
+      return res.json();
+    })
+    .catch(function () {
+      // fallback defaults
+      return {
+        workerUrl: '/chat',
+        title: 'Chat',
+        greeting: '',
+        accent: '#4f46e5',
+        radius: '14px',
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.2,
+        systemUrl: ''
+      };
+    });
+}
+
+function applyTheme(cfg) {
+  cfg = cfg || {};
+  var accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#4f46e5';
+  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
+  var root = document.documentElement;
+  root.style.setProperty('--chat-accent', accent);
+  root.style.setProperty('--chat-radius', radius);
+}
+
 function addError(noteEl, msg) {
   noteEl.textContent = msg;
-  setTimeout(() => (noteEl.textContent = ''), 6000);
+  setTimeout(function () { noteEl.textContent = ''; }, 6000);
 }
 
 function showTyping(mount) {
-  const row = document.createElement('div');
+  var row = document.createElement('div');
   row.className = 'cw-row bot';
-  row.innerHTML = `
-    <div class="cw-bubble">
-      <span class="cw-typing">
-        <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>
-      </span>
-    </div>`;
+  row.innerHTML = ''
+    + '<div class="cw-bubble">'
+    + '  <span class="cw-typing">'
+    + '    <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>'
+    + '  </span>'
+    + '</div>';
   mount.appendChild(row);
   scrollToEnd(mount);
-  return () => row.remove();
+  return function () { row.remove(); };
 }
 
 function scrollToEnd(el) { el.scrollTop = el.scrollHeight; }
 
-function escapeHtml(s='') {
-  return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function escapeHtml(s) {
+  s = s || '';
+  return s.replace(/[&<>"']/g, function (m) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+  });
 }
 
-async function fetchSystem(url) {
-  if (!url) return '';
-  try {
-    const r = await fetch(url, { cache: 'no-store' });
-    if (!r.ok) return '';
-    const text = await r.text();
-    return (text || '').toString().slice(0, 12000);
-  } catch {
-    return '';
-  }
+function fetchSystem(url) {
+  if (!url) return Promise.resolve('');
+  return safeFetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (txt) {
+      txt = (txt || '').toString();
+      if (txt.length > 12000) txt = txt.slice(0, 12000);
+      return txt;
+    })
+    .catch(function () { return ''; });
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
+
+function safeFetch(url, options) {
+  // Tries absolute path first; if it fails (e.g., GitHub Pages subpath), retries relative.
+  return fetch(url, options).catch(function () {
+    try {
+      if (url && typeof url === 'string' && url.charAt(0) === '/') {
+        return fetch(url.replace(/^\//, ''), options);
+      }
+    } catch (e) {}
+    throw new Error("fetch failed: " + url);
+  });
+}
