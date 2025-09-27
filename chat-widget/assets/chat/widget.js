@@ -186,63 +186,78 @@ function formatAssistant(text) {
   // Convert markdown bold **text** into <strong>text</strong>
   t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
 
-  // Path A: model already produced bullets
-  if (/^[-*]\s+/m.test(t)) {
+// Path A: model already produced bullets (intro + bullets, no duplicates)
+if (/^[-*]\s+/m.test(t)) {
   var lines = t.split("\n").map(function (l) { return l.trim(); });
+
+  // collect intro (non-bullet lines before first bullet)
   var intro = [];
-  var items = [];
-  var inList = false;
+  for (var i = 0; i < lines.length; i++) {
+    if (/^[-*]\s+/.test(lines[i])) break;
+    if (lines[i]) intro.push(lines[i]);
+  }
 
-  lines.forEach(function (l) {
-    if (/^[-*]\s+/.test(l)) { inList = true; items.push(l.replace(/^[-*]\s+/, "")); }
-    else if (!inList) { intro.push(l); }
-    else if (l) { items[items.length - 1] += " " + l; }
-  });
+  // clamp intro to ~160 chars / 2 sentences
+  var introText = collapse(intro.join(" "));
+  if (introText.length > 160) {
+    var sents = introText.split(/(?<=\.)\s+/).slice(0, 2).join(" ");
+    introText = sents || introText.slice(0, 160);
+  }
 
-  // Title (e.g., "Weaknesses")
-  var introText = collapse(intro.join(" ").trim());
-  var titleText = introText; // already escaped
-  var titleRE = titleText
-    ? new RegExp("^" + titleText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[—:-]\\s*", "i")
+  // all bullets (after intro)
+  var items = lines.slice(i).filter(function (l) { return /^[-*]\s+/.test(l); })
+    .map(function (l) { return l.replace(/^[-*]\s+/, ""); });
+
+  // if first bullet starts with the intro title, strip it (avoid echo)
+  var titleRE = introText
+    ? new RegExp("^" + introText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[—:-]\\s*", "i")
     : null;
 
-  var introHtml = introText;
   var listHtml = items.slice(0, 5).map(function (it) {
     it = collapse(it);
-
-    // If bullet label starts with the same title (e.g., "Weaknesses — Technical Debt: …"),
-    // strip the title prefix before labelizing so we don't echo it.
     if (titleRE) it = it.replace(titleRE, "");
-
-    it = labelizeHTML(it); // adds <strong>Label</strong> — rest (already escaped)
-    return "<li>" + it + "</li>";
+    return "<li>" + labelizeHTML(it) + "</li>";
   }).join("");
 
-  return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
+  var introHtml = introText ? "<p>" + introText + "</p>" : "";
+  return introHtml + "<ul>" + listHtml + "</ul>";
 }
 
-  // Path B (fixed): treat 1+ labeled items as a list (keeps headings clean)
+// Path B (fixed): intro + bullets even for 1 labeled item; no title echo
 var lines = t.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+
+// labeled candidates like "Thing: details"
 var labeled = lines.filter(function (s) {
   return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s);
 });
 
-// choose a title ONLY if it's a non-bullet, short, no colon
-var titleLine = lines.find(function (s) {
-  return !/^[-*]\s+/.test(s) && !/:/.test(s) && s.length <= 80;
-}) || "";
+// build a short intro from the first non-bullet, no-colon lines
+var introLines = [];
+for (var k = 0; k < lines.length; k++) {
+  var L = lines[k];
+  if (/^[-*]\s+/.test(L)) break;           // stop at bullets
+  if (/:/.test(L)) break;                  // stop at first labeled line
+  if (L) introLines.push(L);
+}
+var introText = collapse(introLines.join(" "));
+if (introText.length > 160) {
+  var sents2 = introText.split(/(?<=\.)\s+/).slice(0, 2).join(" ");
+  introText = sents2 || introText.slice(0, 160);
+}
 
 if (labeled.length >= 1) {
   function labelOf(s) { return s.split(":")[0].trim(); }
-  var title = collapse(titleLine) || "Here are a few highlights:";
+  var title = introText || "Here are a few highlights:";
   var bullets = labeled.slice(0, 4).map(function (s) {
-    var lbl = labelOf(s);
+    var lbl  = labelOf(s);
     var body = s.split(":").slice(1).join(":").trim().replace(/\.$/, "");
-    var item = (title && lbl.toLowerCase() === title.toLowerCase())
-      ? collapse(body)                                  // avoid "Title — Title: …"
+    // if bullet label duplicates the intro/title, drop the label to avoid "Title — Title"
+    var itemHtml = (title && lbl.toLowerCase() === title.toLowerCase())
+      ? collapse(body)
       : "<strong>" + lbl + "</strong> — " + collapse(body);
-    return "<li>" + item + "</li>";
+    return "<li>" + itemHtml + "</li>";
   }).join("");
+
   return "<p>" + title + "</p><ul>" + bullets + "</ul>";
 }
 
