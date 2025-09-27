@@ -1,16 +1,13 @@
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "systemUrl": "/chat-widget/assets/chat/system.md",
+  "systemUrl": "chat-widget/assets/chat/system.md",
   "model": "llama-3.1-8b-instant",
   "temperature": 0.2,
 
   "title": "What's on your mind?",
   "greeting": "",
 
-  "brand": {
-    "accent": "#3e5494",
-    "radius": "14px"
-  },
+  "brand": { "accent": "#3e5494", "radius": "14px" },
 
   "intro_once": true,
   "firstMessage": ""
