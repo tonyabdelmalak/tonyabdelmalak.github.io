@@ -369,6 +369,25 @@ function labelizeHTML(s) {
 
 function collapse(s) { return (s || "").replace(/\s{2,}/g, " ").trim(); }
 
+function stripHtml(html) {
+  try {
+    var doc = new DOMParser().parseFromString(String(html || ""), "text/html");
+    ["script","style","noscript","template","iframe"].forEach(function(sel){
+      doc.querySelectorAll(sel).forEach(function(n){ n.remove(); });
+    });
+    return (doc.body.textContent || "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  } catch (e) {
+    // Fallback to the old approach if DOMParser isn't available
+    var tmp = document.createElement("div");
+    tmp.innerHTML = String(html || "");
+    return (tmp.textContent || tmp.innerText || "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+}
+
 /* ===================== Topics View ===================== */
 
 function wantsTopics(t) {
