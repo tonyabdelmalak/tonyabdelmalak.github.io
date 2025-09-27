@@ -130,6 +130,10 @@
   border: 1px solid var(--chat-border);
   font-size: 14px;
 }
+.cw-bubble {
+  white-space: pre-wrap;   /* keeps newlines visible */
+  overflow-wrap: anywhere; /* breaks long words/URLs */
+}
 .cw-row.bot .cw-bubble { background: var(--chat-bot); }
 .cw-row.user .cw-bubble {
   background: var(--chat-user);
