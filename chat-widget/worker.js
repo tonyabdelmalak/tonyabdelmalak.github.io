@@ -1,14 +1,15 @@
 // worker.js — Tony’s Copilot (Groq first, OpenAI fallback)
-// Short, conversational replies for broad career/pivot/experience/projects/resume/dashboards asks.
-// Plain-text output (no headings/emphasis), strips boilerplate, clamps to a single friendly sentence + follow-up.
+// Short, conversational replies for career/pivot/experience/projects/resume/dashboards asks.
+// Improvements:
+//  - Keeps context when the user replies “yes/sure/ok” (uses history).
+//  - Friendlier broad-ask fallback.
+//  - Optional early "topics" response.
 
 const SYSTEM_PROMPT = `
 # Tony’s Agent — System Persona
 
-// ## Greeting
 Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m currently working on.
 
-// ## Voice & Reply Rules
 - I speak in the first person as Tony; plain, human, and concise (≤60 words unless asked for more).
 - Lead with the answer, then up to 3 bullets.
 - Tell short story snippets (context → what I did → outcome). No STAR labels.
@@ -16,64 +17,41 @@ Hi, I’m Tony. Ask me about my background, dashboards, projects, or what I’m 
 - If I don’t know, I’ll say so and ask where to look.
 - No private/sensitive info. Reference site sections by name.
 
-// ## Topics I’m Happy to Cover
-- My pivot: HR → AI-driven analytics
+Topics I’m happy to cover:
+- HR → AI-driven analytics pivot
 - Dashboards, models, and AI copilots I built
-- How I use Tableau, SQL, Python, and AI to speed decisions
-- Gaps/pivots as growth; challenges and wins
-- What I’m exploring next
+- How I use Tableau, SQL, Python, and AI
+- Challenges & wins; what I’m exploring next
 
-// ## Snapshot
-- Name: Tony Abdelmalak — Location: Los Angeles, CA
+Snapshot:
+- Name: Tony Abdelmalak — Los Angeles, CA
 - Role: People & Business Insights Analyst
 - Focus: Tableau, SQL, Python, and generative AI for executive-ready workforce insights
 - Impact: Reduced hiring gaps ~20%, moderated overtime, improved retention (+18% at Flowserve)
 
-// ## Story Highlights (Short)
-Quibi — Scaling fast: Predictive staffing models + dashboards for 200+ hires.
-Flowserve — Early risk detection: Automated compliance/attrition reporting; retention improved ~18%.
-Sony Pictures — Change visibility: Simplified HR reporting during transformation.
-Roadr (Startup) — Onboarding/attrition: AI forecasting + Tableau/Workday dashboards; onboarding time −40%, early exits ↓ ~1/3.
-HBO — Workday + dashboards: Real-time attrition/hiring views; trained teams; decisions sped up.
-NBCUniversal — Funnel clarity: Improved ATS analytics; time-to-fill dropped; forecasts sharper.
+Story Highlights:
+Quibi — predictive staffing dashboards for 200+ hires.
+Flowserve — automated attrition reporting; +18% retention.
+Sony Pictures — simplified HR reporting during transformation.
+Roadr — AI forecasting & dashboards; onboarding −40%, early exits ↓ ~⅓.
+HBO — Workday + dashboards; cut reporting delays.
+NBCUniversal — ATS funnel analytics; sharper forecasts.
 
-## Projects & Case Studies (Agent Voice)
-Turnover Analysis Dashboard: Tableau+SQL to spot hotspots and act.
-Early Turnover Segmentation: Python+SQL+Tableau to surface onboarding friction.
-Workforce Planning Model: Python forecasts vs. budget and demand.
-Attrition Risk Calculator (Prototype): Explainable scoring (no protected data).
+Answer Patterns:
+- How I built X → Decision first → data model (SQL/Python) → dashboard (Tableau) → impact.
+- Pivot → HR roots → analytics → AI copilots; why it mattered; one metric; close with one follow-up.
+- Unsure → say so; ask where to look; offer next step.
 
-## Current Goals
-- Lead AI initiatives in HR analytics
-- Expand interactive dashboards and AI copilots
-- Continue certifications in AI, Tableau, SQL, HR analytics
-
-## Skills & Tools
-- Analytics/Viz: Tableau, Power BI, SQL, Excel
-- AI/ML: Forecasting, explainable models, lightweight copilots
-- HRIS: Workday, SuccessFactors, Greenhouse
-- Ops/Automation: Python, Apps Script, GitHub Pages, Cloudflare Workers
-
-## Answer Patterns
-When asked “how I built X”: Decision first → data model (SQL/Python) → dashboard (Tableau) → impact.
-When asked about career/pivot: HR roots → analytics → AI copilots; why it mattered; one metric; one follow-up.
-When unsure: say so; ask where to look; offer next step.
-
-## Guardrails
-- Public info only; decline private/sensitive requests politely
-- No medical/legal/financial advice
-- Keep responses short, clear, and useful; offer one next step (e.g., “Open Dashboards?”)
-
-## Site Reference Map
-Projects: /projects | Dashboards: /projects#dashboards | Case Studies: /case-studies | Resume: /resume | About: /about | Chat Widget: /chat-widget
+Guardrails:
+- Public info only; decline private/sensitive requests politely.
+- No medical/legal/financial advice.
+- Keep responses short, clear, and useful; offer one next step (e.g., “Open Dashboards?”).
 `.trim();
 
-// Extra directive applied only to broad, non-specific asks across career topics
 const CONCISE_DIRECTIVE = `
-User is asking broadly about Tony's career (journey, pivot to AI-driven analytics, past experience/employers,
-resume, current projects, accomplishments/impact, dashboards). Reply in <= 60 words as ONE conversational sentence
-that names 3–4 representative items relevant to the ask, then end with exactly ONE short follow-up question.
-No bullets. No headings. No “What I did/Outcome/Follow-up/What I say” boilerplate.
+If the user asks broadly about Tony's career/projects/dashboards/pivot/resume/experience,
+reply in ≤60 words as ONE conversational sentence naming 3–4 representative items, then end with exactly ONE short follow-up question.
+No bullets. No headings.
 `.trim();
 
 function corsHeaders() {
@@ -85,30 +63,24 @@ function corsHeaders() {
 }
 function cors() { return { "Content-Type": "application/json", ...corsHeaders() }; }
 
-// Detect broad/non-specific asks across ALL career topics
+// Detect broad/non-specific asks across ALL career topics (but ignore one-word acks)
 function isBroadCareerAsk(t = "") {
-  const s = t.toLowerCase();
+  const s = t.toLowerCase().trim();
+  if (/^(yes|yeah|yep|sure|ok|okay|sounds good|great|please|go ahead|tell me more)$/i.test(s)) return false;
   const domainHit = /(project|projects|dashboard|dashboards|career|journey|pivot|resume|experience|employment|work history|accomplish|impact)\b/.test(s);
   if (!domainHit) return false;
   const specifics = [
     "turnover","attrition","workforce","funnel","recruit","forecast","risk","tableau","sql","python","workday","power bi",
-    "greenhouse","successfactors",
-    "quibi","flowserve","sony","hbo","nbcuniversal","roadr",
-    "open","link","url","show","see","download","pdf",
-    "percent","%","hours","time to fill","time-to-fill","headcount","ramp","overtime"
+    "greenhouse","successfactors","quibi","flowserve","sony","hbo","nbcuniversal","roadr",
+    "open","link","url","show","see","download","pdf","percent","%","hours","time to fill","time-to-fill","headcount","overtime"
   ];
   return !specifics.some(k => s.includes(k));
 }
 
-// Scrub: plain text; remove boilerplate; normalize (no headings/emphasis)
+// Plain text scrub
 function scrubMarkdown(t = "") {
   if (!t) return "";
   t = t.replace(/\r\n/g, "\n");
-  t = t.replace(/\bWhat I say:\s*[“"][\s\S]*?[”"](?:\n|$)/g, "");
-  t = t.replace(/\bWhat I say:.*(?:\n|$)/g, "");
-  t = t.replace(/^\s*-\s*What I did:.*(?:\n|$)/gmi, "");
-  t = t.replace(/^\s*-\s*Outcome:.*(?:\n|$)/gmi, "");
-  t = t.replace(/^\s*-\s*Follow-up:.*(?:\n|$)/gmi, "");
   t = t.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/_(.*?)_/g, "$1");
   t = t.replace(/^\s*\+\s+/gm, "- ").replace(/^\s*\*\s+/gm, "- ");
   t = t.replace(/^\s{0,3}#{1,6}\s*/gm, "").replace(/^\s*>\s?/gm, "");
@@ -117,35 +89,25 @@ function scrubMarkdown(t = "") {
   return t.trim();
 }
 
-// Extract key project names from verbose output
+// Extract project-like items
 function itemsFromText(t = "") {
   const lines = t.split("\n");
   let candidates = lines
     .map(l => l.replace(/^[-*•]\s*/, "").trim())
-    .filter(l =>
-      /(dashboard|model|segmentation|calculator|forecast|report|planning|analysis|attrition|turnover|staffing|onboarding)/i.test(l)
-    );
-
-  // fallback: title-ish lines
+    .filter(l => /(dashboard|model|segmentation|calculator|forecast|report|planning|analysis|attrition|turnover|staffing|onboarding)/i.test(l));
   if (!candidates.length) {
-    candidates = lines
-      .map(l => l.trim())
-      .filter(l => l && /^[A-Z][^:]{2,80}$/.test(l));
+    candidates = lines.map(l => l.trim()).filter(l => l && /^[A-Z][^:]{2,80}$/.test(l));
   }
-
   const seen = new Set();
   const cleaned = [];
   for (let c of candidates) {
-    c = c.split(":")[0].split(".")[0].trim();
-    c = c.replace(/[\u2013\u2014]/g, "-").replace(/\s{2,}/g, " ").replace(/\.$/, "");
-    if (c && !seen.has(c.toLowerCase())) {
-      seen.add(c.toLowerCase());
-      cleaned.push(c);
-    }
+    c = c.split(":")[0].split(".")[0].trim().replace(/[\u2013\u2014]/g, "-").replace(/\s{2,}/g, " ").replace(/\.$/, "");
+    if (c && !seen.has(c.toLowerCase())) { seen.add(c.toLowerCase()); cleaned.push(c); }
   }
   return cleaned.slice(0, 4);
 }
 
+// One-sentence builder
 function toOneSentence(items) {
   if (!items.length) return "";
   if (items.length === 1) return `I've worked on ${items[0]}. Want me to dive into that?`;
@@ -153,23 +115,16 @@ function toOneSentence(items) {
   return `I've worked on ${items.join(", ")}, and ${last}. Want me to dive into one of these?`;
 }
 
-// Force concise style for broad asks
+// Friendlier broad fallback
 function enforceBroadStyle(text, isBroad) {
   if (!isBroad) return text;
-
-  // Prevent double "I've worked on..." prefix
-  if (/^I['’]ve worked on/i.test(text)) {
-    return text.replace(/\s+/g, " ").trim();
-  }
-
+  if (/^I['’]ve worked on/i.test(text)) return text.replace(/\s+/g, " ").trim();
   const items = itemsFromText(text);
   if (items.length) return toOneSentence(items);
-
-  const firstSentence = (text.split(/(?<=\.)\s+/)[0] || text).slice(0, 200).replace(/^[-*•]\s*/, "");
-  return `I've worked on things like ${firstSentence}. Which area would you like me to expand on?`;
+  return `Got it. I can go into projects like dashboards, workforce planning, or turnover models — which one sounds most useful?`;
 }
 
-// Optional: strip obviously unknown employer names if they sneak in (defensive)
+// Optional sanity filter
 function scrubUnknownEmployers(t = "") {
   const known = ["quibi", "flowserve", "sony", "hbo", "nbcuniversal", "roadr"];
   const bads = ["disney", "netflix", "warner bros", "warner brothers", "hulu", "amazon", "meta"];
@@ -183,13 +138,11 @@ export default {
   async fetch(req, env) {
     const url = new URL(req.url);
 
-    // health + CORS
     if (url.pathname === "/health") {
       return new Response(JSON.stringify({ ok: true, ts: Date.now() }), { headers: cors() });
     }
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
 
-    // chat
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
         const body = await req.json().catch(() => ({}));
@@ -204,15 +157,31 @@ export default {
           .map(m => ({ role: m.role, content: m.content.toString().trim() }))
           .slice(-12);
 
-        // prefer client system; fallback to persona above
         const clientSystem = (body?.system || "").toString().trim();
         const systemPrompt = clientSystem || SYSTEM_PROMPT;
 
+        // Early: topics short-circuit
+        if (/\b(topics?|what can (you|u) cover|what do you cover|what can you talk about|what else)\b/i.test(userMsg)) {
+          const text = "Here are topics I’m happy to cover: real-world case studies; behind the scenes; career pivots; the human side of data; tools & workflows; future outlook. Which one should I start with?";
+          return new Response(JSON.stringify({ reply: text }), { headers: cors() });
+        }
+
+        // CONTEXT FIX — if user replies “yes/sure/ok”, pick up the last assistant prompt
+        if (/^(yes|yeah|yep|sure|ok|okay|please|go ahead)$/i.test(userMsg) && past.length) {
+          const lastAssistant = [...past].reverse().find(m => m.role === "assistant")?.content || "";
+          // find a trailing question from last assistant (simple heuristic)
+          const followUp = lastAssistant.match(/([A-Z][^?]{4,150}\?)\s*$/m);
+          if (followUp) {
+            return new Response(JSON.stringify({ reply: `Great — ${followUp[1]}` }), { headers: cors() });
+          }
+        }
+
+        // Broad ask handling
         const broad = isBroadCareerAsk(userMsg);
         const pre = broad ? [{ role: "system", content: CONCISE_DIRECTIVE }] : [];
         const messages = [{ role: "system", content: systemPrompt }, ...pre, ...past, { role: "user", content: userMsg }];
 
-        // model selection
+        // Model selection
         const ALIAS = { "llama3-8b-8192": "llama-3.1-8b-instant", "llama3-70b-8192": "llama-3.1-70b-versatile" };
         let model = (body?.model || "llama-3.1-8b-instant").toString();
         if (ALIAS[model]) model = ALIAS[model];
@@ -220,7 +189,7 @@ export default {
         const temperature = Number.isFinite(+body?.temperature) ? +body.temperature : (broad ? 0.2 : 0.25);
         const maxTokens  = broad ? 220 : 900;
 
-        // providers
+        // Providers
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq   = !!env.GROQ_API_KEY;
         if (!hasOpenAI && !hasGroq) {
