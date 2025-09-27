@@ -14,7 +14,7 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // change if needed
+var TONY_AVATAR_URL = "/assets/img/profile-img.jpg"; // change if needed
 var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
 
 /* ===================== Boot ===================== */
@@ -27,7 +27,49 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
       fetchSystem(cfg.systemUrl).then(function (system) {
         if (system) HISTORY.push({ role: "system", content: system });
 
-        var ui = buildShell(cfg, mount);
+       var ui = buildShell(cfg, mount);
+
+// === Make the floating launcher use Tony's avatar + tiny chat bubble ===
+ui.launcher.classList.add('cw-launcher--avatar');
+ui.launcher.innerHTML = `
+  <div class="cw-avatar-wrapper" aria-label="Open chat with Tony">
+    <img src="${TONY_AVATAR_URL}" alt="Tony" class="cw-avatar-img" />
+    <div class="cw-avatar-bubble" title="Chat">💬</div>
+  </div>
+`;
+
+// Inject minimal styles (kept scoped so it won't clash with your site)
+(function () {
+  var css = `
+    .cw-launcher--avatar {
+      width: auto; height: auto; padding: 0; border: 0; background: transparent;
+      box-shadow: none; border-radius: 999px;
+    }
+    .cw-avatar-wrapper {
+      position: relative; display: inline-block; cursor: pointer;
+      line-height: 0; /* tight wrapping around the circle */
+    }
+    .cw-avatar-img {
+      width: 64px; height: 64px; border-radius: 999px; object-fit: cover;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+      display: block;
+    }
+    .cw-avatar-bubble {
+      position: absolute; right: -6px; top: -6px;
+      min-width: 22px; height: 22px; padding: 0 6px;
+      border-radius: 999px; display: flex; align-items: center; justify-content: center;
+      background: #3e5494; color: #fff; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transform: translateZ(0); /* crisp */
+    }
+    /* When hidden (your code toggles .cw-hidden), keep layout sane */
+    .cw-hidden.cw-launcher--avatar { display: none !important; }
+  `;
+  var s = document.createElement('style');
+  s.setAttribute('data-cw-avatar-styles', 'true');
+  s.textContent = css;
+  document.head.appendChild(s);
+})();
+
         if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
 
         // open/close
