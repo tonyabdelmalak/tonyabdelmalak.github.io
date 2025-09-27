@@ -10,8 +10,8 @@ Prefer a single sentence over bullets unless the user explicitly asks for a list
 const CONCISE_DIRECTIVE = `
 User is asking broadly about Tony's career (journey, pivot to AI-driven analytics, past experience/employers,
 resume, current projects, accomplishments/impact, dashboards).
-Reply in <= 60 words, one conversational sentence naming 3–4 representative items relevant to the ask,
-then end with exactly ONE short question to invite a deeper dive.
+Reply in <= 70 words, one conversational sentence naming 3–4 representative items relevant to the ask,
+then end with exactly ONE engaging follow-up question to invite a deeper dive.
 Examples:
 - "I pivoted from HR ops into AI-driven analytics, building workforce planning models, interactive recruitment dashboards,
   and attrition-risk tools. Where should we start?"
