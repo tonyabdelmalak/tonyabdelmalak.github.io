@@ -1,11 +1,23 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
 // Conversational formatter (intro + bullets) with optional "Show more" toggle.
-// Also includes a local “topics” view.
+// Also includes a local “topics” view and a tiny init API (window.TonyChatWidget.init).
 
 /* ===================== Config & State ===================== */
 
-const TONY_TOPICS = [
+var DEFAULT_CONFIG = {
+  workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+  systemUrl: "/chat-widget/assets/chat/system.md",
+  model: "llama-3.1-8b-instant",
+  temperature: 0.2,
+  title: "What\'s on your mind?",
+  greeting: "",
+  brand: { accent: "#3e5494", radius: "14px" },
+};
+
+var CONFIG = null; // will be populated by loadConfig() then possibly overridden by init()
+
+var TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
   { title: "Behind the scenes", body: "How I clean, structure, and shape messy datasets so they tell a clear story." },
   { title: "Career pivots", body: "What I learned moving from HR into analytics, and advice for making that shift." },
@@ -24,12 +36,45 @@ var FORMAT_LIMITS = {
   moreThresholdChars: 1400 // if formatted HTML > this, show a "Show more/less" toggle
 };
 
+/* ===================== Tiny public API ===================== */
+// Allows: window.TonyChatWidget.init({ workerUrl, systemUrl, title, greeting, brand:{accent,radius} })
+(function exposeAPI(){
+  window.TonyChatWidget = window.TonyChatWidget || {};
+  window.TonyChatWidget.init = function init(overrides){
+    try {
+      if (overrides && typeof overrides === 'object') {
+        // merge shallowly into CONFIG once it's loaded; if load not done yet, stash it
+        window.__TONY_WIDGET_PENDING_OVERRIDES__ = overrides;
+      }
+      // If boot already ran, re‑boot
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        boot();
+      } else {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+      }
+    } catch (e) { console.error('[widget] init error:', e); }
+  };
+})();
+
 /* ===================== Boot ===================== */
 
-(function boot() {
+(function autoBoot(){
+  // Auto‑boot if script tag has data-autostart or no explicit init used.
+  if (document.currentScript && document.currentScript.hasAttribute('data-autostart')) {
+    if (document.readyState === 'complete' || document.readyState === 'interactive') boot();
+    else document.addEventListener('DOMContentLoaded', boot, { once: true });
+  }
+})();
+
+function boot() {
   try {
     var mount = ensureMount();
     loadConfig().then(function (cfg) {
+      // apply any pending inline init overrides
+      var ov = window.__TONY_WIDGET_PENDING_OVERRIDES__ || null;
+      if (ov) cfg = shallowMerge(cfg, ov);
+      CONFIG = cfg;
+
       applyTheme(cfg);
       fetchSystem(cfg.systemUrl).then(function (system) {
         if (system) HISTORY.push({ role: "system", content: system });
@@ -121,7 +166,35 @@ var FORMAT_LIMITS = {
   } catch (err) {
     console.error("[widget] boot error:", err);
   }
-})();
+}
+
+/* ===================== Config helpers ===================== */
+
+function loadConfig() {
+  var url = "/chat-widget/assets/chat/config.json";
+  return safeFetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : DEFAULT_CONFIG; })
+    .catch(function () { return DEFAULT_CONFIG; })
+    .then(function(fileCfg){ return shallowMerge(DEFAULT_CONFIG, fileCfg || {}); });
+}
+
+function applyTheme(cfg) {
+  try {
+    var root = document.documentElement;
+    if (cfg.brand && cfg.brand.accent) root.style.setProperty('--chat-accent', cfg.brand.accent);
+    if (cfg.brand && cfg.brand.radius) root.style.setProperty('--chat-radius', cfg.brand.radius);
+  } catch (e) {}
+}
+
+function shallowMerge(a, b){
+  var out = {}; var k;
+  for (k in a) out[k] = a[k];
+  for (k in b){
+    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) out[k] = shallowMerge(out[k] || {}, b[k]);
+    else out[k] = b[k];
+  }
+  return out;
+}
 
 /* ===================== Conversational Formatter ===================== */
 /*
@@ -169,9 +242,9 @@ function formatAssistant(text) {
     var introHtml = collapse(intro.join(" ").trim());
 
     var listHtmlAll = items.map(function (it) {
-     it = collapse(it);
-     it = stripLeadIn(it);
-     it = labelizeHTML(it); // adds <strong>Label</strong> — rest
+      it = collapse(it);
+      it = stripLeadIn(it);
+      it = labelizeHTML(it); // adds <strong>Label</strong> — rest
       return "<li>" + it + "</li>";
     }).join("");
 
@@ -190,7 +263,7 @@ function formatAssistant(text) {
   else {
     // Path B: synthesize bullets from "Label: details"
     var parts = escaped.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
-    var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
+    var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()\/-]{2,60}:\s/.test(s); });
 
     if (labeled.length >= 2) {
       var head = collapse(escaped.split(":")[0]);
@@ -200,7 +273,7 @@ function formatAssistant(text) {
         s = s.replace(/\.$/, "");
         s = collapse(s);
         s = stripLeadIn(s);
-      return "<li>" + labelizeHTML(s) + "</li>";
+        return "<li>" + labelizeHTML(s) + "</li>";
       }).join("");
 
       htmlFull = "<p>" + head + "</p><ul>" + bulletsAll + "</ul>";
