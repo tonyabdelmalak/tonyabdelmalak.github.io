@@ -101,6 +101,24 @@ async function loadConfig() {
   }
 }
 
+function normalizeMarkdown(t = '') {
+  // Remove **bold** markers but keep the content
+  t = t.replace(/\*\*(.*?)\*\*/g, '$1');
+
+  // Ensure list items start on their own line
+  t = t.replace(/\s*\*\s/g, '\n- ');
+  t = t.replace(/\s*\+\s/g, '\n  - ');
+
+  // Headings (## etc.) get their own lines
+  t = t.replace(/\s*(###[^\n]+)/g, '\n\n$1')
+       .replace(/\s*(##[^\n]+)/g, '\n\n$1');
+
+  // Collapse excess newlines
+  t = t.replace(/\n{3,}/g, '\n\n').trim();
+
+  return t;
+}
+
 function normalizeMarkdown(t='') {
   // Turn leading bold blocks into headings
   t = t.replace(/(^|\n)\s*\*\*([^*]+)\*\*\s*/g, (m, p1, p2) => `${p1}\n## ${p2.trim()}\n`);
@@ -176,7 +194,7 @@ function addBot(mount, text) {
 
   const bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.textContent = normalizeMarkdown(text); // <- format then render as text
+  bubble.textContent = normalizeMarkdown(text);  // clean text
   bubble.style.whiteSpace = 'pre-wrap';
   bubble.style.overflowWrap = 'anywhere';
 
