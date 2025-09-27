@@ -86,6 +86,25 @@ function clampIfBroad(text, isBroad) {
   return (first.endsWith(".") ? first : first + ".") + ask;
 }
 
+const ALLOWED_EMPLOYERS = [
+  "quibi","flowserve","sony pictures","roadr","hbo","nbcuniversal"
+];
+
+function scrubUnknownEmployers(text = "") {
+  const suspects = Array.from(text.matchAll(/\b([A-Z][A-Za-z&.\- ]{1,40})\b/g))
+    .map(m => m[1].trim().toLowerCase());
+  const bad = suspects.filter(w =>
+    /[a-z]/.test(w) &&
+    !ALLOWED_EMPLOYERS.includes(w) &&
+    !["i","my","and","or","for","with","in","on","at","of","to","the","a"].includes(w)
+  );
+  if (bad.length) {
+    const unique = [...new Set(bad)].slice(0,3).join(", ");
+    return `${text.replace(/\s+$/,"")}. (Note: I haven't worked at ${unique}.)`;
+  }
+  return text;
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
