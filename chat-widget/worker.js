@@ -22,34 +22,31 @@ function corsHeaders() {
 // --- Server-side Markdown scrubber ---
 function scrubMarkdown(t = "") {
   if (!t) return "";
-
-  // Normalize newlines
   t = t.replace(/\r\n/g, "\n");
 
-  // Strip bold/italics markers but keep text
+  // 1) Remove "What I say:" blocks
+  // a) If it's followed by a quoted sentence (smart or straight quotes), remove that too
+  t = t.replace(/\bWhat I say:\s*[“"][\s\S]*?[”"](?:\n|$)/g, "");
+  // b) Fallback: remove the rest of the line after "What I say:"
+  t = t.replace(/\bWhat I say:.*(?:\n|$)/g, "");
+
+  // 2) Strip emphasis markers, keep words
   t = t.replace(/\*\*(.*?)\*\*/g, "$1"); // **bold**
-  t = t.replace(/\*(.*?)\*/g, "$1");     // *italic* (best-effort)
+  t = t.replace(/\*(.*?)\*/g, "$1");     // *italic*
   t = t.replace(/_(.*?)_/g, "$1");       // _italic_
 
-  // Convert list markers
-  // Indented/secondary bullets often arrive as "+" → make them "  - "
-  t = t.replace(/^\s*\+\s+/gm, "  - ");
-  // Primary bullets as "*" → "- "
-  t = t.replace(/^\s*\*\s+/gm, "- ");
+  // 3) Lists: make primary bullets "- ", sub-bullets "  - "
+  t = t.replace(/^\s*\+\s+/gm, "  - ");  // "+ " → sub-bullet
+  t = t.replace(/^\s*\*\s+/gm, "- ");    // "* " → bullet
 
-  // Strip headings like "## Title" / "### Title" / "# Title"
-  t = t.replace(/^\s{0,3}#{1,6}\s*/gm, "");
+  // 4) Remove Markdown headings/quotes markers
+  t = t.replace(/^\s{0,3}#{1,6}\s*/gm, ""); // "#", "##", "###"...
+  t = t.replace(/^\s*>\s?/gm, "");          // "> "
 
-  // Remove blockquote markers ">"
-  t = t.replace(/^\s*>\s?/gm, "");
-
-  // Collapse 3+ blank lines → 2
+  // 5) Collapse too many blank lines and trim trailing spaces
   t = t.replace(/\n{3,}/g, "\n\n");
-
-  // Trim trailing spaces per line
   t = t.split("\n").map(line => line.replace(/[ \t]+$/g, "")).join("\n");
 
-  // Final trim
   return t.trim();
 }
 
