@@ -43,7 +43,6 @@
 .cw-launcher:hover { transform: translateY(-2px); }
 .cw-launcher:active { transform: translateY(0); }
 .cw-launcher:disabled { opacity:.6; cursor:not-allowed; }
-
 .cw-launcher svg { width: 28px; height: 28px; }
 
 /* ---------- Panel shell ---------- */
@@ -91,7 +90,6 @@
   opacity: .9;
   font-size: 12px;
 }
-
 .cw-close {
   position:absolute;
   right:10px; top:10px;
@@ -130,7 +128,6 @@
   line-height: 1.45;
   border: 1px solid var(--chat-border);
   font-size: 14px;
-
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -141,6 +138,12 @@
   background: var(--chat-user);
   border-color: color-mix(in srgb, var(--chat-accent) 30%, var(--chat-border));
 }
+
+/* ---------- Reader-friendly assistant formatting ---------- */
+.cw-row.bot .cw-bubble p { margin: 6px 0; }
+.cw-row.bot .cw-bubble ul { margin: 6px 0 2px; padding-left: 18px; }
+.cw-row.bot .cw-bubble li { margin: 4px 0; }
+.cw-row.bot .cw-bubble strong { font-weight: 700; }
 
 /* ---------- Input row ---------- */
 .cw-input {
@@ -194,56 +197,3 @@
 
 /* ---------- Utility ---------- */
 .cw-hidden { display:none !important; }
-
-/* ---------- Conversational topics extension ---------- */
-.tny-chat {
-  font-family: inherit;
-  line-height: 1.5;
-  max-width: 100%;
-}
-
-.tny-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.tny-row--you { justify-content: flex-start; }
-.tny-row--tony { justify-content: flex-start; }
-
-.tny-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex: 0 0 32px;
-  background: #c7d2fe;
-  border: 2px solid #3457b1;
-  background-size: cover;
-  background-position: center;
-}
-
-.tny-bubble {
-  display: inline-block;
-  padding: 12px 14px;
-  border-radius: 14px;
-  margin: 4px 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  background: var(--chat-bot);
-  border: 1px solid var(--chat-border);
-  max-width: 260px;
-}
-
-.tny-content h4 {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--chat-fg);
-}
-.tny-content p {
-  margin: 0;
-  font-size: 13px;
-  color: var(--chat-fg);
-}
-
-/* Spacer when inserting the topics block */
-.tny-section-sep { height: 8px; }
