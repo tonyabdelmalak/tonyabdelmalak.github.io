@@ -119,6 +119,11 @@ function normalizeMarkdown(t = '') {
   return t;
 }
 
+function wordClamp(s, n = 60) {
+  const parts = (s || "").split(/\s+/);
+  return parts.length <= n ? s : parts.slice(0, n).join(" ") + "…";
+}
+
 function normalizeMarkdown(t='') {
   // Turn leading bold blocks into headings
   t = t.replace(/(^|\n)\s*\*\*([^*]+)\*\*\s*/g, (m, p1, p2) => `${p1}\n## ${p2.trim()}\n`);
@@ -194,7 +199,7 @@ function addBot(mount, text) {
 
   const bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.textContent = normalizeMarkdown(text);  // clean text
+  bubble.textContent = wordClamp(text);     // <— clamp here
   bubble.style.whiteSpace = 'pre-wrap';
   bubble.style.overflowWrap = 'anywhere';
 
