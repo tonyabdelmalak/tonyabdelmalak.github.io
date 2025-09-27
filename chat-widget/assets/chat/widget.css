@@ -122,6 +122,7 @@
 /* bubbles */
 .cw-row { display:flex; gap:10px; }
 .cw-row.user { justify-content:flex-end; }
+
 .cw-bubble {
   max-width: 86%;
   border-radius: calc(var(--chat-radius) - 6px);
@@ -129,11 +130,13 @@
   line-height: 1.45;
   border: 1px solid var(--chat-border);
   font-size: 14px;
+
+  /* keep formatting robust */
+  white-space: pre-wrap;     /* keeps \n visible */
+  overflow-wrap: anywhere;   /* breaks long words/URLs */
+  word-break: break-word;    /* extra safety on older engines */
 }
-.cw-bubble {
-  white-space: pre-wrap;   /* keeps newlines visible */
-  overflow-wrap: anywhere; /* breaks long words/URLs */
-}
+
 .cw-row.bot .cw-bubble { background: var(--chat-bot); }
 .cw-row.user .cw-bubble {
   background: var(--chat-user);
