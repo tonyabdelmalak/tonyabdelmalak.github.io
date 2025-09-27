@@ -1,6 +1,6 @@
-// worker.js — Server-pinned model (qwen/qwen-2.5-7b-instruct) + grounded context
+// worker.js — Server-pinned model (model": "llama-3.1-8b-instant) + grounded context
 
-const MODEL = "qwen/qwen-2.5-7b-instruct"; // <- change here later if you like
+const MODEL = "model": "llama-3.1-8b-instant"; // <- change here later if you like
 
 // chat-widget/worker.js — Groq first, OpenAI fallback
 // Persona: concise, grammar-clean, colon-based headings for frontend formatter.
