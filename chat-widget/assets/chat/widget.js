@@ -1,6 +1,8 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Vanilla JS chat + conversational formatter for assistant replies.
-// Also renders a local "topics" view when asked.
+// Vanilla JS floating chat that talks to your Cloudflare Worker.
+// Includes a conversational formatter (intro + bullets) and a local “topics” view.
+
+/* ===================== Config & State ===================== */
 
 const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
@@ -11,8 +13,8 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg";
-var HISTORY = []; // {role, content}
+var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // change if needed
+var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
 
 /* ===================== Boot ===================== */
 
@@ -27,6 +29,7 @@ var HISTORY = []; // {role, content}
         var ui = buildShell(cfg, mount);
         if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
 
+        // open/close
         ui.launcher.addEventListener('click', function () {
           ui.panel.style.display = 'block';
           ui.launcher.classList.add('cw-hidden');
@@ -37,6 +40,7 @@ var HISTORY = []; // {role, content}
           ui.launcher.classList.remove('cw-hidden');
         });
 
+        // submit
         ui.form.addEventListener('submit', function (e) {
           e.preventDefault();
           var text = (ui.input.value || "").trim();
@@ -47,7 +51,7 @@ var HISTORY = []; // {role, content}
           ui.input.value = "";
           ui.input.focus();
 
-          // Local "topics" intercept
+          // Local topics intercept
           if (wantsTopics(text)) {
             var stopTypingLocal = showTyping(ui.scroll);
             sleep(250).then(function () {
@@ -62,6 +66,7 @@ var HISTORY = []; // {role, content}
           var stopTyping = showTyping(ui.scroll);
           ui.send.disabled = true;
 
+          // Send to Worker
           safeFetch(cfg.workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -74,14 +79,15 @@ var HISTORY = []; // {role, content}
             })
           })
           .then(function (res) {
-            return res.ok ? res.json().catch(function(){ return {}; })
-                          : res.text().then(function(txt){ throw new Error("HTTP " + res.status + ": " + txt); });
+            return res.ok
+              ? res.json().catch(function(){ return {}; })
+              : res.text().then(function (txt) { throw new Error("HTTP " + res.status + ": " + txt); });
           })
           .then(function (data) {
             var raw = data && (data.text || data.reply || data.message);
             if (!raw) return addError(ui.note, "Error: invalid response");
 
-            var html = formatAssistant(raw);
+            var html = formatAssistant(raw);          // << fixed formatter (renders <strong>, bullets)
             addAssistantHTML(ui.scroll, html);
             HISTORY.push({ role: "assistant", content: stripHtml(html) });
           })
@@ -95,6 +101,7 @@ var HISTORY = []; // {role, content}
           });
         });
 
+        // Enter to send, Shift+Enter newline
         ui.input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -110,26 +117,34 @@ var HISTORY = []; // {role, content}
 
 /* ===================== Conversational Formatter ===================== */
 /*
-  Goals:
-   - Turn long, dense paragraphs into: short intro + 2–4 bullets
-   - Respect simple markdown (**bold**, -, •)
-   - Convert "Title: details." patterns into strong labels
+  Strategy (XSS-safe):
+    1) Escape ALL model text.
+    2) Convert markdown bold **text** -> <strong>text</strong>.
+    3) If there are list lines (- or *), render as <ul><li>…</li></ul>.
+    4) Else, convert "Label: details" into "<strong>Label</strong> — details".
+    5) Else, split into short paragraphs.
+  Only our generated tags (<p>, <ul>, <li>, <strong>) are injected.
 */
 
 function formatAssistant(text) {
-  text = (text || "").trim();
+  var t = (text || "").trim();
 
   // Normalize whitespace and bullets
-  text = text.replace(/\r\n/g, "\n")
-             .replace(/\t/g, " ")
-             .replace(/\u2022/g, "- ")          // • -> -
-             .replace(/\s{2,}/g, " ")
-             .replace(/\n{3,}/g, "\n\n");
+  t = t.replace(/\r\n/g, "\n")
+       .replace(/\t/g, " ")
+       .replace(/\u2022/g, "- ")      // • -> -
+       .replace(/\s{2,}/g, " ")
+       .replace(/\n{3,}/g, "\n\n");
 
-  // If the model already gave list items, render them as <ul>
-  var hasListLines = /^[-*]\s+/m.test(text);
-  if (hasListLines) {
-    var lines = text.split("\n").map(function (l) { return l.trim(); });
+  // Escape EVERYTHING first (so raw HTML from model can't run)
+  t = escapeHtml(t);
+
+  // Convert markdown bold **text** into <strong>text</strong>
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+  // Path A: model already produced bullets
+  if (/^[-*]\s+/m.test(t)) {
+    var lines = t.split("\n").map(function (l) { return l.trim(); });
     var intro = [];
     var items = [];
     var inList = false;
@@ -140,66 +155,46 @@ function formatAssistant(text) {
       else if (l) { items[items.length - 1] += " " + l; }
     });
 
-    var introHtml = intro.join(" ").trim();
-    introHtml = escapeHtml(introHtml)
-                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-
+    var introHtml = collapse(intro.join(" ").trim());
     var listHtml = items.slice(0, 5).map(function (it) {
       it = collapse(it);
-      it = labelize(it);
-      it = escapeHtml(it).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      it = labelizeHTML(it); // adds <strong>Label</strong> — rest (both already escaped)
       return "<li>" + it + "</li>";
     }).join("");
 
     return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
   }
 
-  // Otherwise, try to extract “Label: details” bullets
-  var candidates = text.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
-  var labeled = candidates.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,40}:\s/.test(s); });
+  // Path B: synthesize bullets from "Label: details"
+  var parts = t.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
 
   if (labeled.length >= 2) {
-    var head = text.split(":")[0];
-    head = head.length > 160 ? "Here are a few highlights:" : head;
-    var intro = escapeHtml(head).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-
+    var head = collapse(t.split(":")[0]);
+    if (head.length > 160) head = "Here are a few highlights:";
     var bullets = labeled.slice(0, 4).map(function (s) {
       s = s.replace(/\.$/, "");
-      s = labelize(s);
       s = collapse(s);
-      s = escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-      return "<li>" + s + "</li>";
+      return "<li>" + labelizeHTML(s) + "</li>";
     }).join("");
-
-    return "<p>" + intro + "</p><ul>" + bullets + "</ul>";
+    return "<p>" + head + "</p><ul>" + bullets + "</ul>";
   }
 
-  // Fallback: sentence split into short paragraphs
-  var sentences = text.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
-  var html = sentences.map(function (s, i) {
-    s = escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    return "<p>" + s + "</p>";
-  }).join("");
-  return html;
+  // Path C: fallback — first 2–3 short paragraphs
+  var sentences = t.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
+  return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
 }
 
-// Turn "Title: details" into "<strong>Title</strong> — details"
-function labelize(s) {
+// Safe helper: expects already-escaped input, returns HTML with <strong> label
+function labelizeHTML(s) {
   var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
   if (!m) return s;
   var label = m[1].trim();
   var rest  = m[2].trim();
-  return "<strong>" + sanitizeInline(label) + "</strong> — " + sanitizeInline(rest);
+  return "<strong>" + label + "</strong> — " + rest;
 }
 
-function collapse(s) {
-  return (s || "").replace(/\s{2,}/g, " ").trim();
-}
-
-function sanitizeInline(s) {
-  // minimal cleanup; bold markup handled later
-  return s.replace(/\*\*/g, "");
-}
+function collapse(s) { return (s || "").replace(/\s{2,}/g, " ").trim(); }
 
 function stripHtml(html) {
   var tmp = document.createElement('div');
@@ -207,7 +202,7 @@ function stripHtml(html) {
   return tmp.textContent || tmp.innerText || "";
 }
 
-/* ===================== Topics Render ===================== */
+/* ===================== Topics View ===================== */
 
 function wantsTopics(t) {
   var s = (t || "").toLowerCase().trim();
@@ -273,7 +268,9 @@ function ensureMount() {
 function buildShell(cfg, mount) {
   mount.innerHTML =
     '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">' +
-      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/></svg>' +
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+        '<path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>' +
+      '</svg>' +
     '</button>' +
     '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">' +
       '<div class="cw-head">' +
@@ -308,7 +305,7 @@ function addAssistant(mount, text) {
   row.className = 'cw-row bot';
   var bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.textContent = text; // plain text (used for greetings etc.)
+  bubble.textContent = text; // plain greeting etc.
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
@@ -319,7 +316,7 @@ function addAssistantHTML(mount, html) {
   row.className = 'cw-row bot';
   var bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.innerHTML = html; // formatted
+  bubble.innerHTML = html; // formatted output
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
@@ -342,6 +339,7 @@ function loadConfig() {
       return res.json();
     })
     .catch(function () {
+      // fallback defaults
       return {
         workerUrl: '/chat',
         title: 'Chat',
@@ -403,6 +401,7 @@ function fetchSystem(url) {
 function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
 function safeFetch(url, options) {
+  // Try absolute; if it fails (GH Pages subpath), retry relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
