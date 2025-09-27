@@ -169,8 +169,9 @@ function formatAssistant(text) {
     var introHtml = collapse(intro.join(" ").trim());
 
     var listHtmlAll = items.map(function (it) {
-      it = collapse(it);
-      it = labelizeHTML(it); // adds <strong>Label</strong> — rest
+     it = collapse(it);
+     it = stripLeadIn(it);
+     it = labelizeHTML(it); // adds <strong>Label</strong> — rest
       return "<li>" + it + "</li>";
     }).join("");
 
@@ -198,7 +199,8 @@ function formatAssistant(text) {
       var bulletsAll = labeled.map(function (s) {
         s = s.replace(/\.$/, "");
         s = collapse(s);
-        return "<li>" + labelizeHTML(s) + "</li>";
+        s = stripLeadIn(s);
+      return "<li>" + labelizeHTML(s) + "</li>";
       }).join("");
 
       htmlFull = "<p>" + head + "</p><ul>" + bulletsAll + "</ul>";
@@ -295,6 +297,11 @@ function addAssistantFormatted(mount, fmt) {
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
+}
+
+function stripLeadIn(s) {
+  // remove filler like "Some highlights include —", "Highlights include:", etc.
+  return (s || "").replace(/^(?:some\s+)?highlights?\s+include(?:s)?\s*[—\-:]\s*/i, "");
 }
 
 function addAssistant(mount, text) {
