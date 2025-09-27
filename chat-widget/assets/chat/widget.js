@@ -188,41 +188,66 @@ function formatAssistant(text) {
 
   // Path A: model already produced bullets
   if (/^[-*]\s+/m.test(t)) {
-    var lines = t.split("\n").map(function (l) { return l.trim(); });
-    var intro = [];
-    var items = [];
-    var inList = false;
+  var lines = t.split("\n").map(function (l) { return l.trim(); });
+  var intro = [];
+  var items = [];
+  var inList = false;
 
-    lines.forEach(function (l) {
-      if (/^[-*]\s+/.test(l)) { inList = true; items.push(l.replace(/^[-*]\s+/, "")); }
-      else if (!inList) { intro.push(l); }
-      else if (l) { items[items.length - 1] += " " + l; }
-    });
+  lines.forEach(function (l) {
+    if (/^[-*]\s+/.test(l)) { inList = true; items.push(l.replace(/^[-*]\s+/, "")); }
+    else if (!inList) { intro.push(l); }
+    else if (l) { items[items.length - 1] += " " + l; }
+  });
 
-    var introHtml = collapse(intro.join(" ").trim());
-    var listHtml = items.slice(0, 5).map(function (it) {
-      it = collapse(it);
-      it = labelizeHTML(it); // adds <strong>Label</strong> — rest (both already escaped)
-      return "<li>" + it + "</li>";
-    }).join("");
+  // Title (e.g., "Weaknesses")
+  var introText = collapse(intro.join(" ").trim());
+  var titleText = introText; // already escaped
+  var titleRE = titleText
+    ? new RegExp("^" + titleText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s*[—:-]\\s*", "i")
+    : null;
 
-    return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
-  }
+  var introHtml = introText;
+  var listHtml = items.slice(0, 5).map(function (it) {
+    it = collapse(it);
 
-  // Path B: synthesize bullets from "Label: details"
-  var parts = t.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
-  var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
+    // If bullet label starts with the same title (e.g., "Weaknesses — Technical Debt: …"),
+    // strip the title prefix before labelizing so we don't echo it.
+    if (titleRE) it = it.replace(titleRE, "");
 
-  if (labeled.length >= 2) {
-    var head = collapse(t.split(":")[0]);
-    if (head.length > 160) head = "Here are a few highlights:";
-    var bullets = labeled.slice(0, 4).map(function (s) {
-      s = s.replace(/\.$/, "");
-      s = collapse(s);
-      return "<li>" + labelizeHTML(s) + "</li>";
-    }).join("");
-    return "<p>" + head + "</p><ul>" + bullets + "</ul>";
-  }
+    it = labelizeHTML(it); // adds <strong>Label</strong> — rest (already escaped)
+    return "<li>" + it + "</li>";
+  }).join("");
+
+  return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
+}
+
+  // Path B (fixed): synthesize bullets from "Label: details" without echoing the title
+var lines = t.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+
+// collect labeled bullet candidates
+var labeled = lines.filter(function (s) {
+  return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s);
+});
+
+// choose a title line ONLY if it's a non-bullet, short, no colon
+var titleLine = lines.find(function (s) {
+  return !/^[-*]\s+/.test(s) && !/:/.test(s) && s.length <= 80;
+}) || "";
+
+if (labeled.length >= 1) {
+  function labelOf(s) { return s.split(":")[0].trim(); }
+  var title = collapse(titleLine);
+  var bullets = labeled.slice(0, 4).map(function (s) {
+    var lbl = labelOf(s);
+    var body = s.split(":").slice(1).join(":").trim().replace(/\.$/, "");
+    var item = (title && lbl.toLowerCase() === title.toLowerCase())
+      ? collapse(body)                                    // avoid "Title — Title: body"
+      : "<strong>" + lbl + "</strong> — " + collapse(body);
+    return "<li>" + item + "</li>";
+  }).join("");
+
+  return (title ? "<p>" + title + "</p>" : "") + "<ul>" + bullets + "</ul>";
+}
 
   // Path C: fallback — first 2–3 short paragraphs
   var sentences = t.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
