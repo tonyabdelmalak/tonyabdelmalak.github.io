@@ -268,10 +268,24 @@ if (labeled.length >= 1) {
 
 // Safe helper: expects already-escaped input, returns HTML with <strong> label
 function labelizeHTML(s) {
+  // Normalize grammar so headings always parse as "Label: detail"
+  // e.g., "Turnover Analysis Dashboard I built..." -> "Turnover Analysis Dashboard: I built..."
+  s = s.replace(/^(.{2,80}?)\s+I built\b/i, "$1: I built");
+
+  // If model used dash instead of colon, normalize too:
+  // e.g., "X — details" or "X - details" -> "X: details"
+  s = s.replace(/^(.{2,80}?)\s*[—-]\s+/i, "$1: ");
+
+  // Standard "Label: detail" splitter
   var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
   if (!m) return s;
+
   var label = m[1].trim();
   var rest  = m[2].trim();
+
+  // Final tidy: single spaces, remove trailing period inside bullets if redundant
+  rest = rest.replace(/\s{2,}/g, " ").replace(/\s+\.$/, ".");
+
   return "<strong>" + label + "</strong> — " + rest;
 }
 
