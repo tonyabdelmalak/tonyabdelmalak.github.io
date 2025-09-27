@@ -114,7 +114,9 @@ export default {
         headers: { "Content-Type": "application/json", ...corsHeaders() },
       });
     }
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders() });
+    }
 
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
@@ -122,22 +124,26 @@ export default {
         const userMsg = (body?.message || "").toString().trim();
         if (!userMsg) {
           return new Response(JSON.stringify({ error: "Missing 'message' in request body." }), {
-            status: 400, headers: { "Content-Type": "application/json", ...corsHeaders() },
+            status: 400,
+            headers: { "Content-Type": "application/json", ...corsHeaders() },
           });
         }
 
+        // --- build request ---
         const history = Array.isArray(body?.history) ? body.history : [];
-        const past = history.filter(m => m?.role && m?.content)
-                            .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-                            .slice(-12);
+        const past = history
+          .filter(m => m?.role && m?.content)
+          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
+          .slice(-12);
 
+        // prefer client system, fallback to embedded SYSTEM_PROMPT
         const clientSystem = (body?.system || "").toString().trim();
         const systemPrompt = clientSystem || SYSTEM_PROMPT;
 
         const broad = isBroadCareerAsk(userMsg);
         const pre = broad ? [{ role: "system", content: CONCISE_DIRECTIVE }] : [];
 
-        // Model aliases
+        // model + params
         const ALIAS = { "llama3-8b-8192": "llama-3.1-8b-instant", "llama3-70b-8192": "llama-3.1-70b-versatile" };
         let model = (body?.model || "llama-3.1-8b-instant").toString();
         if (ALIAS[model]) model = ALIAS[model];
@@ -145,15 +151,21 @@ export default {
         const temperature = Number.isFinite(+body?.temperature) ? +body.temperature : (broad ? 0.2 : 0.25);
         const maxTokens  = broad ? 220 : 900;
 
-        const messages = [{ role: "system", content: systemPrompt }, ...pre, ...past, { role: "user", content: userMsg }];
+        const messages = [
+          { role: "system", content: systemPrompt },
+          ...pre,
+          ...past,
+          { role: "user", content: userMsg },
+        ];
 
-        // Provider selection
+        // --- choose provider ---
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq   = !!env.GROQ_API_KEY;
         if (!hasOpenAI && !hasGroq) {
-          return new Response(JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }), {
-            status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() },
-          });
+          return new Response(
+            JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
+            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+          );
         }
 
         let apiUrl, headers, payload;
@@ -167,25 +179,32 @@ export default {
           payload = { model: "gpt-4o-mini", messages, temperature, max_tokens: maxTokens };
         }
 
+        // --- call LLM ---
         const resp = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(payload) });
         if (!resp.ok) {
           const txt = await resp.text();
-          return new Response(JSON.stringify({ detail: { error: { message: txt } }, error: "Upstream error", status: resp.status }), {
-            status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() },
-          });
+          return new Response(
+            JSON.stringify({ detail: { error: { message: txt } }, error: "Upstream error", status: resp.status }),
+            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders() } }
+          );
         }
 
+        // --- post-process text ---
         const data  = await resp.json();
         const raw   = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
-        const clean = scrubMarkdown(raw);
-        const reply = clampIfBroad(clean, broad);
+        const clean = scrubMarkdown(raw);                  // remove headings/emphasis/boilerplate
+        const styled = enforceBroadStyle(clean, broad);    // collapse broad asks to 3–4 items + 1 question
+        const safeReply = scrubUnknownEmployers(styled);   // <<< add this line (whitelist correction)
 
-        return new Response(JSON.stringify({ reply }), {
+        // --- return ---
+        return new Response(JSON.stringify({ reply: safeReply }), {
           headers: { "Content-Type": "application/json", ...corsHeaders() },
         });
+
       } catch (err) {
         return new Response(JSON.stringify({ error: "Server error", details: String(err) }), {
-          status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() },
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders() },
         });
       }
     }
