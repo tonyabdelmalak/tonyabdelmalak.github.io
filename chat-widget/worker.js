@@ -150,12 +150,17 @@ function toOneSentence(items) {
   if (!items.length) return "";
   if (items.length === 1) return `I've worked on ${items[0]}. Want me to dive into that?`;
   const last = items.pop();
-  return `I've worked on ${items.join(", ")}, and ${last}. Which one should I expand on?`;
+  return `I've worked on ${items.join(", ")}, and ${last}. Want me to dive into one of these?`;
 }
 
 // Force concise style for broad asks
 function enforceBroadStyle(text, isBroad) {
   if (!isBroad) return text;
+
+  // Prevent double "I've worked on..." prefix
+  if (/^I['’]ve worked on/i.test(text)) {
+    return text.replace(/\s+/g, " ").trim();
+  }
 
   const items = itemsFromText(text);
   if (items.length) return toOneSentence(items);
