@@ -1,18 +1,23 @@
-// worker.js — Copilot proxy (Groq first, OpenAI fallback)
-// Produces short, conversational answers for broad "projects/dashboards" asks.
+// worker.js — Groq first, OpenAI fallback — concise answers across career topics
 
 const SYSTEM_PROMPT = `
 You are Tony, speaking in first person. Write in plain text (no Markdown headings/emphasis).
-Default style: brief, human, direct. If unsure, ask one focused follow-up.
-When listing, prefer a single sentence over bullets unless the user explicitly asks for a list.
+Be brief and human. If unsure, ask one focused follow-up.
+Prefer a single sentence over bullets unless the user explicitly asks for a list.
 `.trim();
 
-// Injected ONLY for broad “projects/dashboards” asks
-const CONCISE_PROJECTS_DIRECTIVE = `
-User is asking broadly about projects/dashboards/background/work experience/accomplishments (not a specific one).
-Reply in <= 60 words, one conversational sentence, naming 3–4 representative items.
-Example style: "I've worked on automation of compliance/attrition reporting, interactive recruitment dashboards, workforce planning models, and attrition-risk dashboards. Which one would you like to dive into?"
-No bullets. End with exactly ONE short follow-up question.
+// Used when the user asks broadly about career-related topics (not a specific item)
+const CONCISE_DIRECTIVE = `
+User is asking broadly about Tony's career (journey, pivot to AI-driven analytics, past experience/employers,
+resume, current projects, accomplishments/impact, dashboards).
+Reply in <= 60 words, one conversational sentence naming 3–4 representative items relevant to the ask,
+then end with exactly ONE short question to invite a deeper dive.
+Examples:
+- "I pivoted from HR ops into AI-driven analytics, building workforce planning models, interactive recruitment dashboards,
+  and attrition-risk tools. Where should we start?"
+- "Recent work: compliance/attrition automation, recruitment funnel dashboards, workforce forecasts, and an explainable
+  attrition-risk prototype. Want a quick walkthrough of one?"
+No bullets. One sentence if possible (two max). No "What I did/Outcome" boilerplate.
 `.trim();
 
 function corsHeaders() {
@@ -23,66 +28,67 @@ function corsHeaders() {
   };
 }
 
-// --- simple intent check for broad "projects/dashboards" queries
-function isBroadProjectsAsk(t = "") {
+// ---------- INTENT: detect broad, non-specific asks across ALL career topics ----------
+function isBroadCareerAsk(t = "") {
   const s = t.toLowerCase();
-  const hits = /(project|projects|dashboard|dashboards)\b/.test(s);
-  if (!hits) return false;
-  // treat as "broad" if no obvious specific item is mentioned
-  const specificHints = [
-    "turnover", "attrition", "workforce", "funnel", "recruit", "forecast",
-    "quibi", "flowserve", "sony", "hbo", "roadr", "nbcuniversal",
-    "open", "link", "url", "tableau", "show", "see"
+
+  // Must mention one of these broad domains
+  const domainHit = /(project|projects|dashboard|dashboards|career|journey|pivot|resume|experience|employment|work history|accomplish|impact)\b/.test(s);
+  if (!domainHit) return false;
+
+  // Consider it "specific" if they reference a particular item/company/tech/metric
+  const specifics = [
+    // projects & dashboards
+    "turnover","attrition","workforce","funnel","recruit","forecast","risk","tableau","sql","python","workday","power bi","greenhouse","successfactors",
+    // employers / named orgs
+    "quibi","flowserve","sony","hbo","nbcuniversal","roadr",
+    // concrete actions/links
+    "open","link","url","show","see","download","pdf",
+    // numbers/metrics often signal a specific ask
+    "percent","%","hours","time to fill","time-to-fill","headcount","ramp","overtime"
   ];
-  const hasSpecific = specificHints.some(k => s.includes(k));
-  return hits && !hasSpecific;
+  const hasSpecific = specifics.some(k => s.includes(k));
+  return !hasSpecific;
 }
 
-// --- Server-side scrubber: plain text + normalized bullets; remove boilerplate lines
+// ---------- SCRUB: plain text; remove boilerplate; normalize  ----------
 function scrubMarkdown(t = "") {
   if (!t) return "";
-
   t = t.replace(/\r\n/g, "\n");
 
-  // Remove lines that shouldn’t show
+  // Remove lines we don't want the user to see
   t = t.replace(/\bWhat I say:\s*[“"][\s\S]*?[”"](?:\n|$)/g, "");
   t = t.replace(/\bWhat I say:.*(?:\n|$)/g, "");
   t = t.replace(/^\s*-\s*What I did:.*(?:\n|$)/gmi, "");
   t = t.replace(/^\s*-\s*Outcome:.*(?:\n|$)/gmi, "");
   t = t.replace(/^\s*-\s*Follow-up:.*(?:\n|$)/gmi, "");
 
-  // Strip emphasis markers but keep text
-  t = t.replace(/\*\*(.*?)\*\*/g, "$1"); // **bold**
-  t = t.replace(/\*(.*?)\*/g, "$1");     // *italic*
-  t = t.replace(/_(.*?)_/g, "$1");       // _italic_
+  // Strip emphasis markers, keep words
+  t = t.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").replace(/_(.*?)_/g, "$1");
 
-  // Convert list markers
-  t = t.replace(/^\s*\+\s+/gm, "  - ");  // "+ " → sub-bullet
-  t = t.replace(/^\s*\*\s+/gm, "- ");    // "* " → bullet
+  // Normalize list markers if model returns them
+  t = t.replace(/^\s*\+\s+/gm, "  - ");
+  t = t.replace(/^\s*\*\s+/gm, "- ");
 
   // Remove markdown headings/quotes
   t = t.replace(/^\s{0,3}#{1,6}\s*/gm, "");
   t = t.replace(/^\s*>\s?/gm, "");
 
-  // Collapse too many blank lines
+  // Collapse blank lines; trim line-end spaces
   t = t.replace(/\n{3,}/g, "\n\n");
-
-  // Trim line-end spaces
-  t = t.split("\n").map(line => line.replace(/[ \t]+$/g, "")).join("\n");
+  t = t.split("\n").map(l => l.replace(/[ \t]+$/g, "")).join("\n");
 
   return t.trim();
 }
 
-// Optional: final clamp for broad lists (hard cap as safety)
-function clampProjectsIfBroad(text, isBroad) {
+// Final clamp for broad replies (safety if model ignores directive)
+function clampIfBroad(text, isBroad) {
   if (!isBroad) return text;
-  // keep to roughly 80–120 chars + question if model ignored directive
-  const max = 320;
-  if (text.length <= max) return text;
-  // keep first sentence, append a follow-up
-  const firstSentence = (text.split(/(?<=\.)\s+/)[0] || text).slice(0, max);
-  const ask = " Which would you like to hear about?";
-  return (firstSentence.endsWith(".") ? firstSentence : firstSentence + ".") + ask;
+  // If <= 320 chars, allow; otherwise keep first sentence and ask a follow-up
+  if (text.length <= 320) return text;
+  const first = (text.split(/(?<=\.)\s+/)[0] || text).slice(0, 280);
+  const ask = " Which area would you like to dive into?";
+  return (first.endsWith(".") ? first : first + ".") + ask;
 }
 
 export default {
@@ -94,10 +100,7 @@ export default {
         headers: { "Content-Type": "application/json", ...corsHeaders() },
       });
     }
-
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders() });
-    }
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
 
     if (url.pathname === "/chat" && req.method === "POST") {
       try {
@@ -110,67 +113,47 @@ export default {
         }
 
         const history = Array.isArray(body?.history) ? body.history : [];
-        const past = history
-          .filter(m => m && m.role && m.content)
-          .map(m => ({ role: m.role, content: m.content.toString().trim() }))
-          .slice(-12);
+        const past = history.filter(m => m?.role && m?.content)
+                            .map(m => ({ role: m.role, content: m.content.toString().trim() }))
+                            .slice(-12);
 
-        // Prefer client-provided system; fallback to embedded persona
         const clientSystem = (body?.system || "").toString().trim();
         const systemPrompt = clientSystem || SYSTEM_PROMPT;
 
-        // Intent: broad projects/dashboards?
-        const broad = isBroadProjectsAsk(userMsg);
-        const preMessages = broad ? [{ role: "system", content: CONCISE_PROJECTS_DIRECTIVE }] : [];
+        const broad = isBroadCareerAsk(userMsg);
+        const pre = broad ? [{ role: "system", content: CONCISE_DIRECTIVE }] : [];
 
         // Model aliases
-        const MODEL_ALIASES = {
-          "llama3-8b-8192": "llama-3.1-8b-instant",
-          "llama3-70b-8192": "llama-3.1-70b-versatile",
-        };
+        const ALIAS = { "llama3-8b-8192": "llama-3.1-8b-instant", "llama3-70b-8192": "llama-3.1-70b-versatile" };
         let model = (body?.model || "llama-3.1-8b-instant").toString();
-        if (MODEL_ALIASES[model]) model = MODEL_ALIASES[model];
+        if (ALIAS[model]) model = ALIAS[model];
 
         const temperature = Number.isFinite(+body?.temperature) ? +body.temperature : (broad ? 0.2 : 0.25);
-        const maxTokens = broad ? 220 : 900;
+        const maxTokens  = broad ? 220 : 900;
 
-        const messages = [
-          { role: "system", content: systemPrompt },
-          ...preMessages,
-          ...past,
-          { role: "user", content: userMsg },
-        ];
+        const messages = [{ role: "system", content: systemPrompt }, ...pre, ...past, { role: "user", content: userMsg }];
 
         // Provider selection
         const hasOpenAI = !!env.OPENAI_API_KEY;
         const hasGroq   = !!env.GROQ_API_KEY;
-
         if (!hasOpenAI && !hasGroq) {
-          return new Response(
-            JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() } }
-          );
+          return new Response(JSON.stringify({ error: "No model provider configured (set OPENAI_API_KEY or GROQ_API_KEY)." }), {
+            status: 500, headers: { "Content-Type": "application/json", ...corsHeaders() },
+          });
         }
 
         let apiUrl, headers, payload;
         if (hasGroq) {
           apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          };
+          headers = { "Authorization": `Bearer ${env.GROQ_API_KEY}`, "Content-Type": "application/json" };
           payload = { model, messages, temperature, max_tokens: maxTokens };
         } else {
           apiUrl = "https://api.openai.com/v1/chat/completions";
-          headers = {
-            "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          };
+          headers = { "Authorization": `Bearer ${env.OPENAI_API_KEY}`, "Content-Type": "application/json" };
           payload = { model: "gpt-4o-mini", messages, temperature, max_tokens: maxTokens };
         }
 
         const resp = await fetch(apiUrl, { method: "POST", headers, body: JSON.stringify(payload) });
-
         if (!resp.ok) {
           const txt = await resp.text();
           return new Response(JSON.stringify({ detail: { error: { message: txt } }, error: "Upstream error", status: resp.status }), {
@@ -178,10 +161,10 @@ export default {
           });
         }
 
-        const data = await resp.json();
-        const raw  = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
+        const data  = await resp.json();
+        const raw   = data?.choices?.[0]?.message?.content?.trim() || "Sorry—no response was generated.";
         const clean = scrubMarkdown(raw);
-        const reply = clampProjectsIfBroad(clean, broad);
+        const reply = clampIfBroad(clean, broad);
 
         return new Response(JSON.stringify({ reply }), {
           headers: { "Content-Type": "application/json", ...corsHeaders() },
