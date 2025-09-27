@@ -1,6 +1,6 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Mounts onto <div id="chat-widget-root"></div> and talks to your Worker.
-// Sends message history, and locally renders a "topics" view when asked.
+// Sends message history and locally renders a "topics" view when asked.
 
 const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
@@ -12,8 +12,6 @@ const TONY_TOPICS = [
 ];
 
 const TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg";
-
-// simple in-memory history shared per page load
 const HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
 
 /* ----------------------------- BOOT ----------------------------- */
@@ -73,7 +71,7 @@ const HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
           system,
           model: cfg.model,
           temperature: cfg.temperature,
-          history: HISTORY.slice(-12) // send last N messages
+          history: HISTORY.slice(-12)
         }),
       });
 
