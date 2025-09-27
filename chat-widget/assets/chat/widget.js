@@ -1,8 +1,6 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Vanilla JS, no modules. Renders a floating chat + sends requests to your Cloudflare Worker.
-// Also renders a local "topics" view when the user asks for topics.
-
-/* ===================== Config & State ===================== */
+// Vanilla JS chat + conversational formatter for assistant replies.
+// Also renders a local "topics" view when asked.
 
 const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
@@ -13,8 +11,8 @@ const TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // replace if you have a different path
-var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
+var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg";
+var HISTORY = []; // {role, content}
 
 /* ===================== Boot ===================== */
 
@@ -29,7 +27,6 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
         var ui = buildShell(cfg, mount);
         if (cfg.greeting) addAssistant(ui.scroll, cfg.greeting);
 
-        // open/close
         ui.launcher.addEventListener('click', function () {
           ui.panel.style.display = 'block';
           ui.launcher.classList.add('cw-hidden');
@@ -40,7 +37,6 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
           ui.launcher.classList.remove('cw-hidden');
         });
 
-        // submit
         ui.form.addEventListener('submit', function (e) {
           e.preventDefault();
           var text = (ui.input.value || "").trim();
@@ -57,8 +53,7 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
             sleep(250).then(function () {
               stopTypingLocal();
               renderTopicsInto(ui.scroll);
-              var ack = "Here are topics I’m happy to cover.";
-              HISTORY.push({ role: "assistant", content: ack });
+              HISTORY.push({ role: "assistant", content: "Here are topics I’m happy to cover." });
               scrollToEnd(ui.scroll);
             });
             return;
@@ -67,7 +62,6 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
           var stopTyping = showTyping(ui.scroll);
           ui.send.disabled = true;
 
-          // send to Worker
           safeFetch(cfg.workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -78,28 +72,29 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
               temperature: cfg.temperature,
               history: HISTORY.slice(-12)
             })
-          }).then(function (res) {
-            return res.ok ? res.json().catch(function(){ return {}; }) : res.text().then(function(txt){
-              throw new Error("HTTP " + res.status + ": " + txt);
-            });
-          }).then(function (data) {
-            var reply = data && (data.text || data.reply || data.message);
-            if (reply) {
-              addAssistant(ui.scroll, reply);
-              HISTORY.push({ role: "assistant", content: reply });
-            } else {
-              addError(ui.note, "Error: invalid response");
-            }
-          }).catch(function (err) {
+          })
+          .then(function (res) {
+            return res.ok ? res.json().catch(function(){ return {}; })
+                          : res.text().then(function(txt){ throw new Error("HTTP " + res.status + ": " + txt); });
+          })
+          .then(function (data) {
+            var raw = data && (data.text || data.reply || data.message);
+            if (!raw) return addError(ui.note, "Error: invalid response");
+
+            var html = formatAssistant(raw);
+            addAssistantHTML(ui.scroll, html);
+            HISTORY.push({ role: "assistant", content: stripHtml(html) });
+          })
+          .catch(function (err) {
             addError(ui.note, "Network error: " + String(err && err.message || err));
-          }).finally(function () {
+          })
+          .finally(function () {
             stopTyping();
             ui.send.disabled = false;
             scrollToEnd(ui.scroll);
           });
         });
 
-        // Enter to send, Shift+Enter for newline
         ui.input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -112,6 +107,105 @@ var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
     console.error("[widget] boot error:", err);
   }
 })();
+
+/* ===================== Conversational Formatter ===================== */
+/*
+  Goals:
+   - Turn long, dense paragraphs into: short intro + 2–4 bullets
+   - Respect simple markdown (**bold**, -, •)
+   - Convert "Title: details." patterns into strong labels
+*/
+
+function formatAssistant(text) {
+  text = (text || "").trim();
+
+  // Normalize whitespace and bullets
+  text = text.replace(/\r\n/g, "\n")
+             .replace(/\t/g, " ")
+             .replace(/\u2022/g, "- ")          // • -> -
+             .replace(/\s{2,}/g, " ")
+             .replace(/\n{3,}/g, "\n\n");
+
+  // If the model already gave list items, render them as <ul>
+  var hasListLines = /^[-*]\s+/m.test(text);
+  if (hasListLines) {
+    var lines = text.split("\n").map(function (l) { return l.trim(); });
+    var intro = [];
+    var items = [];
+    var inList = false;
+
+    lines.forEach(function (l) {
+      if (/^[-*]\s+/.test(l)) { inList = true; items.push(l.replace(/^[-*]\s+/, "")); }
+      else if (!inList) { intro.push(l); }
+      else if (l) { items[items.length - 1] += " " + l; }
+    });
+
+    var introHtml = intro.join(" ").trim();
+    introHtml = escapeHtml(introHtml)
+                .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+    var listHtml = items.slice(0, 5).map(function (it) {
+      it = collapse(it);
+      it = labelize(it);
+      it = escapeHtml(it).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      return "<li>" + it + "</li>";
+    }).join("");
+
+    return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
+  }
+
+  // Otherwise, try to extract “Label: details” bullets
+  var candidates = text.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  var labeled = candidates.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,40}:\s/.test(s); });
+
+  if (labeled.length >= 2) {
+    var head = text.split(":")[0];
+    head = head.length > 160 ? "Here are a few highlights:" : head;
+    var intro = escapeHtml(head).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+
+    var bullets = labeled.slice(0, 4).map(function (s) {
+      s = s.replace(/\.$/, "");
+      s = labelize(s);
+      s = collapse(s);
+      s = escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      return "<li>" + s + "</li>";
+    }).join("");
+
+    return "<p>" + intro + "</p><ul>" + bullets + "</ul>";
+  }
+
+  // Fallback: sentence split into short paragraphs
+  var sentences = text.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
+  var html = sentences.map(function (s, i) {
+    s = escapeHtml(s).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return "<p>" + s + "</p>";
+  }).join("");
+  return html;
+}
+
+// Turn "Title: details" into "<strong>Title</strong> — details"
+function labelize(s) {
+  var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
+  if (!m) return s;
+  var label = m[1].trim();
+  var rest  = m[2].trim();
+  return "<strong>" + sanitizeInline(label) + "</strong> — " + sanitizeInline(rest);
+}
+
+function collapse(s) {
+  return (s || "").replace(/\s{2,}/g, " ").trim();
+}
+
+function sanitizeInline(s) {
+  // minimal cleanup; bold markup handled later
+  return s.replace(/\*\*/g, "");
+}
+
+function stripHtml(html) {
+  var tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || "";
+}
 
 /* ===================== Topics Render ===================== */
 
@@ -177,27 +271,25 @@ function ensureMount() {
 }
 
 function buildShell(cfg, mount) {
-  mount.innerHTML = ''
-    + '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">'
-    + '  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
-    + '    <path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>'
-    + '  </svg>'
-    + '</button>'
-    + '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">'
-    + '  <div class="cw-head">'
-    + '    <button class="cw-close" id="cw-close" aria-label="Close">✕</button>'
-    + '    <h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>'
-    + '    <p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>'
-    + '  </div>'
-    + '  <div class="cw-body">'
-    + '    <div class="cw-scroll" id="cw-scroll"></div>'
-    + '    <div class="cw-note" id="cw-note"></div>'
-    + '    <form class="cw-input" id="cw-form">'
-    + '      <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>'
-    + '      <button class="cw-send" id="cw-send" type="submit">Send</button>'
-    + '    </form>'
-    + '  </div>'
-    + '</div>';
+  mount.innerHTML =
+    '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">' +
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/></svg>' +
+    '</button>' +
+    '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">' +
+      '<div class="cw-head">' +
+        '<button class="cw-close" id="cw-close" aria-label="Close">✕</button>' +
+        '<h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>' +
+        '<p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>' +
+      '</div>' +
+      '<div class="cw-body">' +
+        '<div class="cw-scroll" id="cw-scroll"></div>' +
+        '<div class="cw-note" id="cw-note"></div>' +
+        '<form class="cw-input" id="cw-form">' +
+          '<input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>' +
+          '<button class="cw-send" id="cw-send" type="submit">Send</button>' +
+        '</form>' +
+      '</div>' +
+    '</div>';
 
   return {
     launcher: mount.querySelector('#cw-launch'),
@@ -216,7 +308,18 @@ function addAssistant(mount, text) {
   row.className = 'cw-row bot';
   var bubble = document.createElement('div');
   bubble.className = 'cw-bubble';
-  bubble.textContent = text;
+  bubble.textContent = text; // plain text (used for greetings etc.)
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addAssistantHTML(mount, html) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.innerHTML = html; // formatted
   row.appendChild(bubble);
   mount.appendChild(row);
   scrollToEnd(mount);
@@ -239,7 +342,6 @@ function loadConfig() {
       return res.json();
     })
     .catch(function () {
-      // fallback defaults
       return {
         workerUrl: '/chat',
         title: 'Chat',
@@ -270,12 +372,8 @@ function addError(noteEl, msg) {
 function showTyping(mount) {
   var row = document.createElement('div');
   row.className = 'cw-row bot';
-  row.innerHTML = ''
-    + '<div class="cw-bubble">'
-    + '  <span class="cw-typing">'
-    + '    <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>'
-    + '  </span>'
-    + '</div>';
+  row.innerHTML =
+    '<div class="cw-bubble"><span class="cw-typing"><span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span></span></div>';
   mount.appendChild(row);
   scrollToEnd(mount);
   return function () { row.remove(); };
@@ -302,12 +400,9 @@ function fetchSystem(url) {
     .catch(function () { return ''; });
 }
 
-function sleep(ms) {
-  return new Promise(function (resolve) { setTimeout(resolve, ms); });
-}
+function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
 
 function safeFetch(url, options) {
-  // Tries absolute path first; if it fails (e.g., GitHub Pages subpath), retries relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
