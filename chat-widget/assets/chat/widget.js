@@ -42,6 +42,36 @@ var __TONY_SOURCES__ = [];
               __TONY_SOURCES__ = loadedSources || [];
 
               var ui = buildShell(cfg, mount);
+              // ... (rest of your boot logic stays the same)
+            });
+        });
+      });
+    });
+  } catch (err) {
+    console.error("[widget] boot error:", err);
+  }
+})();
+
+/* ===================== Derive sources from persona.links (UPDATED) ===================== */
+
+function deriveSourcesFromPersona(persona) {
+  try {
+    var out = [];
+    var links = (persona && persona.links) || {};
+
+    if (links.home)       out.push({ title: "Home",          url: links.home });
+    if (links.projects)   out.push({ title: "Projects",      url: links.projects });
+    if (links.dashboards) out.push({ title: "Dashboards",    url: links.dashboards });
+    if (links.caseStudies)out.push({ title: "Case Studies",  url: links.caseStudies });
+    if (links.knowledge)  out.push({ title: "Knowledge Hub", url: links.knowledge });
+    if (links.about)      out.push({ title: "About",         url: links.about });
+    if (links.resume)     out.push({ title: "Resume",        url: links.resume });
+
+    return out;
+  } catch (e) {
+    return [];
+  }
+}
 
               // Avatar launcher
               ui.launcher.classList.add('cw-launcher--avatar');
