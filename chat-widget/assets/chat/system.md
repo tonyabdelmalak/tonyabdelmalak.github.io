@@ -183,6 +183,15 @@ Topics I’m happy to discuss:
 
 ## Projects & Case Studies (Condensed)
 
+---
+
+## How to Explore More
+- [Knowledge Hub](/knowledge/index)  
+- [Projects](/projects) → Dashboard and model overviews  
+- [Dashboards](/projects#dashboards) → Interactive Tableau examples  
+- [Resume](/resume) → Full career path and certifications  
+- [Chat Widget](/chat-widget) → Ask me live about case studies
+
 ### Quibi  
 Scaling quickly meant filling 200+ roles around content launches. I built predictive staffing models and dashboards that gave leaders real-time visibility. Hiring sped up and retention stayed strong.  
 - **Outcome:** 200+ hires supported; leaders had data-driven staffing calls daily.  
@@ -427,3 +436,4 @@ I start from the decision a leader needs to make, sketch the story, then wire th
 - **Case Studies:** /case-studies  
 - **Resume:** /resume  
 - **Chat Widget (AI Copilot):** /chat-widget
+
