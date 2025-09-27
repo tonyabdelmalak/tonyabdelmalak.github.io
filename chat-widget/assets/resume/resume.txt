@@ -1,0 +1,72 @@
+TONY ABDELMALAK
+Los Angeles, CA | 323.203.5622 | Tony.Abdelmalak@yahoo.com | Portfolio | LinkedIn Profile
+
+PROFESSIONAL SUMMARY
+Data-driven analytics professional specializing in AI-enhanced workforce insights, HR technology, and business intelligence. Combines 10+ years of HR leadership with advanced analytics skills to design dashboards, predictive models, and AI-driven solutions that inform strategic decision-making. Skilled in Tableau, SQL, Python, and AI tools to deliver actionable insights across HR, operations, and sales. Recent projects include predictive attrition modeling, compensation equity analysis, workforce forecasting, and AI-powered assistants.
+
+KEY STRENGTHS & ACHIEVEMENTS
+- Reduced voluntary turnover by 28% through AI-driven predictive attrition modeling and targeted retention strategies.
+- Accelerated time-to-hire by 24% by optimizing recruitment funnels and automating workflows with AI and analytics.
+- Increased employee satisfaction by 22% by identifying engagement drivers and implementing data-driven culture initiatives.
+- Built and deployed analytics dashboards and AI assistants to democratize workforce data, enabling executives to make faster decisions and achieve a 12x ROI on analytics investments.
+
+AI & ANALYTICS PORTFOLIO PROJECTS
+- AI Sentiment Analysis on Employee Surveys — Applied NLP (spaCy, NLTK, transformers) to thousands of open-text responses, identifying sentiment trends and recurring themes by department. Enabled early detection of culture issues.
+- Recruitment Funnel Optimization Analysis — Analyzed ATS data to calculate conversion rates at each stage. Built a Tableau dashboard to identify bottlenecks, reducing time-to-fill by 12% and improving offer acceptance by 8%.
+- Workforce Demand Forecasting — Modeled staffing needs with Prophet and ARIMA using historical headcount data. Built scenario-based forecasts to guide 6–12 month hiring and budget planning.
+
+PROFESSIONAL EXPERIENCE
+AI & Analytics Career Transition — Freelance & Portfolio Projects (January 2023 – Present)
+- Designed and deployed an AI-powered predictive attrition model using HRIS sample datasets, identifying key retention drivers and reducing simulated turnover risk by 12%.
+- Built and published multiple Tableau dashboards analyzing workforce trends, compensation equity, and hiring funnel efficiency; shared on Tableau Public.
+- Developed an AI assistant prototype that generates real-time workforce insights from SQL queries and delivers natural language summaries to executives.
+- Conducted a compensation equity study using anonymized data, modeling adjustments across roles, tenure, and performance.
+
+People Operations Specialist (Consultant) — Roadr.com | Los Angeles, CA (October 2022 – Present)
+- Developed workforce forecasting tools that reduced early attrition by 28% and decreased onboarding time by 40% through AI-driven predictions and automated workflows.
+- Implemented data analytics dashboards in Tableau and Workday to monitor capacity planning, hiring demand, and productivity, improving time-to-hire by 24%.
+- Introduced generative AI tools for efficient reporting and insights, automating query summarization and executive dashboards.
+- Collaborated with finance and operations leaders to align workforce planning with strategic objectives, enabling a 15% reduction in staffing costs.
+
+Human Resources Generalist (Analytics Focus) — Flowserve Corporation | Vernon, CA (December 2021 – October 2022)
+- Created compliance and engagement dashboards using Python and Google Sheets, reducing manual processing by 40%.
+- Integrated HR data across multiple systems for compensation and attrition analysis, improving accuracy of workforce plans.
+- Partnered with HR leadership to design predictive models for attrition and performance, increasing retention by 18%.
+- Delivered training for managers on workforce intelligence tools to facilitate data-driven decisions.
+
+Talent & Operations Consultant — Quibi (Media/Tech Venture) | Los Angeles, CA (May 2018 – May 2021)
+- Built HR technology systems and analytics dashboards for rapid scale-up, enabling efficient hiring of 200+ roles.
+- Designed people analytics frameworks and predictive staffing models for content launches, aligning talent with forecasted demand.
+- Partnered with finance to create workforce budgeting models integrating payroll, headcount, and recruitment data.
+- Led cross-functional analytics initiatives, improving hiring velocity and employee retention.
+
+HRIS & Workforce Reporting Analyst — HBO (Time Warner/AT&T) | Los Angeles, CA (October 2012 – June 2017)
+- Developed real-time analytics dashboards tracking attrition and pipeline health across departments.
+- Led Workday implementation and migration, creating integrated reporting solutions.
+- Trained HR teams on analytics tools and built self-service dashboards.
+
+Recruiter — NBCUniversal/E! Entertainment Networks | Los Angeles, CA (June 2009 – September 2012)
+- Recruited for over 200 roles annually while providing talent analytics reports to executives.
+- Collaborated with workforce planning to forecast hiring needs based on data trends.
+- Implemented applicant tracking system enhancements to improve recruiting efficiency and reduce time-to-fill.
+
+EDUCATION
+Bachelor of Science in Management Science — University of California, San Diego
+
+CERTIFICATIONS
+- AI for HR: Workforce Planning & Talent Optimization (In progress)
+- Google Data Analytics Certificate — Coursera (2024)
+- Workday Reporting & HR Analytics — LinkedIn Learning (2021)
+- Effectively Leading Digital Transformation — LinkedIn Learning (2025)
+- Applied AI for Human Resources — LinkedIn Learning (2025)
+- Creating Interactive Tableau Dashboards — LinkedIn Learning (2025)
+- Using Generative AI Ethically at Work — LinkedIn Learning (2025)
+- Generative AI in HR — LinkedIn Learning (2025)
+- Actionable Insights and Business Data in Practice — LinkedIn Learning (2025)
+
+TECHNICAL SKILLS
+Data Analytics & Visualization: Tableau, Power BI, Excel, SQL, Python
+AI & Machine Learning: Predictive analytics, AI assistants, Natural Language Processing
+HRIS & Talent Systems: Workday, SuccessFactors, Greenhouse
+Data Storytelling & Visualization; Process Automation (Google Apps Script, JavaScript)
+Collaboration Tools: Google Workspace, Slack, Trello
