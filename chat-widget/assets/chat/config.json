@@ -1,8 +1,7 @@
-
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "systemUrl": "chat-widget/assets/chat/system.md",
-  "model": "llama-3.1-8b-instant",
+  "systemUrl": "/chat-widget/assets/chat/system.md",
+  "model": "meta-llama/llama-3.1-8b-instruct",
   "temperature": 0.2,
 
   "title": "What's on your mind?",
