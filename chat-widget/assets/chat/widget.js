@@ -1,4 +1,5 @@
 
+
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
 // Includes a conversational formatter (intro + bullets) and a local “topics” view.
@@ -208,33 +209,24 @@ function formatAssistant(text) {
     return (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtml + "</ul>";
   }
 
-  // ---- Path B (fixed): synthesize bullets from "Label: details" without echoing the title ----
-var lines = t.split("\n").map(function (s) { return s.trim(); }).filter(Boolean);
+  // Path B: synthesize bullets from "Label: details"
+  var parts = t.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
 
-// collect labeled bullet candidates
-var labeled = lines
-  .filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()/-]{2,60}:\s/.test(s); });
+  if (labeled.length >= 2) {
+    var head = collapse(t.split(":")[0]);
+    if (head.length > 160) head = "Here are a few highlights:";
+    var bullets = labeled.slice(0, 4).map(function (s) {
+      s = s.replace(/\.$/, "");
+      s = collapse(s);
+      return "<li>" + labelizeHTML(s) + "</li>";
+    }).join("");
+    return "<p>" + head + "</p><ul>" + bullets + "</ul>";
+  }
 
-// choose a title line ONLY if it's a non-bullet, short, no colon
-var titleLine = lines.find(function (s) {
-  return !/^[-*]\s+/.test(s) && !/:/.test(s) && s.length <= 80;
-}) || "";
-
-// build bullets
-if (labeled.length >= 1) {
-  // de-duplicate: if first labeled label equals the title, don’t echo it
-  function labelOf(s) { return s.split(":")[0].trim(); }
-  var title = collapse(titleLine);
-  var bullets = labeled.slice(0, 4).map(function (s) {
-    var lbl = labelOf(s);
-    var body = s.split(":").slice(1).join(":").trim().replace(/\.$/, "");
-    var item = (title && lbl.toLowerCase() === title.toLowerCase())
-      ? body                                   // avoid "Title — Title: body"
-      : "<strong>" + lbl + "</strong> — " + body;
-    return "<li>" + item + "</li>";
-  }).join("");
-
-  return (title ? "<p>" + title + "</p>" : "") + "<ul>" + bullets + "</ul>";
+  // Path C: fallback — first 2–3 short paragraphs
+  var sentences = t.split(/(?<=\.)\s+/).slice(0, 3).map(collapse);
+  return sentences.map(function (s) { return "<p>" + s + "</p>"; }).join("");
 }
 
 // Safe helper: expects already-escaped input, returns HTML with <strong> label
