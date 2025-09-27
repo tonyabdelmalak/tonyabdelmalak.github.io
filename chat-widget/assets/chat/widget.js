@@ -124,6 +124,17 @@ function wordClamp(s, n = 60) {
   return parts.length <= n ? s : parts.slice(0, n).join(" ") + "…";
 }
 
+function addBot(mount, text) {
+  const row = document.createElement('div');
+  row.className = 'cw-row bot';
+  const bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = wordClamp(text); // hard cap ~60 words
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
 function normalizeMarkdown(t='') {
   // Turn leading bold blocks into headings
   t = t.replace(/(^|\n)\s*\*\*([^*]+)\*\*\s*/g, (m, p1, p2) => `${p1}\n## ${p2.trim()}\n`);
@@ -191,21 +202,6 @@ function buildShell(cfg, mount) {
     input: mount.querySelector('#cw-text'),
     send: mount.querySelector('#cw-send')
   };
-}
-
-function addBot(mount, text) {
-  const row = document.createElement('div');
-  row.className = 'cw-row bot';
-
-  const bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.textContent = wordClamp(text);     // <— clamp here
-  bubble.style.whiteSpace = 'pre-wrap';
-  bubble.style.overflowWrap = 'anywhere';
-
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
 }
 
 function addUser(mount, text) {
