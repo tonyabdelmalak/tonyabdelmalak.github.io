@@ -1,93 +1,11 @@
+
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Vanilla JS floating chat that talks to your Cloudflare Worker.
-// Conversational formatter (intro + bullets) with optional "Show more" toggle.
-// Also includes a local “topics” view and a tiny init API (window.TonyChatWidget.init).
+// Vanilla JS, no modules. Renders a floating chat + sends requests to your Cloudflare Worker.
+// Also renders a local "topics" view when the user asks for topics.
 
 /* ===================== Config & State ===================== */
 
-var DEFAULT_CONFIG = {
-  workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  systemUrl: "/chat-widget/assets/chat/system.md",
-  model: "llama-3.1-8b-instant",
-  temperature: 0.2,
-  title: "What\'s on your mind?",
-  greeting: "",
-  brand: { accent: "#3e5494", radius: "14px" },
-};
-
-// ===== Config loader (subpath-safe, resilient) =====
-var CONFIG = null; // populated by loadConfig(), may be overridden by init()
-
-// Fallback shallowMerge if not already defined
-if (typeof shallowMerge !== 'function') {
-  function shallowMerge(a, b) {
-    var out = {};
-    a = a || {}; b = b || {};
-    Object.keys(a).forEach(function (k) { out[k] = a[k]; });
-    Object.keys(b).forEach(function (k) {
-      if (b[k] !== undefined) out[k] = b[k];
-    });
-    return out;
-  }
-}
-
-// Try hard to find the script tag that loaded widget.js
-function resolveWidgetBase() {
-  var el = document.currentScript;
-  if (!el || !el.src) {
-    var scripts = document.getElementsByTagName('script');
-    for (var i = scripts.length - 1; i >= 0; i--) {
-      var src = scripts[i].getAttribute('src') || '';
-      if (/\/assets\/chat\/widget\.js(?:\?.*)?$/i.test(src)) { el = scripts[i]; break; }
-    }
-  }
-  var src = (el && el.src) || '';
-
-  // Expected: https(s)://<host>/<repo>/chat-widget/assets/chat/widget.js
-  var m = src.match(/^(.*)\/assets\/chat\/widget\.js(?:\?.*)?$/i);
-  if (m && m[1]) return m[1];
-
-  // Fallback: strip filename (last segment)
-  if (src) return src.replace(/\/[^\/?#]+(?:\?.*)?$/, '');
-
-  // Last resort: guess from location (handles local dev)
-  // e.g., https://<host>/<repo>/index.html  -> base ~ https://<host>/<repo>/chat-widget
-  var locBase = window.location.origin + window.location.pathname.replace(/\/index\.html?$/i, '');
-  return locBase.replace(/\/$/, '');
-}
-
-function toAbsolute(url, base) {
-  try { return new URL(url, base).toString(); } catch (e) { return url; }
-}
-
-function loadConfig() {
-  var base = resolveWidgetBase();                 // .../chat-widget
-  var cfgUrl = base + '/assets/chat/config.json'; // .../chat-widget/assets/chat/config.json
-  var sysUrl = base + '/assets/chat/system.md';   // default system if config omits it
-
-  return safeFetch(cfgUrl, { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : {}; })
-    .catch(function () { return {}; })
-    .then(function (fileCfg) {
-      // DEFAULT_CONFIG should exist in your file; fall back to {} if not
-      var merged = shallowMerge(typeof DEFAULT_CONFIG === 'object' ? DEFAULT_CONFIG : {}, fileCfg || {});
-
-      // Ensure URLs are present and absolute (subpath-safe)
-      if (!merged.systemUrl) merged.systemUrl = sysUrl;
-      if (merged.systemUrl) merged.systemUrl = toAbsolute(merged.systemUrl, base);
-      if (merged.workerUrl) merged.workerUrl = toAbsolute(merged.workerUrl, base);
-
-      // Optional brand defaults (do not overwrite if provided)
-      merged.brand = merged.brand || {};
-      if (!merged.brand.accent) merged.brand.accent = '#3e5494';
-      if (!merged.brand.radius) merged.brand.radius = '14px';
-
-      CONFIG = merged;
-      return merged;
-    });
-}
-
-var TONY_TOPICS = [
+const TONY_TOPICS = [
   { title: "Real-world case studies", body: "Examples of dashboards, workforce models, and AI copilots I’ve built — and how they were used to make decisions." },
   { title: "Behind the scenes", body: "How I clean, structure, and shape messy datasets so they tell a clear story." },
   { title: "Career pivots", body: "What I learned moving from HR into analytics, and advice for making that shift." },
@@ -96,55 +14,15 @@ var TONY_TOPICS = [
   { title: "Future outlook", body: "Where AI is reshaping HR, workforce analytics, and decision-making — opportunities and challenges." }
 ];
 
-var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // change if needed
+var TONY_AVATAR_URL = "/assets/chat/tony-avatar.jpg"; // replace if you have a different path
 var HISTORY = []; // {role:'user'|'assistant'|'system', content:'...'}
-
-/* Toggle behavior: how much to show before offering "Show more" */
-var FORMAT_LIMITS = {
-  list: Infinity,       // show all bullets by default
-  sentences: Infinity,  // show all sentences by default
-  moreThresholdChars: 1400 // if formatted HTML > this, show a "Show more/less" toggle
-};
-
-/* ===================== Tiny public API ===================== */
-// Allows: window.TonyChatWidget.init({ workerUrl, systemUrl, title, greeting, brand:{accent,radius} })
-(function exposeAPI(){
-  window.TonyChatWidget = window.TonyChatWidget || {};
-  window.TonyChatWidget.init = function init(overrides){
-    try {
-      if (overrides && typeof overrides === 'object') {
-        // merge shallowly into CONFIG once it's loaded; if load not done yet, stash it
-        window.__TONY_WIDGET_PENDING_OVERRIDES__ = overrides;
-      }
-      // If boot already ran, re‑boot
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        boot();
-      } else {
-        document.addEventListener('DOMContentLoaded', boot, { once: true });
-      }
-    } catch (e) { console.error('[widget] init error:', e); }
-  };
-})();
 
 /* ===================== Boot ===================== */
 
-(function autoBoot(){
-  // Auto‑boot if script tag has data-autostart or no explicit init used.
-  if (document.currentScript && document.currentScript.hasAttribute('data-autostart')) {
-    if (document.readyState === 'complete' || document.readyState === 'interactive') boot();
-    else document.addEventListener('DOMContentLoaded', boot, { once: true });
-  }
-})();
-
-function boot() {
+(function boot() {
   try {
     var mount = ensureMount();
     loadConfig().then(function (cfg) {
-      // apply any pending inline init overrides
-      var ov = window.__TONY_WIDGET_PENDING_OVERRIDES__ || null;
-      if (ov) cfg = shallowMerge(cfg, ov);
-      CONFIG = cfg;
-
       applyTheme(cfg);
       fetchSystem(cfg.systemUrl).then(function (system) {
         if (system) HISTORY.push({ role: "system", content: system });
@@ -174,13 +52,14 @@ function boot() {
           ui.input.value = "";
           ui.input.focus();
 
-          // Local topics intercept
+          // Local "topics" intercept
           if (wantsTopics(text)) {
             var stopTypingLocal = showTyping(ui.scroll);
             sleep(250).then(function () {
               stopTypingLocal();
               renderTopicsInto(ui.scroll);
-              HISTORY.push({ role: "assistant", content: "Here are topics I’m happy to cover." });
+              var ack = "Here are topics I’m happy to cover.";
+              HISTORY.push({ role: "assistant", content: ack });
               scrollToEnd(ui.scroll);
             });
             return;
@@ -189,7 +68,7 @@ function boot() {
           var stopTyping = showTyping(ui.scroll);
           ui.send.disabled = true;
 
-          // Send to Worker
+          // send to Worker
           safeFetch(cfg.workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -200,33 +79,28 @@ function boot() {
               temperature: cfg.temperature,
               history: HISTORY.slice(-12)
             })
-          })
-          .then(function (res) {
-            return res.ok
-              ? res.json().catch(function(){ return {}; })
-              : res.text().then(function (txt) { throw new Error("HTTP " + res.status + ": " + txt); });
-          })
-          .then(function (data) {
-            var raw = data && (data.text || data.reply || data.message);
-            if (!raw) return addError(ui.note, "Error: invalid response");
-
-            var fmt = formatAssistant(raw);     // returns {html, fullHtml, truncated}
-            addAssistantFormatted(ui.scroll, fmt);
-            HISTORY.push({ role: "assistant", content: stripHtml(fmt.fullHtml || fmt.html) });
-          })
-          .catch(function (err) {
-            var msg = "Network error: " + String((err && err.message) || err);
-            addError(ui.note, msg);          // keep visible in the note area
-            addAssistant(ui.scroll, msg);    // also show as a chat bubble
-          })
-          .finally(function () {
+          }).then(function (res) {
+            return res.ok ? res.json().catch(function(){ return {}; }) : res.text().then(function(txt){
+              throw new Error("HTTP " + res.status + ": " + txt);
+            });
+          }).then(function (data) {
+            var reply = data && (data.text || data.reply || data.message);
+            if (reply) {
+              addAssistant(ui.scroll, reply);
+              HISTORY.push({ role: "assistant", content: reply });
+            } else {
+              addError(ui.note, "Error: invalid response");
+            }
+          }).catch(function (err) {
+            addError(ui.note, "Network error: " + String(err && err.message || err));
+          }).finally(function () {
             stopTyping();
             ui.send.disabled = false;
             scrollToEnd(ui.scroll);
           });
         });
 
-        // Enter to send, Shift+Enter newline
+        // Enter to send, Shift+Enter for newline
         ui.input.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -238,237 +112,9 @@ function boot() {
   } catch (err) {
     console.error("[widget] boot error:", err);
   }
-}
+})();
 
-/* ===================== Config helpers ===================== */
-
-function loadConfig() {
-  var url = "/chat-widget/assets/chat/config.json";
-  return safeFetch(url, { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : DEFAULT_CONFIG; })
-    .catch(function () { return DEFAULT_CONFIG; })
-    .then(function(fileCfg){ return shallowMerge(DEFAULT_CONFIG, fileCfg || {}); });
-}
-
-function applyTheme(cfg) {
-  try {
-    var root = document.documentElement;
-    if (cfg.brand && cfg.brand.accent) root.style.setProperty('--chat-accent', cfg.brand.accent);
-    if (cfg.brand && cfg.brand.radius) root.style.setProperty('--chat-radius', cfg.brand.radius);
-  } catch (e) {}
-}
-
-function shallowMerge(a, b){
-  var out = {}; var k;
-  for (k in a) out[k] = a[k];
-  for (k in b){
-    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) out[k] = shallowMerge(out[k] || {}, b[k]);
-    else out[k] = b[k];
-  }
-  return out;
-}
-
-/* ===================== Conversational Formatter ===================== */
-/*
-  Strategy (XSS-safe):
-    1) Escape ALL model text.
-    2) Convert markdown bold **text** -> <strong>text</strong>.
-    3) If there are list lines (- or *), render as <ul><li>…</li></ul> (no cap).
-    4) Else, convert "Label: details" into "<strong>Label</strong> — details" (no cap).
-    5) Else, split into paragraphs (no cap).
-  If formatted HTML is very long, we generate a shortened version + a "Show more/less" toggle.
-*/
-
-function formatAssistant(text) {
-  var t = (text || "").trim();
-
-  // Normalize whitespace and bullets
-  t = t.replace(/\r\n/g, "\n")
-       .replace(/\t/g, " ")
-       .replace(/\u2022/g, "- ")      // • -> -
-       .replace(/\s{2,}/g, " ")
-       .replace(/\n{3,}/g, "\n\n");
-
-  // Escape EVERYTHING first (so raw HTML from model can't run)
-  var escaped = escapeHtml(t);
-
-  // Convert markdown bold **text** into <strong>text</strong>
-  escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-
-  var htmlFull = "";
-  var htmlShort = "";
-
-  // Path A: model already produced bullets
-  if (/^[-*]\s+/m.test(escaped)) {
-    var lines = escaped.split("\n").map(function (l) { return l.trim(); });
-    var intro = [];
-    var items = [];
-    var inList = false;
-
-    lines.forEach(function (l) {
-      if (/^[-*]\s+/.test(l)) { inList = true; items.push(l.replace(/^[-*]\s+/, "")); }
-      else if (!inList) { intro.push(l); }
-      else if (l) { items[items.length - 1] += " " + l; }
-    });
-
-    var introHtml = collapse(intro.join(" ").trim());
-
-    var listHtmlAll = items.map(function (it) {
-      it = collapse(it);
-      it = stripLeadIn(it);
-      it = labelizeHTML(it); // adds <strong>Label</strong> — rest
-      return "<li>" + it + "</li>";
-    }).join("");
-
-    htmlFull = (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtmlAll + "</ul>";
-
-    var listLimit = FORMAT_LIMITS.list;
-    if (isFinite(listLimit) && items.length > listLimit) {
-      var listHtmlShort = items.slice(0, listLimit).map(function (it) {
-        it = collapse(it);
-        it = labelizeHTML(it);
-        return "<li>" + it + "</li>";
-      }).join("");
-      htmlShort = (introHtml ? "<p>" + introHtml + "</p>" : "") + "<ul>" + listHtmlShort + "</ul>";
-    }
-  }
-  else {
-    // Path B: synthesize bullets from "Label: details"
-    var parts = escaped.split(/[.;]\s+/).map(function (s) { return s.trim(); }).filter(Boolean);
-    var labeled = parts.filter(function (s) { return /:/.test(s) && /^[A-Z][A-Za-z0-9 ()\/-]{2,60}:\s/.test(s); });
-
-    if (labeled.length >= 2) {
-      var head = collapse(escaped.split(":")[0]);
-      if (head.length > 160) head = "Here are a few highlights:";
-
-      var bulletsAll = labeled.map(function (s) {
-        s = s.replace(/\.$/, "");
-        s = collapse(s);
-        s = stripLeadIn(s);
-        return "<li>" + labelizeHTML(s) + "</li>";
-      }).join("");
-
-      htmlFull = "<p>" + head + "</p><ul>" + bulletsAll + "</ul>";
-
-      var listLimitB = FORMAT_LIMITS.list;
-      if (isFinite(listLimitB) && labeled.length > listLimitB) {
-        var bulletsShort = labeled.slice(0, listLimitB).map(function (s) {
-          s = s.replace(/\.$/, "");
-          s = collapse(s);
-          return "<li>" + labelizeHTML(s) + "</li>";
-        }).join("");
-        htmlShort = "<p>" + head + "</p><ul>" + bulletsShort + "</ul>";
-      }
-    } else {
-      // Path C: plain paragraphs
-      var sentencesAll = escaped.split(/(?<=\.)\s+/).map(collapse).filter(Boolean);
-      htmlFull = sentencesAll.map(function (s) { return "<p>" + s + "</p>"; }).join("");
-
-      var sentLimit = FORMAT_LIMITS.sentences;
-      if (isFinite(sentLimit) && sentencesAll.length > sentLimit) {
-        var sentencesShort = sentencesAll.slice(0, sentLimit);
-        htmlShort = sentencesShort.map(function (s) { return "<p>" + s + "</p>"; }).join("");
-      }
-    }
-  }
-
-  // Decide whether we need a toggle
-  var needsToggle = false;
-  var shortHtml = htmlFull;
-  if (htmlFull.length > FORMAT_LIMITS.moreThresholdChars && htmlShort) {
-    needsToggle = true;
-    shortHtml = htmlShort;
-  }
-
-  return { html: shortHtml, fullHtml: htmlFull, truncated: needsToggle };
-}
-
-// expects already-escaped input, returns HTML with <strong> label
-function labelizeHTML(s) {
-  var m = s.match(/^([^:]{2,80}):\s*(.+)$/);
-  if (!m) return s;
-  var label = m[1].trim();
-  var rest  = m[2].trim();
-  return "<strong>" + label + "</strong> — " + rest;
-}
-
-function collapse(s) { return (s || "").replace(/\s{2,}/g, " ").trim(); }
-
-function stripHtml(html) {
-  var tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
-}
-
-/* ===================== Render helpers ===================== */
-
-function addAssistantFormatted(mount, fmt) {
-  var row = document.createElement('div');
-  row.className = 'cw-row bot';
-
-  var bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.innerHTML = fmt.html;
-
-  // Toggle
-  if (fmt.truncated) {
-    var toggle = document.createElement('button');
-    toggle.type = "button";
-    toggle.textContent = "Show more";
-    toggle.style.display = "inline-block";
-    toggle.style.marginTop = "6px";
-    toggle.style.fontSize = "12px";
-    toggle.style.border = "none";
-    toggle.style.background = "transparent";
-    toggle.style.color = "var(--chat-muted)";
-    toggle.style.cursor = "pointer";
-    toggle.addEventListener('click', function () {
-      var expanded = toggle.getAttribute('data-expanded') === '1';
-      if (expanded) {
-        bubble.innerHTML = fmt.html;
-        toggle.textContent = "Show more";
-        toggle.setAttribute('data-expanded', '0');
-      } else {
-        bubble.innerHTML = fmt.fullHtml;
-        toggle.textContent = "Show less";
-        toggle.setAttribute('data-expanded', '1');
-      }
-      scrollToEnd(mount);
-    });
-    bubble.appendChild(document.createElement('br'));
-    bubble.appendChild(toggle);
-  }
-
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function stripLeadIn(s) {
-  // remove filler like "Some highlights include —", "Highlights include:", etc.
-  return (s || "").replace(/^(?:some\s+)?highlights?\s+include(?:s)?\s*[—\-:]\s*/i, "");
-}
-
-function addAssistant(mount, text) {
-  var row = document.createElement('div');
-  row.className = 'cw-row bot';
-  var bubble = document.createElement('div');
-  bubble.className = 'cw-bubble';
-  bubble.textContent = text; // plain greeting etc.
-  row.appendChild(bubble);
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-function addUser(mount, text) {
-  var row = document.createElement('div');
-  row.className = 'cw-row user';
-  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
-  mount.appendChild(row);
-  scrollToEnd(mount);
-}
-
-/* ===================== Topics View ===================== */
+/* ===================== Topics Render ===================== */
 
 function wantsTopics(t) {
   var s = (t || "").toLowerCase().trim();
@@ -519,7 +165,7 @@ function makeTopicBubble(opts) {
   return row;
 }
 
-/* ===================== DOM + Shell ===================== */
+/* ===================== DOM + UI ===================== */
 
 function ensureMount() {
   var root = document.querySelector('#chat-widget-root');
@@ -532,27 +178,27 @@ function ensureMount() {
 }
 
 function buildShell(cfg, mount) {
-  mount.innerHTML =
-    '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">' +
-      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-        '<path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>' +
-      '</svg>' +
-    '</button>' +
-    '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">' +
-      '<div class="cw-head">' +
-        '<button class="cw-close" id="cw-close" aria-label="Close">✕</button>' +
-        '<h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>' +
-        '<p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>' +
-      '</div>' +
-      '<div class="cw-body">' +
-        '<div class="cw-scroll" id="cw-scroll"></div>' +
-        '<div class="cw-note" id="cw-note"></div>' +
-        '<form class="cw-input" id="cw-form">' +
-          '<input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>' +
-          '<button class="cw-send" id="cw-send" type="submit">Send</button>' +
-        '</form>' +
-      '</div>' +
-    '</div>';
+  mount.innerHTML = ''
+    + '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">'
+    + '  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+    + '    <path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>'
+    + '  </svg>'
+    + '</button>'
+    + '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">'
+    + '  <div class="cw-head">'
+    + '    <button class="cw-close" id="cw-close" aria-label="Close">✕</button>'
+    + '    <h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>'
+    + '    <p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>'
+    + '  </div>'
+    + '  <div class="cw-body">'
+    + '    <div class="cw-scroll" id="cw-scroll"></div>'
+    + '    <div class="cw-note" id="cw-note"></div>'
+    + '    <form class="cw-input" id="cw-form">'
+    + '      <input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>'
+    + '      <button class="cw-send" id="cw-send" type="submit">Send</button>'
+    + '    </form>'
+    + '  </div>'
+    + '</div>';
 
   return {
     launcher: mount.querySelector('#cw-launch'),
@@ -566,19 +212,71 @@ function buildShell(cfg, mount) {
   };
 }
 
-/* ===================== Utilities ===================== */
+function addAssistant(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addUser(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+/* ===================== Helpers ===================== */
+
+function loadConfig() {
+  return safeFetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
+    .then(function (res) {
+      if (!res.ok) throw new Error("config.json " + res.status);
+      return res.json();
+    })
+    .catch(function () {
+      // fallback defaults
+      return {
+        workerUrl: '/chat',
+        title: 'Chat',
+        greeting: '',
+        accent: '#4f46e5',
+        radius: '14px',
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.2,
+        systemUrl: ''
+      };
+    });
+}
+
+function applyTheme(cfg) {
+  cfg = cfg || {};
+  var accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#4f46e5';
+  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
+  var root = document.documentElement;
+  root.style.setProperty('--chat-accent', accent);
+  root.style.setProperty('--chat-radius', radius);
+}
 
 function addError(noteEl, msg) {
-  // Make errors sticky (don’t auto-clear); the next successful send can clear this explicitly if desired.
   noteEl.textContent = msg;
-}, 6000);
+  setTimeout(function () { noteEl.textContent = ''; }, 6000);
 }
 
 function showTyping(mount) {
   var row = document.createElement('div');
   row.className = 'cw-row bot';
-  row.innerHTML =
-    '<div class="cw-bubble"><span class="cw-typing"><span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span></span></div>';
+  row.innerHTML = ''
+    + '<div class="cw-bubble">'
+    + '  <span class="cw-typing">'
+    + '    <span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span>'
+    + '  </span>'
+    + '</div>';
   mount.appendChild(row);
   scrollToEnd(mount);
   return function () { row.remove(); };
@@ -605,10 +303,12 @@ function fetchSystem(url) {
     .catch(function () { return ''; });
 }
 
-function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+function sleep(ms) {
+  return new Promise(function (resolve) { setTimeout(resolve, ms); });
+}
 
 function safeFetch(url, options) {
-  // Try absolute; if it fails (GH Pages subpath), retry relative.
+  // Tries absolute path first; if it fails (e.g., GitHub Pages subpath), retries relative.
   return fetch(url, options).catch(function () {
     try {
       if (url && typeof url === 'string' && url.charAt(0) === '/') {
