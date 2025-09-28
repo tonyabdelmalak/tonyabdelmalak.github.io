@@ -117,6 +117,20 @@
   gap: 10px;
 }
 
+/* Input row (keep it modestly taller) */
+.cw-input textarea,
+.cw-input input[type="text"] {
+  height: 52px;      /* base */
+  min-height: 52px;
+  max-height: 120px; /* textarea cap if used */
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-y: auto;
+  resize: none;
+}
+.cw-send { min-height: 52px; }
+
 /* bubbles */
 .cw-row { display:flex; gap:10px; }
 .cw-row.user { justify-content:flex-end; }
@@ -145,33 +159,35 @@
 .cw-row.bot .cw-bubble li { margin: 4px 0; }
 .cw-row.bot .cw-bubble strong { font-weight: 700; }
 
-/* ---------- Input row ---------- */
-.cw-input {
-  display:flex;
-  gap:10px;
-  padding: 10px;
-  border-top: 1px solid var(--chat-border);
-  background: color-mix(in srgb, var(--chat-bg) 92%, #000 8%);
-}
+/* Input row — modestly taller */
 .cw-input input[type="text"] {
-  flex:1;
-  outline:none;
-  border:1px solid var(--chat-border);
+  flex: 1;
+  outline: none;
+  border: 1px solid var(--chat-border);
   background: var(--chat-bg);
   color: var(--chat-fg);
   border-radius: calc(var(--chat-radius) - 6px);
   padding: 10px 12px;
   font-size: 14px;
+  line-height: 1.4;
+
+  height: 52px;      /* was 65px */
+  min-height: 52px;
 }
+
+/* Match Send button height */
 .cw-send {
   min-width: 90px;
-  border:none;
+  border: none;
   border-radius: calc(var(--chat-radius) - 6px);
   background: var(--chat-accent);
-  color:#fff; font-weight:600;
-  padding: 10px 14px;
-  cursor:pointer;
+  color: #fff;
+  font-weight: 600;
+  padding: 0 16px;
+  cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 52px;  /* was 65px */
 }
 .cw-send:hover { transform: translateY(-1px); }
 .cw-send:disabled { opacity:.6; cursor:not-allowed; }
