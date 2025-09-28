@@ -103,6 +103,7 @@
 .cw-close:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
 
 /* ---------- Body / messages ---------- */
+/* Fixed middle height (reliable open/close behavior) */
 .cw-body {
   display:flex;
   flex-direction:column;
@@ -116,59 +117,6 @@
   flex-direction: column;
   gap: 10px;
 }
-
-/* ===== Chat input: slimmer icon button + wider text area ===== */
-
-/* tighter spacing in the input row */
-.cw-input { gap: 8px; padding: 10px; }
-
-/* if you're using <input> */
-.cw-input input[type="text"] {
-  height: 52px;
-  min-height: 52px;
-  padding: 10px 12px;
-  font-size: 14px;
-  line-height: 1.4;
-  flex: 1 1 auto;     /* stretch */
-}
-
-/* if you're using <textarea> instead, use this selector */
-.cw-input textarea {
-  height: 52px;       /* base */
-  min-height: 52px;
-  max-height: 120px;  /* if you kept the hybrid expand JS */
-  padding: 10px 12px;
-  font-size: 14px;
-  line-height: 1.4;
-  flex: 1 1 auto;     /* stretch */
-  resize: none;
-  overflow-y: auto;
-}
-
-/* icon-only send button (smaller, square, aligned) */
-.cw-send {
-  min-width: 0;
-  width: 44px;              /* compact */
-  height: 44px;             /* slightly smaller than 52px input so it looks tidy */
-  min-height: 44px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;      /* matches your rounded look */
-}
-
-/* svg inside the send button */
-.cw-send svg {
-  width: 18px;
-  height: 18px;
-  display: block;
-  pointer-events: none;
-  fill: currentColor;
-}
-
-/* make sure the launcher still shows if it got hidden during testing */
-.cw-launcher { display: inline-flex !important; }
 
 /* bubbles */
 .cw-row { display:flex; gap:10px; }
@@ -198,9 +146,18 @@
 .cw-row.bot .cw-bubble li { margin: 4px 0; }
 .cw-row.bot .cw-bubble strong { font-weight: 700; }
 
-/* Input row — modestly taller */
-.cw-input input[type="text"] {
-  flex: 1;
+/* ---------- Input row: wider text area + icon button ---------- */
+.cw-input {
+  display:flex;
+  gap:8px;                  /* tighter gap to give text more width */
+  padding: 10px;
+  border-top: 1px solid var(--chat-border);
+  background: color-mix(in srgb, var(--chat-bg) 92%, #000 8%);
+}
+
+/* TEXTAREA version (hybrid auto-expand via JS) */
+.cw-input textarea {
+  flex: 1 1 auto;           /* stretch further right */
   outline: none;
   border: 1px solid var(--chat-border);
   background: var(--chat-bg);
@@ -210,26 +167,53 @@
   font-size: 14px;
   line-height: 1.4;
 
-  height: 52px;      /* was 65px */
+  height: 52px;             /* base thickness */
+  min-height: 52px;
+  max-height: 120px;        /* cap for hybrid expand */
+  overflow-y: auto;
+  resize: none;
+}
+
+/* INPUT version (if you keep <input type="text">) */
+.cw-input input[type="text"] {
+  flex: 1 1 auto;
+  outline: none;
+  border: 1px solid var(--chat-border);
+  background: var(--chat-bg);
+  color: var(--chat-fg);
+  border-radius: calc(var(--chat-radius) - 6px);
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  height: 52px;
   min-height: 52px;
 }
 
-/* Match Send button height */
+/* Icon-only send button (compact) */
 .cw-send {
-  min-width: 90px;
+  min-width: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
   border: none;
-  border-radius: calc(var(--chat-radius) - 6px);
+  border-radius: 10px;
   background: var(--chat-accent);
-  color: #fff;
-  font-weight: 600;
-  padding: 0 16px;
-  cursor: pointer;
+  color:#fff; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer;
   transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 52px;  /* was 65px */
 }
 .cw-send:hover { transform: translateY(-1px); }
 .cw-send:disabled { opacity:.6; cursor:not-allowed; }
+
+.cw-send svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
+}
 
 /* ---------- System row (errors, tips) ---------- */
 .cw-note {
@@ -252,3 +236,6 @@
 
 /* ---------- Utility ---------- */
 .cw-hidden { display:none !important; }
+
+/* Safety: if launcher ever gets hidden by mistake */
+.cw-launcher { display: inline-flex !important; }
