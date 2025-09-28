@@ -1,6 +1,6 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat that talks to your Cloudflare Worker.
-// Consistent formatting + optional persona/sources context (RAG-lite).
+// Assistant/user bubble colors + inside-corner send icon.
 
 /* ===================== Config & State ===================== */
 
@@ -42,7 +42,7 @@ var __TONY_SOURCES__ = [];
 
               var ui = buildShell(cfg, mount);
 
-              // Avatar launcher
+              // Avatar launcher (kept)
               ui.launcher.classList.add('cw-launcher--avatar');
               ui.launcher.innerHTML = `
                 <div class="cw-avatar-wrapper" aria-label="Open chat with Tony">
@@ -240,10 +240,6 @@ function chunkText(s, size, overlap) {
 }
 
 /* ===================== Conversational Formatter ===================== */
-/*
-  - Follow-up handling
-  - Bullet/label normalization
-*/
 function formatAssistant(text) {
   var t = (text || "").trim();
   t = t.replace(/\r\n/g, "\n").replace(/\t/g, " ");
@@ -458,8 +454,9 @@ function buildShell(cfg, mount) {
         '<div class="cw-scroll" id="cw-scroll"></div>' +
         '<div class="cw-note" id="cw-note"></div>' +
         '<form class="cw-input" id="cw-form">' +
-          '<textarea id="cw-text" rows="1" autocomplete="off" placeholder="Type a message…"></textarea>' +
+          '<textarea id="cw-text" rows="1" autocomplete="off" placeholder="Type your message…"></textarea>' +
           '<button class="cw-send" id="cw-send" type="submit" aria-label="Send">' +
+            /* paper-plane icon, positioned like the screenshot */
             '<svg viewBox="0 0 24 24" aria-hidden="true">' +
               '<path d="M2.7 3.3a1 1 0 0 1 1.1-.22l17 7.2a1 1 0 0 1 0 1.84l-17 7.2A1 1 0 0 1 2 19.4l5.7-6.42-2.7-2.42 4.9-.42 2.9 2.84-1.74 6.53 10.5-4.45L4.8 4.6l6.53 1.74L8.5 8.1 2.7 3.3Z"></path>' +
             '</svg>' +
@@ -524,7 +521,7 @@ function loadConfig() {
         workerUrl: '/chat',
         title: 'Chat',
         greeting: '',
-        brand: { accent: '#3e5494', radius: '14px' },
+        brand: { accent: '#3e5494', radius: '18px' },
         model: 'llama-3.1-8b-instant',
         temperature: 0.2,
         systemUrl: '/chat-widget/assets/chat/system.md'
@@ -535,7 +532,7 @@ function loadConfig() {
 function applyTheme(cfg) {
   cfg = cfg || {};
   var accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#3e5494';
-  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
+  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '18px';
   var root = document.documentElement;
   root.style.setProperty('--chat-accent', accent);
   root.style.setProperty('--chat-radius', radius);
