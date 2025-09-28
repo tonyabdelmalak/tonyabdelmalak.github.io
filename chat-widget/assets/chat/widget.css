@@ -117,6 +117,8 @@
   gap: 10px;
 }
 
+/* ===== Chat input: slimmer icon button + wider text area ===== */
+
 /* tighter spacing in the input row */
 .cw-input { gap: 8px; padding: 10px; }
 
@@ -129,6 +131,20 @@
   line-height: 1.4;
   flex: 1 1 auto;     /* stretch */
 }
+
+/* if you're using <textarea> instead, use this selector */
+.cw-input textarea {
+  height: 52px;       /* base */
+  min-height: 52px;
+  max-height: 120px;  /* if you kept the hybrid expand JS */
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  flex: 1 1 auto;     /* stretch */
+  resize: none;
+  overflow-y: auto;
+}
+
 /* icon-only send button (smaller, square, aligned) */
 .cw-send {
   min-width: 0;
@@ -150,6 +166,9 @@
   pointer-events: none;
   fill: currentColor;
 }
+
+/* make sure the launcher still shows if it got hidden during testing */
+.cw-launcher { display: inline-flex !important; }
 
 /* bubbles */
 .cw-row { display:flex; gap:10px; }
