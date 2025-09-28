@@ -454,14 +454,13 @@ function buildShell(cfg, mount) {
         '<div class="cw-scroll" id="cw-scroll"></div>' +
         '<div class="cw-note" id="cw-note"></div>' +
         '<form class="cw-input" id="cw-form">' +
-          '<textarea id="cw-text" rows="1" autocomplete="off" placeholder="Type your message…"></textarea>' +
-          '<button class="cw-send" id="cw-send" type="submit" aria-label="Send">' +
-            /* paper-plane icon, positioned like the screenshot */
-            '<svg viewBox="0 0 24 24" aria-hidden="true">' +
-              '<path d="M2.7 3.3a1 1 0 0 1 1.1-.22l17 7.2a1 1 0 0 1 0 1.84l-17 7.2A1 1 0 0 1 2 19.4l5.7-6.42-2.7-2.42 4.9-.42 2.9 2.84-1.74 6.53 10.5-4.45L4.8 4.6l6.53 1.74L8.5 8.1 2.7 3.3Z"></path>' +
-            '</svg>' +
-          '</button>' +
-        '</form>' +
+  '<input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>' +
+  '<button class="cw-send" id="cw-send" type="submit" aria-label="Send message">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">' +
+      '<path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>' +
+    '</svg>' +
+  '</button>' +
+'</form>' +
       '</div>' +
     '</div>';
 
