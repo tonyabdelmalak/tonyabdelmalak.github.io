@@ -117,17 +117,17 @@
   gap: 10px;
 }
 
-/* Input row (keep it modestly taller) */
-.cw-input textarea,
+/* tighter spacing in the input row */
+.cw-input { gap: 8px; padding: 10px; }
+
+/* if you're using <input> */
 .cw-input input[type="text"] {
-  height: 52px;      /* base */
+  height: 52px;
   min-height: 52px;
-  max-height: 120px; /* textarea cap if used */
   padding: 10px 12px;
   font-size: 14px;
   line-height: 1.4;
-  overflow-y: auto;
-  resize: none;
+  flex: 1 1 auto;     /* stretch */
 }
 .cw-send { min-height: 52px; }
 
