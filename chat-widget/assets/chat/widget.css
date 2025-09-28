@@ -268,5 +268,26 @@
 /* ---------- Utility ---------- */
 .cw-hidden { display:none !important; }
 
+/* === Chat Box Tweaks === */
+
+/* Bot bubble (Tony) */
+.cw-row.bot .cw-bubble {
+  background: #374a64;       /* deep navy */
+  color: #ffffff;
+  border: 1px solid #2a3950; /* slim dark border */
+}
+
+/* User bubble */
+.cw-row.user .cw-bubble {
+  background: #dce3f3;       /* mid-light blue/gray */
+  color: #0b1220;
+  border: 1px solid #b3c0d8; /* subtle lighter border */
+}
+
+/* Slightly taller chat window */
+.cw-body {
+  height: 460px; /* was 420px */
+}
+
 /* Safety: ensure launcher is visible */
 .cw-launcher { display: inline-flex !important; }
