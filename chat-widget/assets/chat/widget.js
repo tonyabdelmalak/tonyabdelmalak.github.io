@@ -61,6 +61,8 @@ var __TONY_SOURCES__ = [];
                 ui.panel.style.display = 'block';
                 ui.launcher.classList.add('cw-hidden');
                 ui.input.focus();
+                // ensure the textarea is at least the base height on open
+                autoSizeTextArea(ui.input, 65, 150, true);
               });
               ui.closeBtn.addEventListener('click', function () {
                 ui.panel.style.display = 'none';
@@ -75,7 +77,10 @@ var __TONY_SOURCES__ = [];
 
                 addUser(ui.scroll, text);
                 HISTORY.push({ role: "user", content: text });
+
                 ui.input.value = "";
+                // reset to base height after sending
+                autoSizeTextArea(ui.input, 65, 150, true);
                 ui.input.focus();
 
                 // Local /topics shortcut
@@ -142,6 +147,14 @@ var __TONY_SOURCES__ = [];
                   ui.form.dispatchEvent(new Event('submit'));
                 }
               });
+
+              // Auto-expand textarea as user types
+              ui.input.addEventListener('input', function () {
+                autoSizeTextArea(ui.input, 65, 150);
+              });
+
+              // initialize base height once DOM is ready
+              autoSizeTextArea(ui.input, 65, 150, true);
             });
         });
       });
@@ -474,7 +487,8 @@ function buildShell(cfg, mount) {
         '<div class="cw-scroll" id="cw-scroll"></div>' +
         '<div class="cw-note" id="cw-note"></div>' +
         '<form class="cw-input" id="cw-form">' +
-          '<input id="cw-text" type="text" autocomplete="off" placeholder="Type a message…"/>' +
+          // Switched from input[type="text"] → textarea for hybrid auto-expand
+          '<textarea id="cw-text" rows="1" autocomplete="off" placeholder="Type a message…"></textarea>' +
           '<button class="cw-send" id="cw-send" type="submit">Send</button>' +
         '</form>' +
       '</div>' +
@@ -624,4 +638,18 @@ function injectStyles () {
   s.setAttribute('data-cw-avatar-styles', 'true');
   s.textContent = css;
   document.head.appendChild(s);
+}
+
+/* ===================== Utilities (auto-size textarea) ===================== */
+
+function autoSizeTextArea(textarea, minPx, maxPx, forceBase) {
+  if (!textarea) return;
+  var minH = Math.max(0, Number(minPx) || 0);
+  var maxH = Math.max(minH, Number(maxPx) || minH);
+  // Reset height to base before measuring scrollHeight
+  textarea.style.height = (forceBase ? minH : 0) ? (minH + 'px') : 'auto';
+  // Now grow up to the cap
+  var next = Math.min(textarea.scrollHeight, maxH);
+  if (next < minH) next = minH;
+  textarea.style.height = next + 'px';
 }
