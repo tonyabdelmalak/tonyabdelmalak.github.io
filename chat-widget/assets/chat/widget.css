@@ -100,7 +100,7 @@
 /* ---------- Header ---------- */
 .cw-head {
   position: relative;
-  background: linear-gradient(135deg, var(--chat-accent), color-mix(in oklab, var(--chat-accent) 70%, #111 30%));
+  background: #2a2f3a;  /* dark grey */
   color: #fff;
   padding: 14px 16px;
 }
@@ -215,28 +215,22 @@
 
 /* Send button — compact, sits inside bottom-right corner */
 .cw-send {
-  position: absolute;
-  right: 20px;
-  bottom: 18px;
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
-
+  min-width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: var(--chat-accent);
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--chat-accent), color-mix(in oklab, var(--chat-accent) 60%, #000 40%));
-  color: #fff;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0,0,0,.22);
-  transition: transform .12s ease, opacity .2s ease;
+  transition: background .2s ease;
 }
-.cw-send:hover { transform: translateY(-1px); }
-.cw-send:disabled { opacity:.6; cursor:not-allowed; }
+
+.cw-send:hover {
+  background: #2a2f3a; /* match header on hover */
+}
 
 .cw-send svg {
   width: 18px;
