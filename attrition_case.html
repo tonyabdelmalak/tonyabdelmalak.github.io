@@ -12,6 +12,159 @@
   </style>
 </head>
 <body>
+  <!-- Sidebar -->
+<aside class="sidebar" aria-label="Case Studies navigation">
+  <button class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="true">
+    ☰
+  </button>
+
+  <nav class="sidebar-nav">
+    <a class="nav-link" href="/index.html">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+
+    <!-- Case Studies -->
+    <a class="nav-link" href="/interactive_cases_refined/attrition_case.html">
+      <i class="fa-solid fa-chart-line"></i>
+      <span>Predictive Model</span>
+    </a>
+
+    <a class="nav-link" href="/interactive_cases_refined/workforce_planning_case.html">
+      <i class="fa-solid fa-users-gear"></i>
+      <span>Workforce Planning</span>
+    </a>
+
+    <a class="nav-link" href="/interactive_cases_refined/engagement_impact_case.html">
+      <i class="fa-solid fa-people-group"></i>
+      <span>Measuring Engagement</span>
+    </a>
+
+    <a class="nav-link" href="/interactive_cases_refined/ai_attrition_model_case.html">
+      <i class="fa-solid fa-robot"></i>
+      <span>AI: Attrition Risk Analysis</span>
+    </a>
+
+    <a class="nav-link" href="/recruitment_funnel_case.html">
+      <i class="fa-solid fa-filter"></i>
+      <span>Recruitment Funnel Analysis</span>
+    </a>
+  </nav>
+</aside>
+
+<style>
+:root {
+  --sidebar-w: 300px;
+  --sidebar-bg: #0b1222;     /* dark navy */
+  --sidebar-fg: #e7ecff;     /* text */
+  --sidebar-accent: #3e44a6; /* highlight border */
+  --sidebar-hover: #1a2340;  /* hover bg */
+}
+
+body { margin-left: var(--sidebar-w); }
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-fg);
+  z-index: 1000;
+  box-shadow: 2px 0 14px rgba(0,0,0,.25);
+}
+
+.sidebar-toggle {
+  display: none;
+  position: absolute;
+  top: 12px; right: 12px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--sidebar-fg);
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 6px;
+  padding: 18px 14px;
+  margin-top: 8px;
+}
+
+/* Links */
+.sidebar .nav-link {
+  display: grid;
+  grid-template-columns: 22px 1fr; /* icon + text */
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  color: var(--sidebar-fg);
+  text-decoration: none;
+  font-size: 0.82rem;   /* smaller font */
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
+  transition: background 0.2s ease;
+}
+
+.sidebar .nav-link i {
+  font-size: 15px;
+  opacity: .9;
+}
+
+.sidebar .nav-link:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar .nav-link.active,
+.sidebar .nav-link[aria-current="page"] {
+  outline: 2px solid var(--sidebar-accent);
+  background: rgba(62, 68, 166, .2);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  :root { --sidebar-w: 260px; }
+}
+
+@media (max-width: 768px) {
+  body { margin-left: 0; }
+  .sidebar { transform: translateX(0); }
+  .sidebar[data-collapsed="true"] { transform: translateX(-100%); }
+  .sidebar { transition: transform .25s ease; }
+  .sidebar-toggle { display: inline-block; }
+}
+</style>
+
+<script>
+(function() {
+  // highlight active link
+  const here = location.pathname.replace(/\/+$/,'');
+  document.querySelectorAll('.sidebar .nav-link').forEach(a => {
+    const link = a.getAttribute('href').replace(/\/+$/,'');
+    if (link && (here === link || here.endsWith(link))) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
+  });
+
+  // mobile toggle
+  const sidebar = document.querySelector('.sidebar');
+  const btn = document.querySelector('.sidebar-toggle');
+  if (btn && sidebar) {
+    btn.addEventListener('click', () => {
+      const collapsed = sidebar.getAttribute('data-collapsed') === 'true';
+      sidebar.setAttribute('data-collapsed', collapsed ? 'false' : 'true');
+      btn.setAttribute('aria-expanded', collapsed ? 'true' : 'false');
+    });
+  }
+})();
+</script>
+
   <h2>Predict Employee Attrition</h2>
   <p>This interactive demo shows how employee attributes relate to attrition risk.</p>
   <div id="scatter" class="chart"></div>
