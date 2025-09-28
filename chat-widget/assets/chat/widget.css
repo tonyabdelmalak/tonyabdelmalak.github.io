@@ -62,11 +62,11 @@
   border: 1px solid var(--chat-border);
 }
 
-/* When JS sets style="display: block", use grid:
-   header (top) | body (flexible middle) | input (bottom) */
+/* When JS sets style="display: block", switch to grid so
+   header stays top, messages fill, input stays bottom. */
 .cw-wrap[style*="display: block"] {
   display: grid !important;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto; /* header | body | input */
 }
 
 @media (max-width: 480px) {
@@ -110,19 +110,22 @@
 .cw-close:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
 
 /* ---------- Body / messages ---------- */
+/* Remove fixed height and let the middle area flex via grid row "1fr" */
 .cw-body {
   display:flex;
   flex-direction:column;
-  min-height: 0; /* important so inner scroller can scroll */
+  min-height: 0; /* important so the inner scroller can actually scroll */
   background: var(--chat-bg);
 }
+
+/* The scroller now stretches to fill remaining vertical space */
 .cw-scroll {
   padding: 14px 14px 6px;
   overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-height: 0; /* allow scroll within grid/flex contexts */
+  min-height: 0; /* allow scroll in grid/flex contexts */
 }
 
 /* bubbles */
@@ -140,6 +143,7 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
 .cw-row.bot .cw-bubble { background: var(--chat-bot); }
 .cw-row.user .cw-bubble {
   background: var(--chat-user);
@@ -152,7 +156,8 @@
 .cw-row.bot .cw-bubble li { margin: 4px 0; }
 .cw-row.bot .cw-bubble strong { font-weight: 700; }
 
-/* ---------- Input row (hybrid: 52px base, up to 120px) ---------- */
+/* ---------- Input row ---------- */
+/* Keep input bar pinned to bottom; make input taller */
 .cw-input {
   display:flex;
   gap:10px;
@@ -161,40 +166,34 @@
   background: color-mix(in srgb, var(--chat-bg) 92%, #000 8%);
 }
 
-/* Works with either <input> or <textarea>; textarea will auto-expand via JS */
-.cw-input textarea,
+/* Taller message box (width unchanged). If you later switch to <textarea>,
+   these values will still look good; just target .cw-input textarea instead. */
 .cw-input input[type="text"] {
-  flex: 1;
-  outline: none;
-  border: 1px solid var(--chat-border);
+  flex:1;
+  outline:none;
+  border:1px solid var(--chat-border);
   background: var(--chat-bg);
   color: var(--chat-fg);
   border-radius: calc(var(--chat-radius) - 6px);
-  padding: 10px 12px;
+  padding: 12px 12px;
   font-size: 14px;
   line-height: 1.4;
-
-  /* height behavior */
-  height: 52px;      /* fixed if <input>; base if <textarea> */
-  min-height: 52px;
-  max-height: 120px; /* textarea cap; scrolls after this */
-  overflow-y: auto;
-  resize: none;      /* keep layout stable */
+  height: 65px;       /* ⬅️ raised from ~40px to ~65px */
+  min-height: 65px;   /* keep it from collapsing */
 }
 
-/* Send button aligned to input height */
+/* Match the Send button to the new input height and keep it centered */
 .cw-send {
   min-width: 90px;
-  border: none;
+  border:none;
   border-radius: calc(var(--chat-radius) - 6px);
   background: var(--chat-accent);
-  color: #fff;
-  font-weight: 600;
-  padding: 0 16px;
-  cursor: pointer;
+  color:#fff; font-weight:600;
+  padding: 0 16px;    /* horizontal padding only; height controlled below */
+  cursor:pointer;
   transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
-  display: inline-flex; align-items: center; justify-content: center;
-  min-height: 52px;
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height: 65px;   /* ⬅️ align to input height */
 }
 .cw-send:hover { transform: translateY(-1px); }
 .cw-send:disabled { opacity:.6; cursor:not-allowed; }
