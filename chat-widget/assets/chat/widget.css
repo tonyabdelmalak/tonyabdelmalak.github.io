@@ -1,13 +1,27 @@
 :root {
   --chat-accent: #4f46e5;      /* overwritten by JS from config.accent */
-  --chat-radius: 14px;         /* overwritten by JS from config.radius */
+  --chat-radius: 18px;         /* softened, rounded look */
   --chat-shadow: 0 10px 36px rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.12);
+
   --chat-bg: #ffffff;
   --chat-fg: #0f172a;
   --chat-muted: #64748b;
   --chat-border: #4a64a5;
-  --chat-user: #eef2ff;        /* user bubble */
-  --chat-bot: #f8fafc;         /* bot bubble */
+
+  /* Bubble colors (inspired by your second screenshot) */
+  --bubble-bot-bg: #374a64;     /* deep slate/blue (assistant) */
+  --bubble-bot-fg: #ffffff;
+  --bubble-bot-border: rgba(13,25,47,.5);
+
+  --bubble-user-bg: rgba(238,242,247,.95); /* light for contrast (user) */
+  --bubble-user-fg: #0b1220;
+  --bubble-user-border: rgba(30,46,80,.25);
+
+  /* Input bar (inspired by your first screenshot) */
+  --input-bg: rgba(17,24,39,.65);   /* translucent dark */
+  --input-fg: #e5e7eb;
+  --input-border: rgba(148,163,184,.35);
+  --placeholder: rgba(229,231,235,.55);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,8 +30,19 @@
     --chat-fg: #e5e7eb;
     --chat-muted: #9aa4b2;
     --chat-border: #1f2a44;
-    --chat-user: #101a34;
-    --chat-bot: #0f1a2b;
+
+    --bubble-bot-bg: #2f425d;
+    --bubble-bot-fg: #ffffff;
+    --bubble-bot-border: rgba(114,144,196,.35);
+
+    --bubble-user-bg: rgba(255,255,255,.10);
+    --bubble-user-fg: #eaeef7;
+    --bubble-user-border: rgba(160,176,208,.28);
+
+    --input-bg: rgba(10,14,24,.65);
+    --input-fg: #e5e7eb;
+    --input-border: rgba(148,163,184,.28);
+    --placeholder: rgba(229,231,235,.5);
   }
 }
 
@@ -53,7 +78,7 @@
   z-index: 2147483646;
   width: 360px;
   max-height: calc(100vh - 140px);
-  border-radius: var(--chat-radius);
+  border-radius: 20px;
   background: var(--chat-bg);
   color: var(--chat-fg);
   box-shadow: var(--chat-shadow);
@@ -103,11 +128,10 @@
 .cw-close:hover { background: rgba(255,255,255,.3); transform: translateY(-1px); }
 
 /* ---------- Body / messages ---------- */
-/* Fixed middle height (reliable open/close behavior) */
 .cw-body {
   display:flex;
   flex-direction:column;
-  height: 420px;
+  height: 420px;               /* reliable open/close behavior */
   background: var(--chat-bg);
 }
 .cw-scroll {
@@ -124,9 +148,9 @@
 
 .cw-bubble {
   max-width: 86%;
-  border-radius: calc(var(--chat-radius) - 6px);
-  padding: 10px 12px;
-  line-height: 1.45;
+  border-radius: 22px;                 /* pill-like bubbles */
+  padding: 12px 14px;
+  line-height: 1.5;
   border: 1px solid var(--chat-border);
   font-size: 14px;
   white-space: pre-wrap;
@@ -134,10 +158,18 @@
   word-break: break-word;
 }
 
-.cw-row.bot .cw-bubble { background: var(--chat-bot); }
+/* Assistant (my) bubbles */
+.cw-row.bot .cw-bubble {
+  background: var(--bubble-bot-bg);
+  color: var(--bubble-bot-fg);
+  border-color: var(--bubble-bot-border);
+}
+
+/* User bubbles */
 .cw-row.user .cw-bubble {
-  background: var(--chat-user);
-  border-color: color-mix(in srgb, var(--chat-accent) 30%, var(--chat-border));
+  background: var(--bubble-user-bg);
+  color: var(--bubble-user-fg);
+  border-color: var(--bubble-user-border);
 }
 
 /* ---------- Reader-friendly assistant formatting ---------- */
@@ -146,63 +178,62 @@
 .cw-row.bot .cw-bubble li { margin: 4px 0; }
 .cw-row.bot .cw-bubble strong { font-weight: 700; }
 
-/* ---------- Input row: wider text area + icon button ---------- */
+/* ---------- Input row (pill + corner send icon) ---------- */
 .cw-input {
+  position: relative;
   display:flex;
-  gap:8px;                  /* tighter gap to give text more width */
-  padding: 10px;
+  gap:10px;
+  padding: 12px;
   border-top: 1px solid var(--chat-border);
   background: color-mix(in srgb, var(--chat-bg) 92%, #000 8%);
 }
 
-/* TEXTAREA version (hybrid auto-expand via JS) */
-.cw-input textarea {
-  flex: 1 1 auto;           /* stretch further right */
+/* Text area (hybrid: expands a bit, wide, pill) */
+.cw-input textarea,
+.cw-input input[type="text"] {
+  flex: 1 1 auto;
   outline: none;
-  border: 1px solid var(--chat-border);
-  background: var(--chat-bg);
-  color: var(--chat-fg);
-  border-radius: calc(var(--chat-radius) - 6px);
-  padding: 10px 12px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border-radius: 16px;
+  padding: 12px 56px 12px 14px;  /* right padding leaves room for icon */
   font-size: 14px;
   line-height: 1.4;
 
-  height: 52px;             /* base thickness */
+  height: 52px;
   min-height: 52px;
-  max-height: 120px;        /* cap for hybrid expand */
+  max-height: 120px;             /* used by textarea version */
   overflow-y: auto;
   resize: none;
 }
 
-/* INPUT version (if you keep <input type="text">) */
-.cw-input input[type="text"] {
-  flex: 1 1 auto;
-  outline: none;
-  border: 1px solid var(--chat-border);
-  background: var(--chat-bg);
-  color: var(--chat-fg);
-  border-radius: calc(var(--chat-radius) - 6px);
-  padding: 10px 12px;
-  font-size: 14px;
-  line-height: 1.4;
-  height: 52px;
-  min-height: 52px;
+.cw-input textarea::placeholder,
+.cw-input input[type="text"]::placeholder {
+  color: var(--placeholder);
 }
 
-/* Icon-only send button (compact) */
+/* Send button — compact, sits inside bottom-right corner */
 .cw-send {
-  min-width: 0;
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
-  padding: 0;
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   border: none;
-  border-radius: 10px;
-  background: var(--chat-accent);
-  color:#fff; font-weight:600;
-  display:inline-flex; align-items:center; justify-content:center;
-  cursor:pointer;
-  transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--chat-accent), color-mix(in oklab, var(--chat-accent) 60%, #000 40%));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,.22);
+  transition: transform .12s ease, opacity .2s ease;
 }
 .cw-send:hover { transform: translateY(-1px); }
 .cw-send:disabled { opacity:.6; cursor:not-allowed; }
@@ -237,5 +268,5 @@
 /* ---------- Utility ---------- */
 .cw-hidden { display:none !important; }
 
-/* Safety: if launcher ever gets hidden by mistake */
+/* Safety: ensure launcher is visible */
 .cw-launcher { display: inline-flex !important; }
