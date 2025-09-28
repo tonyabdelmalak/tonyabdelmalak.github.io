@@ -374,4 +374,255 @@ function stripHtml(html) {
   } catch (e) {
     var tmp = document.createElement("div");
     tmp.innerHTML = String(html || "");
-    return (tmp.textContent || tmp.innerText || "").replace(/\s{2,}/g
+    return (tmp.textContent || tmp.innerText || "").replace(/\s{2,}/g, " ").trim();
+  }
+}
+
+/* ===================== Topics View ===================== */
+
+function wantsTopics(t) {
+  var s = (t || "").toLowerCase().trim();
+  return s === "/topics" ||
+         /\b(topics?|what can (you|u) cover|what do you cover|what can you talk about|what else)\b/.test(s);
+}
+
+function renderTopicsInto(scrollEl) {
+  var sep = document.createElement('div');
+  sep.className = 'tny-section-sep';
+  scrollEl.appendChild(sep);
+
+  var root = document.createElement('div');
+  root.className = 'tny-chat';
+
+  root.appendChild(makeTopicBubble({
+    who: 'tony',
+    html: '<div class="tny-content"><h4>Hi, I’m Tony.</h4><p>Here are topics I’m happy to cover. Ask me about any of these and I’ll dive in.</p></div>'
+  }));
+
+  for (var i = 0; i < TONY_TOPICS.length; i++) {
+    var t = TONY_TOPICS[i];
+    root.appendChild(makeTopicBubble({
+      who: 'tony',
+      html: '<div class="tny-content"><h4>' + escapeHtml(t.title) + '</h4><p>' + escapeHtml(t.body) + '</p></div>'
+    }));
+  }
+
+  scrollEl.appendChild(root);
+}
+
+function makeTopicBubble(opts) {
+  var row = document.createElement('div');
+  row.className = 'tny-row tny-row--' + opts.who;
+
+  var avatar = document.createElement('div');
+  avatar.className = 'tny-avatar';
+  if (opts.who === 'tony' && TONY_AVATAR_URL) {
+    avatar.style.backgroundImage = "url('" + TONY_AVATAR_URL + "')";
+  }
+
+  var bubble = document.createElement('div');
+  bubble.className = 'tny-bubble tny-bubble--' + opts.who;
+  bubble.innerHTML = opts.html;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  return row;
+}
+
+/* ===================== DOM + UI ===================== */
+
+function ensureMount() {
+  var root = document.querySelector('#chat-widget-root');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'chat-widget-root';
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+function buildShell(cfg, mount) {
+  mount.innerHTML =
+    '<button class="cw-launcher" id="cw-launch" aria-label="Open chat">' +
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+        '<path d="M12 3C7.03 3 3 6.58 3 11a7.6 7.6 0 0 0 2.1 5.1l-.7 3.2c-.1.5.36.95.85.83l3.7-.93A10.8 10.8 0 0 0 12 19c4.97 0 9-3.58 9-8s-4.03-8-9-8Z" fill="currentColor"/>' +
+      '</svg>' +
+    '</button>' +
+    '<div class="cw-wrap" id="cw-panel" role="dialog" aria-label="Chat">' +
+      '<div class="cw-head">' +
+        '<button class="cw-close" id="cw-close" aria-label="Close">✕</button>' +
+        '<h3 class="cw-title" id="cw-title">' + escapeHtml(cfg.title || "What\'s on your mind?") + '</h3>' +
+        '<p class="cw-sub" id="cw-sub">Feel free to ask me (mostly) anything.</p>' +
+      '</div>' +
+      '<div class="cw-body">' +
+        '<div class="cw-scroll" id="cw-scroll"></div>' +
+        '<div class="cw-note" id="cw-note"></div>' +
+        '<form class="cw-input" id="cw-form">' +
+          '<textarea id="cw-text" rows="1" autocomplete="off" placeholder="Type a message…"></textarea>' +
+          '<button class="cw-send" id="cw-send" type="submit" aria-label="Send">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+              '<path d="M2.7 3.3a1 1 0 0 1 1.1-.22l17 7.2a1 1 0 0 1 0 1.84l-17 7.2A1 1 0 0 1 2 19.4l5.7-6.42-2.7-2.42 4.9-.42 2.9 2.84-1.74 6.53 10.5-4.45L4.8 4.6l6.53 1.74L8.5 8.1 2.7 3.3Z"></path>' +
+            '</svg>' +
+          '</button>' +
+        '</form>' +
+      '</div>' +
+    '</div>';
+
+  return {
+    launcher: mount.querySelector('#cw-launch'),
+    panel: mount.querySelector('#cw-panel'),
+    closeBtn: mount.querySelector('#cw-close'),
+    scroll: mount.querySelector('#cw-scroll'),
+    note: mount.querySelector('#cw-note'),
+    form: mount.querySelector('#cw-form'),
+    input: mount.querySelector('#cw-text'),
+    send: mount.querySelector('#cw-send')
+  };
+}
+
+function addAssistant(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.textContent = text;
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addAssistantHTML(mount, html) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  var bubble = document.createElement('div');
+  bubble.className = 'cw-bubble';
+  bubble.innerHTML = html;
+  row.appendChild(bubble);
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+function addUser(mount, text) {
+  var row = document.createElement('div');
+  row.className = 'cw-row user';
+  row.innerHTML = '<div class="cw-bubble">' + escapeHtml(text) + '</div>';
+  mount.appendChild(row);
+  scrollToEnd(mount);
+}
+
+/* ===================== Config, System, Net ===================== */
+
+function loadConfig() {
+  return fetch('/chat-widget/assets/chat/config.json', { cache: 'no-store' })
+    .then(function (res) {
+      if (res.ok) return res.json();
+      return fetch('chat-widget/assets/chat/config.json', { cache: 'no-store' })
+        .then(function (res2) { if (res2.ok) return res2.json(); throw new Error("config.json " + res.status + " & " + res2.status); });
+    })
+    .catch(function () {
+      return {
+        workerUrl: '/chat',
+        title: 'Chat',
+        greeting: '',
+        brand: { accent: '#3e5494', radius: '14px' },
+        model: 'llama-3.1-8b-instant',
+        temperature: 0.2,
+        systemUrl: '/chat-widget/assets/chat/system.md'
+      };
+    });
+}
+
+function applyTheme(cfg) {
+  cfg = cfg || {};
+  var accent = (cfg.brand && cfg.brand.accent) || cfg.accent || '#3e5494';
+  var radius = (cfg.brand && cfg.brand.radius) || cfg.radius || '14px';
+  var root = document.documentElement;
+  root.style.setProperty('--chat-accent', accent);
+  root.style.setProperty('--chat-radius', radius);
+}
+
+function addError(noteEl, msg) {
+  noteEl.textContent = msg;
+  setTimeout(function () { noteEl.textContent = ''; }, 6000);
+}
+
+function showTyping(mount) {
+  var row = document.createElement('div');
+  row.className = 'cw-row bot';
+  row.innerHTML =
+    '<div class="cw-bubble"><span class="cw-typing"><span class="cw-dot"></span><span class="cw-dot"></span><span class="cw-dot"></span></span></div>';
+  mount.appendChild(row);
+  scrollToEnd(mount);
+  return function () { row.remove(); };
+}
+
+function scrollToEnd(el) { el.scrollTop = el.scrollHeight; }
+
+function escapeHtml(s) {
+  s = s || '';
+  return s.replace(/[&<>"']/g, function (m) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+  });
+}
+
+function fetchSystem(url) {
+  if (!url) return Promise.resolve('');
+  return safeFetch(url, { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.text() : ''; })
+    .then(function (txt) {
+      txt = (txt || '').toString();
+      if (txt.length > 12000) txt = txt.slice(0, 12000);
+      return txt;
+    })
+    .catch(function () { return ''; });
+}
+
+function sleep(ms) { return new Promise(function (resolve) { setTimeout(resolve, ms); }); }
+
+function safeFetch(url, options) {
+  return fetch(url, options).catch(function () {
+    try {
+      if (url && typeof url === 'string' && url.charAt(0) === '/') {
+        return fetch(url.replace(/^\//, ''), options);
+      }
+    } catch (e) {}
+    throw new Error("fetch failed: " + url);
+  });
+}
+
+/* ===================== Styles (avatar + topics) ===================== */
+
+function injectStyles () {
+  if (document.querySelector('style[data-cw-avatar-styles]')) return;
+  var css = `
+    .cw-launcher--avatar{width:auto;height:auto;padding:0;border:0;background:transparent;box-shadow:none;border-radius:999px}
+    .cw-avatar-wrapper{position:relative;display:inline-block;cursor:pointer;line-height:0}
+    .cw-avatar-img{width:64px;height:64px;border-radius:999px;object-fit:cover;box-shadow:0 6px 16px rgba(0,0,0,.25);display:block}
+    .cw-avatar-bubble{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#3e5494;color:#fff;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,.2);transform:translateZ(0)}
+    .cw-hidden.cw-launcher--avatar{display:none!important}
+    .tny-section-sep{height:1px;background:#eee;margin:12px 0}
+    .tny-chat{margin:12px 0}
+    .tny-row{display:flex;gap:10px;margin:10px 0;align-items:flex-start}
+    .tny-row--tony .tny-avatar{width:32px;height:32px;border-radius:999px;background-size:cover;background-position:center;flex:0 0 auto}
+    .tny-bubble{background:#f7f7fb;border:1px solid #e5e7eb;padding:10px 12px;border-radius:12px;max-width:640px}
+    .tny-content h4{margin:0 0 4px 0;font-size:14px}
+    .tny-content p{margin:0;font-size:13px;line-height:1.4}
+  `;
+  var s = document.createElement('style');
+  s.setAttribute('data-cw-avatar-styles', 'true');
+  s.textContent = css;
+  document.head.appendChild(s);
+}
+
+/* ===================== Utilities (auto-size textarea) ===================== */
+
+function autoSizeTextArea(textarea, minPx, maxPx, forceBase) {
+  if (!textarea) return;
+  var minH = Math.max(0, Number(minPx) || 0);
+  var maxH = Math.max(minH, Number(maxPx) || minH);
+  textarea.style.overflowY = "hidden";
+  if (forceBase) textarea.style.height = minH + 'px';
+  textarea.style.height = minH + 'px';
+  textarea.style.height = Math.min(textarea.scrollHeight, maxH) + 'px';
+  textarea.style.overflowY = (textarea.scrollHeight > maxH) ? 'auto' : 'hidden';
+}
