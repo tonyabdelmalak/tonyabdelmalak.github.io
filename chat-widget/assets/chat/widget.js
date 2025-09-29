@@ -475,5 +475,28 @@ async function resilientFetch(url, opts, retries, backoff) {
   document.head.appendChild(style);
 })();
 */
+// ===== Auto-init safeguard (adds itself if your page doesn't call init) =====
+(function () {
+  if (window.__CW_AUTO_INIT_DONE__) return;
+  window.__CW_AUTO_INIT_DONE__ = true;
+
+  function boot() {
+    try {
+      // If you normally pass options, put them here:
+      // e.g., { greeting: "Hi! Ask me about my dashboards." }
+      window.TonyChatWidget && window.TonyChatWidget.init({});
+    } catch (e) {
+      // last-ditch retry if other scripts weren’t ready yet
+      setTimeout(function(){ window.TonyChatWidget && window.TonyChatWidget.init({}); }, 300);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+
 
 // ===================== End of File =====================
