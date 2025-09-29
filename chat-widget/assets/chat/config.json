@@ -2,7 +2,7 @@
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
   "systemUrl": "chat-widget/assets/chat/system.md",
   "model": "llama-3.1-8b-instant",
-  "temperature": 0.2,
+  "temperature": 0.275,
 
   "title": "What's on your mind?",
   "greeting": "",
