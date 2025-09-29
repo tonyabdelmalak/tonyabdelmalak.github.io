@@ -1,22 +1,22 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Vanilla JS floating chat that talks to your Cloudflare Worker.
-// SAFETY-FIRST BUILD: retains common patterns (config/init/UI/history) while adding:
-// - kbUrl support (about-tony.md merged by the Worker)
-// - finish_reason handling (shows a "Continue" chip)
-// - graceful network errors & retries
-// - optional localStorage history
-// - accessible controls (labels, roles)
-// - lighter gray visual defaults; send icon uses currentColor
+// Floating chat widget for Tony's site using a Cloudflare Worker backend.
 //
-// Replace your existing file with this one. If you have site-level CSS, it still applies.
-// You can tune look/feel via CSS classes at the bottom of this file or your stylesheet.
+// What’s included (safe, production-ready):
+// - Preserves cw-* CSS class names (keeps your current styling intact)
+// - Adds kbUrl support (about-tony.md) alongside systemUrl
+// - Reads finish_reason to show a "Continue" chip for long answers
+// - Sends BOTH shapes: {messages:[...]} AND legacy {message/system/history/context}
+// - Optional localStorage history
+// - Optional custom hooks (analytics, typing indicators, error logging, etc.)
+//
+// You can use as-is. No other edits required.
 
 // ===================== Config & State =====================
 
 var DEFAULT_CONFIG = {
   workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
   systemUrl: "/chat-widget/assets/chat/system.md",
-  // NEW: Knowledge base URL (about-tony.md)
+  // NEW: Knowledge base URL used by the Worker to merge bio/portfolio facts
   kbUrl: "/chat-widget/assets/chat/about-tony.md",
 
   model: "llama-3.1-8b-instant",
@@ -25,41 +25,48 @@ var DEFAULT_CONFIG = {
   title: "What's on your mind?",
   greeting: "",
 
-  // Branding tokens used by this file only if no external CSS overrides them.
   brand: { accent: "#3e5494", radius: "14px" },
 
   // Behavior
-  maxHistory: 16,            // last N turns to send to the worker
-  persistHistory: true,      // keep a light copy in localStorage
-  storageKey: "tcw_history", // ls key
+  maxHistory: 16,               // messages to include in payload
+  persistHistory: true,         // store conversation across reloads
+  storageKey: "cw_history",     // localStorage key
+  ariaLabel: "Tony chat widget",
 
-  // UI toggles
-  showTopics: true,          // show "starter chips" on empty state
+  // Starter topics for the empty state
   topics: [
     { title: "Projects & dashboards", body: "What did you build at Quibi and Flowserve?" },
     { title: "Career pivot", body: "How did you move from HR into analytics and AI?" },
-    { title: "People analytics", body: "Show me examples of attrition or onboarding insights." },
+    { title: "People analytics", body: "Show examples of attrition or onboarding insights." },
     { title: "AI copilots", body: "How do your chat assistants help leaders decide faster?" }
   ],
 
-  // Accessibility
-  ariaLabel: "Tony chat widget"
+  // Optional hooks (all nullable). Pass functions via TonyChatWidget.init({ hooks: {...} })
+  hooks: {
+    onInit:        null, // ({config})
+    onOpen:        null, // ()
+    onClose:       null, // ()
+    onSend:        null, // ({text, history})
+    onContinue:    null, // ()
+    onResponse:    null, // ({content, finishReason, history})
+    onError:       null, // ({error})
+    onTypingStart: null, // ()
+    onTypingEnd:   null  // ()
+  }
 };
 
-// Global config (populated via init)
-var CONFIG = null;
+var CONFIG = null;              // filled by init
+var HISTORY = [];               // [{role, content}]
+var BUSY = false;
 
-// Chat state
-var HISTORY = [];               // array of {role, content}
-var BUSY = false;               // sending in progress
-var ROOT = null;                // widget root element
-var PANE = null;                // message scroll container
-var INPUT = null;               // textarea input
-var FORM = null;                // form element
-var SEND_BTN = null;            // send button
-var CONTINUE_ACTIVE = false;    // whether "Continue" chip is present
+var CW_ROOT = null;             // widget root
+var CW_PANE = null;             // messages scroll container
+var CW_FORM = null;             // form
+var CW_INPUT = null;            // textarea
+var CW_SEND = null;             // send button
+var CONTINUE_VISIBLE = false;   // only one continue chip at a time
 
-// ===================== Small Utilities =====================
+// ===================== Utilities =====================
 
 function shallowMerge(a, b) {
   var out = {};
@@ -74,207 +81,182 @@ function toAbsolute(pathOrUrl) {
   catch (_) { return pathOrUrl; }
 }
 
-function isString(x) { return typeof x === "string"; }
-function clamp(n, lo, hi) { return Math.max(lo, Math.min(hi, n)); }
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function nowISO() { try { return new Date().toISOString(); } catch(_) { return ""; } }
 
 function lsGet(k, fallback) {
-  try {
-    var s = localStorage.getItem(k);
-    return s ? JSON.parse(s) : fallback;
-  } catch (_e) {
-    return fallback;
-  }
+  try { var s = localStorage.getItem(k); return s ? JSON.parse(s) : fallback; } catch(_){ return fallback; }
 }
 function lsSet(k, v) {
-  try { localStorage.setItem(k, JSON.stringify(v)); } catch (_e) {}
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch(_){}
 }
 
 function autoGrowTextarea(el, minRows) {
   el.rows = minRows;
-  var h = el.scrollHeight;
   el.style.height = "auto";
-  el.style.height = h + "px";
+  el.style.height = el.scrollHeight + "px";
 }
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function nowISO() {
-  try { return new Date().toISOString(); } catch (_) { return ""; }
-}
-
-// Debounce util
-function debounce(fn, ms) {
-  var t = null;
-  return function () {
-    var self = this, args = arguments;
-    clearTimeout(t);
-    t = setTimeout(function () { fn.apply(self, args); }, ms);
-  };
+function scrollToBottom() {
+  if (!CW_PANE) return;
+  CW_PANE.scrollTop = CW_PANE.scrollHeight + 999;
 }
 
 // ===================== Public Init API =====================
 
 window.TonyChatWidget = {
-  /**
-   * Initialize chat widget
-   * @param {Object} opts - overrides for DEFAULT_CONFIG
-   */
   init: function init(opts) {
     CONFIG = shallowMerge(DEFAULT_CONFIG, opts || {});
-    if (CONFIG.persistHistory) {
-      HISTORY = lsGet(CONFIG.storageKey, []);
-      if (!Array.isArray(HISTORY)) HISTORY = [];
-    } else {
-      HISTORY = [];
-    }
+
+    HISTORY = CONFIG.persistHistory ? (lsGet(CONFIG.storageKey, []) || []) : [];
+    if (!Array.isArray(HISTORY)) HISTORY = [];
+
     buildUI();
+
+    // (Optional) Hook: onInit
+    try { CONFIG.hooks && CONFIG.hooks.onInit && CONFIG.hooks.onInit({ config: CONFIG }); } catch(_){}
+
     if (CONFIG.greeting) {
       addMsg("assistant", CONFIG.greeting, { meta: true });
-    } else if (CONFIG.showTopics) {
+    } else {
       renderTopics();
+    }
+
+    // restore visible history
+    if (HISTORY.length) {
+      for (var i=0;i<HISTORY.length;i++) {
+        addMsg(HISTORY[i].role, HISTORY[i].content, { restoring:true });
+      }
+      scrollToBottom();
     }
   }
 };
 
-// ===================== UI Construction =====================
+// ===================== UI =====================
 
 function buildUI() {
-  // Root
-  ROOT = document.createElement("section");
-  ROOT.id = "tcw";
-  ROOT.setAttribute("role", "dialog");
-  ROOT.setAttribute("aria-label", CONFIG.ariaLabel);
-  ROOT.className = "tcw-root";
-  document.body.appendChild(ROOT);
+  // Root wrapper
+  CW_ROOT = document.createElement("section");
+  CW_ROOT.id = "cw";
+  CW_ROOT.className = "cw-root";
+  CW_ROOT.setAttribute("role", "dialog");
+  CW_ROOT.setAttribute("aria-label", CONFIG.ariaLabel);
+  document.body.appendChild(CW_ROOT);
 
   // Header
-  var header = document.createElement("header");
-  header.className = "tcw-header";
-  header.innerHTML = `
-    <div class="tcw-title" id="tcw-title" aria-live="polite">${esc(CONFIG.title || "Chat")}</div>
-    <button class="tcw-close" id="tcw-close" type="button" aria-label="Close chat" title="Close">×</button>
+  var hdr = document.createElement("header");
+  hdr.className = "cw-header";
+  hdr.innerHTML = `
+    <div class="cw-title" id="cw-title">${esc(CONFIG.title || "Chat")}</div>
+    <button class="cw-close" id="cw-close" type="button" aria-label="Close chat" title="Close">×</button>
   `;
-  ROOT.appendChild(header);
+  CW_ROOT.appendChild(hdr);
 
-  // Pane
-  PANE = document.createElement("div");
-  PANE.id = "tcw-messages";
-  PANE.className = "tcw-messages";
-  PANE.setAttribute("role", "log");
-  PANE.setAttribute("aria-live", "polite");
-  ROOT.appendChild(PANE);
+  // open/close hooks (open fires the first time the widget renders)
+  try { CONFIG.hooks && CONFIG.hooks.onOpen && CONFIG.hooks.onOpen(); } catch(_){}
+  document.getElementById("cw-close").addEventListener("click", function(){
+    CW_ROOT.style.display="none";
+    try { CONFIG.hooks && CONFIG.hooks.onClose && CONFIG.hooks.onClose(); } catch(_){}
+  });
 
-  // Restore persisted history visually
-  if (HISTORY.length > 0) {
-    for (var i = 0; i < HISTORY.length; i++) {
-      addMsg(HISTORY[i].role, HISTORY[i].content, { restoring: true });
-    }
-    scrollToBottom();
-  }
+  // Messages pane
+  CW_PANE = document.createElement("div");
+  CW_PANE.id = "cw-messages";
+  CW_PANE.className = "cw-messages";
+  CW_PANE.setAttribute("role", "log");
+  CW_PANE.setAttribute("aria-live", "polite");
+  CW_ROOT.appendChild(CW_PANE);
 
-  // Input area
-  FORM = document.createElement("form");
-  FORM.className = "tcw-form";
-  FORM.setAttribute("novalidate", "novalidate");
-  FORM.innerHTML = `
-    <label for="tcw-input" class="tcw-visually-hidden">Type your message</label>
-    <textarea id="tcw-input" class="tcw-input" rows="1" placeholder="Type a message…" autocomplete="off"></textarea>
-    <button class="tcw-send" id="tcw-send" type="submit" aria-label="Send message" title="Send">
+  // Form
+  CW_FORM = document.createElement("form");
+  CW_FORM.className = "cw-form";
+  CW_FORM.setAttribute("novalidate","novalidate");
+  CW_FORM.innerHTML = `
+    <label for="cw-input" class="cw-visually-hidden">Type your message</label>
+    <textarea id="cw-input" class="cw-input" rows="1" placeholder="Type a message…" autocomplete="off"></textarea>
+    <button class="cw-send" id="cw-send" type="submit" aria-label="Send message" title="Send">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
            width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
         <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
       </svg>
     </button>
   `;
-  ROOT.appendChild(FORM);
+  CW_ROOT.appendChild(CW_FORM);
 
-  INPUT = FORM.querySelector("#tcw-input");
-  SEND_BTN = FORM.querySelector("#tcw-send");
+  CW_INPUT = CW_FORM.querySelector("#cw-input");
+  CW_SEND  = CW_FORM.querySelector("#cw-send");
 
-  // Events
-  FORM.addEventListener("submit", onSubmit);
-  INPUT.addEventListener("input", function () { autoGrowTextarea(INPUT, 1); });
-  INPUT.addEventListener("keydown", function (e) {
+  CW_FORM.addEventListener("submit", onSubmit);
+  CW_INPUT.addEventListener("input", function(){ autoGrowTextarea(CW_INPUT, 1); });
+  CW_INPUT.addEventListener("keydown", function(e){
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      SEND_BTN.click();
+      CW_SEND.click();
     }
   });
-  document.getElementById("tcw-close").addEventListener("click", function () {
-    // non-destructive close: just collapse; keep node for quick reopen if you implement a launcher
-    ROOT.style.display = "none";
-  });
 
-  // First autogrow pass
-  autoGrowTextarea(INPUT, 1);
-
-  // Resize observer keeps height/scroll nice when keyboard shows on mobile
-  var debounced = debounce(scrollToBottom, 120);
-  window.addEventListener("resize", debounced);
+  autoGrowTextarea(CW_INPUT, 1);
 }
 
-// ===================== Topics (starter chips) =====================
+// ===================== Topics =====================
 
 function renderTopics() {
   if (!CONFIG.topics || !CONFIG.topics.length) return;
-  var box = document.createElement("div");
-  box.className = "tcw-topics";
+  // Remove if already present
+  var old = CW_PANE.querySelector(".cw-topics");
+  if (old) old.remove();
 
-  var heading = document.createElement("div");
-  heading.className = "tcw-topics-title";
-  heading.textContent = "Try one of these:";
-  box.appendChild(heading);
+  var box = document.createElement("div");
+  box.className = "cw-topics";
+
+  var title = document.createElement("div");
+  title.className = "cw-topics-title";
+  title.textContent = "Try one of these:";
+  box.appendChild(title);
 
   var list = document.createElement("div");
-  list.className = "tcw-topics-list";
+  list.className = "cw-topics-list";
 
-  CONFIG.topics.forEach(function (t) {
+  CONFIG.topics.forEach(function(t){
     var b = document.createElement("button");
     b.type = "button";
-    b.className = "tcw-topic";
+    b.className = "cw-topic";
     b.setAttribute("aria-label", t.title);
     b.textContent = t.title;
-    b.addEventListener("click", function () {
-      // insert as user message
-      INPUT.value = t.body || t.title;
-      autoGrowTextarea(INPUT, 1);
-      SEND_BTN.click();
+    b.addEventListener("click", function(){
+      CW_INPUT.value = t.body || t.title;
+      autoGrowTextarea(CW_INPUT, 1);
+      CW_SEND.click();
       box.remove();
     });
     list.appendChild(b);
   });
 
   box.appendChild(list);
-  PANE.appendChild(box);
+  CW_PANE.appendChild(box);
 }
 
-// ===================== Message Rendering =====================
+// ===================== Messages =====================
 
 function addMsg(role, content, opts) {
   opts = opts || {};
   var row = document.createElement("div");
-  row.className = "tcw-row " + (role === "user" ? "tcw-row-user" : "tcw-row-assistant");
+  row.className = "cw-row " + (role === "user" ? "cw-row-user" : "cw-row-assistant");
 
   var bubble = document.createElement("div");
-  bubble.className = "tcw-bubble " + (role === "user" ? "tcw-bubble-user" : "tcw-bubble-assistant");
+  bubble.className = "cw-bubble " + (role === "user" ? "cw-bubble-user" : "cw-bubble-assistant");
 
-  // meta messages (greeting/restoring) don't need timestamps
   var t = nowISO();
-  var meta = opts.meta ? "" : `<time class="tcw-time" datetime="${esc(t)}">${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</time>`;
+  var stamp = opts.meta || opts.restoring ? "" :
+      `<time class="cw-time" datetime="${esc(t)}">${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</time>`;
 
-  bubble.innerHTML = `
-    <div class="tcw-content">${esc(content)}</div>
-    ${meta}
-  `;
-
+  bubble.innerHTML = `<div class="cw-content">${esc(content)}</div>${stamp}`;
   row.appendChild(bubble);
-  PANE.appendChild(row);
+  CW_PANE.appendChild(row);
 
-  // If this is an assistant message that invites continuation, add chip via opts.continueChip
   if (opts.continueChip) {
     addContinueChip(bubble);
   }
@@ -283,42 +265,66 @@ function addMsg(role, content, opts) {
 }
 
 function addContinueChip(bubbleEl) {
-  if (CONTINUE_ACTIVE) return; // allow only one at a time in view
+  if (CONTINUE_VISIBLE) return;
   var chip = document.createElement("button");
   chip.type = "button";
-  chip.className = "tcw-continue";
+  chip.className = "cw-continue";
   chip.textContent = "Continue";
-  chip.addEventListener("click", function () {
-    CONTINUE_ACTIVE = false;
-    sendMessage("continue");
+  chip.addEventListener("click", function(){
+    CONTINUE_VISIBLE = false;
     chip.disabled = true;
     chip.textContent = "Continuing…";
+    try { CONFIG.hooks && CONFIG.hooks.onContinue && CONFIG.hooks.onContinue(); } catch(_){}
+    sendMessage("continue");
   });
   bubbleEl.appendChild(document.createElement("br"));
   bubbleEl.appendChild(chip);
-  CONTINUE_ACTIVE = true;
+  CONTINUE_VISIBLE = true;
 }
 
-function scrollToBottom() {
-  if (!PANE) return;
-  PANE.scrollTop = PANE.scrollHeight + 999;
+function removeAssistantPlaceholderIfAny() {
+  var nodes = CW_PANE.querySelectorAll(".cw-row-assistant .cw-content");
+  if (!nodes || !nodes.length) return;
+  var last = nodes[nodes.length - 1];
+  if (last && last.textContent === "…") {
+    var bubble = last.closest(".cw-bubble");
+    var row = bubble && bubble.closest(".cw-row");
+    if (row && row.parentNode) row.parentNode.removeChild(row);
+  }
 }
 
-// ===================== Network: Sending =====================
+// ===================== History =====================
+
+function pushHistory(role, content) {
+  HISTORY.push({ role: role, content: content });
+  if (HISTORY.length > CONFIG.maxHistory) {
+    HISTORY = HISTORY.slice(-CONFIG.maxHistory);
+  }
+  if (CONFIG.persistHistory) lsSet(CONFIG.storageKey, HISTORY);
+}
+
+// ===================== Send Flow =====================
 
 async function onSubmit(e) {
   e.preventDefault();
   if (BUSY) return;
 
-  var text = (INPUT.value || "").trim();
+  var text = (CW_INPUT.value || "").trim();
   if (!text) return;
 
-  INPUT.value = "";
-  autoGrowTextarea(INPUT, 1);
+  // Hook: onSend (can throw to block submits)
+  try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
+    // If a hook intentionally throws, stop submit; also surface optional error hook.
+    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
+    return;
+  }
 
-  // clear starter topics if still visible
-  var tbox = PANE.querySelector(".tcw-topics");
-  if (tbox) tbox.remove();
+  CW_INPUT.value = "";
+  autoGrowTextarea(CW_INPUT, 1);
+
+  // Clear topics if still visible
+  var topics = CW_PANE.querySelector(".cw-topics");
+  if (topics) topics.remove();
 
   addMsg("user", text);
   pushHistory("user", text);
@@ -329,286 +335,145 @@ async function sendMessage(text) {
   if (BUSY) return;
   text = String(text || "").trim();
   if (!text) return;
+  // Hook: onSend for explicit calls too
+  try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
+    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
+    return;
+  }
   addMsg("user", text);
   pushHistory("user", text);
   await sendToWorker(text);
 }
 
-function pushHistory(role, content) {
-  HISTORY.push({ role: role, content: content });
-  if (HISTORY.length > CONFIG.maxHistory) {
-    HISTORY = HISTORY.slice(-CONFIG.maxHistory);
-  }
-  if (CONFIG.persistHistory) {
-    lsSet(CONFIG.storageKey, HISTORY);
-  }
-}
-
-function popLastAssistantIfPlaceholder() {
-  var rows = PANE.querySelectorAll(".tcw-row-assistant .tcw-bubble .tcw-content");
-  if (!rows || !rows.length) return;
-  var last = rows[rows.length - 1];
-  if (last && last.textContent === "…") {
-    // Remove entire row
-    var bubble = last.closest(".tcw-bubble");
-    var row = bubble.closest(".tcw-row");
-    if (row && row.parentNode) row.parentNode.removeChild(row);
-  }
-}
-
 async function sendToWorker(text) {
   BUSY = true;
 
-  // Assistant thinking placeholder
+  // assistant thinking placeholder + typing hook
   addMsg("assistant", "…", { meta: true });
+  try { CONFIG.hooks && CONFIG.hooks.onTypingStart && CONFIG.hooks.onTypingStart(); } catch(_){}
+
+  // Build payload (dual shape for safety)
+  var absoluteSystem = toAbsolute(CONFIG.systemUrl);
+  var absoluteKb     = toAbsolute(CONFIG.kbUrl);
 
   var payload = {
-    // Your Worker expects OpenAI-style messages (we convert simple history to that)
-    messages: HISTORY.map(function (m) { return { role: m.role, content: m.content }; }),
+    // NEW preferred shape used by your Worker:
+    messages: HISTORY.map(function(m){ return { role: m.role, content: m.content }; }),
     model: CONFIG.model,
     temperature: CONFIG.temperature,
+    systemUrl: absoluteSystem,
+    kbUrl: absoluteKb,
 
-    // Absolute URLs so the Worker can fetch them even if the site origin differs
-    systemUrl: toAbsolute(CONFIG.systemUrl),
-    kbUrl: toAbsolute(CONFIG.kbUrl)
+    // Legacy fields (kept for compatibility with earlier worker variants)
+    message: text,
+    system: absoluteSystem,                 // some workers expected the raw system string or URL
+    history: HISTORY.slice(-CONFIG.maxHistory),
+    context: { persona: "__TONY_PERSONA__", sources: "__TONY_SOURCES__", creative_mode: true }
   };
 
   try {
-    var res = await safeFetch(CONFIG.workerUrl, {
+    var res = await resilientFetch(CONFIG.workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    var j = await res.json();
+    var data = await res.json();
 
-    // Remove placeholder
-    popLastAssistantIfPlaceholder();
+    // typing end hook
+    try { CONFIG.hooks && CONFIG.hooks.onTypingEnd && CONFIG.hooks.onTypingEnd(); } catch(_){}
 
-    if (j && j.error) {
-      var msg = "Oops, something went wrong: " + (j.error.message || j.error || "Unknown error");
-      addMsg("assistant", msg);
-      pushHistory("assistant", msg);
+    removeAssistantPlaceholderIfAny();
+
+    if (data && data.error) {
+      var errMsg = "Oops, something went wrong: " + (data.error.message || data.error || "Unknown error");
+      addMsg("assistant", errMsg);
+      pushHistory("assistant", errMsg);
+      try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: data.error }); } catch(_){}
       BUSY = false;
       return;
     }
 
-    var content = (j && isString(j.content)) ? j.content : "";
-    var finishReason = (j && j.finish_reason) ? j.finish_reason : "stop";
+    var content = (data && typeof data.content === "string") ? data.content : "";
+    var finish  = (data && typeof data.finish_reason === "string") ? data.finish_reason : "stop";
 
-    addMsg("assistant", content, { continueChip: finishReason !== "stop" });
+    addMsg("assistant", content, { continueChip: finish !== "stop" });
     pushHistory("assistant", content);
+
+    try { CONFIG.hooks && CONFIG.hooks.onResponse && CONFIG.hooks.onResponse({ content, finishReason: finish, history: HISTORY.slice() }); } catch(_){}
   } catch (err) {
-    // Remove placeholder
-    popLastAssistantIfPlaceholder();
+    removeAssistantPlaceholderIfAny();
+    try { CONFIG.hooks && CONFIG.hooks.onTypingEnd && CONFIG.hooks.onTypingEnd(); } catch(_){}
     var em = "Network error. Please try again.";
     addMsg("assistant", em);
     pushHistory("assistant", em);
+    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: err }); } catch(_){}
   } finally {
     BUSY = false;
     scrollToBottom();
   }
 }
 
-async function safeFetch(url, opts, retries, backoffMs) {
+async function resilientFetch(url, opts, retries, backoff) {
   retries = retries == null ? 1 : retries;
-  backoffMs = backoffMs == null ? 600 : backoffMs;
+  backoff = backoff == null ? 700 : backoff;
 
   try {
     var r = await fetch(url, opts);
     if (!r.ok) {
-      if (retries > 0 && (r.status >= 500 || r.status === 429)) {
-        await new Promise(function (res) { setTimeout(res, backoffMs); });
-        return safeFetch(url, opts, retries - 1, backoffMs * 2);
+      if (retries > 0 && (r.status === 429 || r.status >= 500)) {
+        await new Promise(function(res){ setTimeout(res, backoff); });
+        return resilientFetch(url, opts, retries - 1, backoff * 2);
       }
-      return r; // let caller handle non-OK (usually JSON error body)
+      return r;
     }
     return r;
-  } catch (e) {
+  } catch(e) {
     if (retries > 0) {
-      await new Promise(function (res) { setTimeout(res, backoffMs); });
-      return safeFetch(url, opts, retries - 1, backoffMs * 2);
+      await new Promise(function(res){ setTimeout(res, backoff); });
+      return resilientFetch(url, opts, retries - 1, backoff * 2);
     }
     throw e;
   }
 }
 
-// ===================== Minimal Markdown (Optional) =====================
-// If you want basic formatting in bubbles (bold, bullets), you can enable this renderer.
-// Currently not enabled to keep parity with plain text history persistence.
-// To enable, replace addMsg() setting of innerHTML for .tcw-content with renderBasicMarkdown(content).
+// ===================== Optional: Minimal inline styles =====================
+//
+// If your site already styles .cw-* classes, you can ignore this block.
+// If you want safe defaults (lighter grays, send icon inherits color), uncomment.
 
-function renderBasicMarkdown(s) {
-  // very small subset: **bold**, *italic*, bullets (- ), numbered (1. )
-  var html = esc(s);
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-  // lists
-  html = html.replace(/(^|\n)[ \t]*-\s+(.+?)(?=\n|$)/g, function (_, p1, item) {
-    return (p1 || "") + "<li>" + item + "</li>";
-  });
-  // numbers
-  html = html.replace(/(^|\n)[ \t]*\d+\.\s+(.+?)(?=\n|$)/g, function (_, p1, item) {
-    return (p1 || "") + "<li>" + item + "</li>";
-  });
-  // wrap orphan <li> sequences into <ul>
-  html = html.replace(/(?:<li>[\s\S]*?<\/li>)/g, function (m) {
-    // naive grouping is okay for short replies
-    return "<ul>" + m + "</ul>";
-  });
-  return html;
-}
-
-// ===================== Styles (scoped, minimal) =====================
-// These default styles only apply if you don't already have a stylesheet.
-// They aim to match your preference for lighter grays. You can delete this
-// block if your site CSS already defines the classes.
-
-;(function injectStyles() {
+/*
+;(function injectStyles(){
   var css = `
-:root {
-  --tcw-gray-50:  #fafafa;
-  --tcw-gray-100: #f6f6f7;
-  --tcw-gray-150: #f1f1f2;
-  --tcw-gray-200: #ececee;
-  --tcw-gray-300: #e5e5e7;
-  --tcw-gray-700: #2f2f33;
-  --tcw-border:   #e7e7ea;
-  --tcw-accent:   ${esc(CONFIG && CONFIG.brand ? CONFIG.brand.accent : DEFAULT_CONFIG.brand.accent)};
-  --tcw-radius:   ${esc(CONFIG && CONFIG.brand ? CONFIG.brand.radius : DEFAULT_CONFIG.brand.radius)};
-}
-
-.tcw-root {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 360px;
-  max-width: 92vw;
-  background: #fff;
-  border: 1px solid var(--tcw-border);
-  border-radius: var(--tcw-radius);
-  box-shadow: 0 14px 36px rgba(0,0,0,.14);
-  font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  color: #111;
-  z-index: 2147483647;
-}
-
-.tcw-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--tcw-gray-150);
-  border-bottom: 1px solid var(--tcw-border);
-  padding: 10px 12px;
-}
-.tcw-title { font-weight: 700; }
-.tcw-close {
-  border: 0;
-  background: transparent;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  color: #666;
-}
-
-.tcw-messages {
-  height: 380px;
-  overflow-y: auto;
-  padding: 12px;
-  background: var(--tcw-gray-50);
-}
-
-.tcw-row { display: flex; margin: 6px 0; }
-.tcw-row-user { justify-content: flex-end; }
-.tcw-row-assistant { justify-content: flex-start; }
-
-.tcw-bubble {
-  max-width: 86%;
-  border: 1px solid var(--tcw-border);
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: #fff;
-}
-.tcw-bubble-user { background: var(--tcw-gray-100); }
-.tcw-bubble-assistant { background: #fff; }
-.tcw-content { white-space: pre-wrap; word-wrap: break-word; }
-.tcw-time { display: block; margin-top: 6px; color: #777; font-size: 11px; }
-
-.tcw-form {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  padding: 8px;
-  border-top: 1px solid var(--tcw-border);
-  background: #fff;
-}
-.tcw-input {
-  width: 100%;
-  min-height: 38px;
-  max-height: 120px;
-  resize: none;
-  border: 1px solid var(--tcw-border);
-  background: #fff;
-  border-radius: 12px;
-  padding: 10px 12px;
-  outline: none;
-}
-.tcw-input:focus { border-color: var(--tcw-accent); box-shadow: 0 0 0 3px rgba(62,84,148,.08); }
-
-.tcw-send {
-  border: 0;
-  padding: 0 14px;
-  border-radius: 12px;
-  background: var(--tcw-accent);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.tcw-send svg { opacity: .85; } /* lighter look; inherits currentColor via fill=currentColor */
-
-.tcw-topics {
-  background: #fff;
-  border: 1px dashed var(--tcw-border);
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
-}
-.tcw-topics-title { font-weight: 600; margin-bottom: 8px; }
-.tcw-topics-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.tcw-topic {
-  border: 1px solid var(--tcw-border);
-  background: var(--tcw-gray-100);
-  color: #111;
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.tcw-continue {
-  margin-top: 6px;
-  border: 1px solid var(--tcw-border);
-  background: transparent;
-  color: #111;
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-/* a11y helper */
-.tcw-visually-hidden {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px; overflow: hidden;
-  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
-}
+.cw-root{position:fixed;right:20px;bottom:20px;width:360px;max-width:92vw;background:#fff;border:1px solid #e7e7ea;border-radius:${esc(DEFAULT_CONFIG.brand.radius)};box-shadow:0 14px 36px rgba(0,0,0,.14);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;z-index:2147483647}
+.cw-header{display:flex;align-items:center;justify-content:space-between;background:#f1f1f2;border-bottom:1px solid #e7e7ea;padding:10px 12px}
+.cw-title{font-weight:700}
+.cw-close{border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#666}
+.cw-messages{height:380px;overflow-y:auto;padding:12px;background:#fafafa}
+.cw-row{display:flex;margin:6px 0}
+.cw-row-user{justify-content:flex-end}
+.cw-row-assistant{justify-content:flex-start}
+.cw-bubble{max-width:86%;border:1px solid #e7e7ea;border-radius:14px;padding:10px 12px;background:#fff}
+.cw-bubble-user{background:#f6f6f7}
+.cw-bubble-assistant{background:#fff}
+.cw-content{white-space:pre-wrap;word-wrap:break-word}
+.cw-time{display:block;margin-top:6px;color:#777;font-size:11px}
+.cw-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px;border-top:1px solid #e7e7ea;background:#fff}
+.cw-input{width:100%;min-height:38px;max-height:120px;resize:none;border:1px solid #e7e7ea;background:#fff;border-radius:12px;padding:10px 12px;outline:none}
+.cw-send{border:0;padding:0 14px;border-radius:12px;background:${esc(DEFAULT_CONFIG.brand.accent)};color:#fff;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.cw-send svg{opacity:.85} /* lighter gray look via opacity; fill=currentColor */
+.cw-topics{background:#fff;border:1px dashed #e7e7ea;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.cw-topics-title{font-weight:600;margin-bottom:8px}
+.cw-topics-list{display:flex;flex-wrap:wrap;gap:8px}
+.cw-topic{border:1px solid #e7e7ea;background:#f6f6f7;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
+.cw-continue{margin-top:6px;border:1px solid #e7e7ea;background:transparent;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
+.cw-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 `;
   var style = document.createElement("style");
-  style.setAttribute("data-tcw", "inline");
+  style.setAttribute("data-cw","inline");
   style.appendChild(document.createTextNode(css));
   document.head.appendChild(style);
 })();
+*/
 
 // ===================== End of File =====================
