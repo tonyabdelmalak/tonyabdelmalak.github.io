@@ -282,6 +282,39 @@
 .cw-body {
   height: 460px; /* was 420px */
 }
+/* === Light Theme Tweaks === */
+
+/* Header bar */
+.cw-head {
+  background: #f2f3f5;   /* lighter grey header */
+  color: #111;           /* dark text for contrast */
+}
+
+/* Input row background */
+.cw-input {
+  background: #f8f9fb;   /* very light grey */
+}
+
+/* Send button (lighter circle + grey icon) */
+.cw-send {
+  min-width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: #e0e2e7;   /* light grey button background */
+  color: #555;           /* medium grey icon */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+
+.cw-send:hover {
+  background: #d5d8dd;   /* slightly darker on hover */
+  color: #333;
+}
+
 
 /* Safety: ensure launcher is visible */
 .cw-launcher { display: inline-flex !important; }
