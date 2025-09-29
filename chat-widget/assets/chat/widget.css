@@ -285,3 +285,81 @@
 
 /* Safety: ensure launcher is visible */
 .cw-launcher { display: inline-flex !important; }
+
+/* === Cohesive navy + light grey theme, taller box, plane icon === */
+:root{
+  --brand-navy: #3b5294;         /* header + tone family */
+  --brand-navy-dark: #2a3f7c;
+  --bot-navy: #374a64;           /* Tony’s bubble */
+  --bot-border: #2a3950;
+
+  --user-bg: #e6ebf4;            /* user bubble */
+  --user-border: #c9d3e6;
+  --user-fg: #0b1220;
+
+  --input-shell: #f2f3f6;        /* footer bar bg */
+  --input-pill: #d9dde4;         /* text field pill */
+  --input-pill-text: #111;       /* text */
+  --input-pill-placeholder: #667085;
+
+  --send-bg: #e7e9ee;            /* circular button */
+  --send-bg-hover: #dfe2e8;
+  --send-icon: #4b5563;          /* paper plane color */
+}
+
+/* Header: royal/navy (solid or soft gradient) */
+.cw-head{
+  background: linear-gradient(135deg, var(--brand-navy), var(--brand-navy-dark));
+  color:#fff;
+}
+
+/* Make the chat a little taller (≈⅓") */
+.cw-body{ height: 460px; } /* was 420px */
+
+/* Footer shell + input pill */
+.cw-input{
+  background: var(--input-shell);
+}
+.cw-input textarea,
+.cw-input input[type="text"]{
+  background: var(--input-pill);
+  color: var(--input-pill-text);
+  border-color: rgba(0,0,0,.10);
+  padding: 12px 56px 12px 14px; /* leave room for send icon */
+}
+.cw-input textarea::placeholder,
+.cw-input input[type="text"]::placeholder{
+  color: var(--input-pill-placeholder);
+}
+
+/* Send button: circular, light grey, outline plane in grey */
+.cw-send{
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  width: 40px; height: 40px;
+  min-width: 40px; min-height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%;
+  background: var(--send-bg);
+  color: var(--send-icon);
+  box-shadow: 0 4px 10px rgba(0,0,0,.12);
+  cursor: pointer; transition: background .15s ease, transform .12s ease;
+}
+.cw-send:hover{ background: var(--send-bg-hover); transform: translateY(-1px); }
+.cw-send:disabled{ opacity:.6; cursor:not-allowed; }
+.cw-send svg{ width: 18px; height: 18px; display:block; }
+
+/* Tony (assistant) bubble matches navy family */
+.cw-row.bot .cw-bubble{
+  background: var(--bot-navy);
+  color:#fff;
+  border:1px solid var(--bot-border);
+}
+
+/* User bubble: harmonized light blue-grey (not stark white) */
+.cw-row.user .cw-bubble{
+  background: var(--user-bg);
+  color: var(--user-fg);
+  border:1px solid var(--user-border);
+}
