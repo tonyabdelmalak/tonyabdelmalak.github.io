@@ -227,7 +227,6 @@ function buildShell(cfg, system) {
         </svg>
       </button>
     </form>
-  `;
 
   ui.head = ui.panel.querySelector(".cw-header");
   ui.messages = ui.panel.querySelector("#cw-messages");
