@@ -18,7 +18,7 @@ export default {
       const {
         messages = [],
         model = body.model || "llama-3.1-8b-instant",
-        temperature = typeof body.temperature === "number" ? body.temperature : 0.2,
+        temperature = typeof body.temperature === "number" ? body.temperature : 0.275,
         systemUrl = body.systemUrl || "https://tonyabdelmalak.github.io/chat-widget/assets/chat/system.md",
         kbUrl = body.kbUrl || "https://tonyabdelmalak.github.io/chat-widget/assets/chat/about-tony.md"
       } = body;
