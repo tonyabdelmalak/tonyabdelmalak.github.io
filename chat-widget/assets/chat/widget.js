@@ -1,21 +1,14 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Floating chat widget for Tony's site using a Cloudflare Worker backend.
-//
-// Included (safe, production-ready):
-// - Preserves cw-* CSS class names (keeps existing styling)
-// - Adds kbUrl (about-tony.md) alongside systemUrl
-// - Reads finish_reason to show a "Continue" chip for long answers
-// - Sends BOTH shapes: {messages:[...]} AND legacy {message/system/history/context}
-// - Optional localStorage history
-// - Optional custom hooks (analytics, typing indicators, error logging)
-// - Auto-init safeguard (at the very bottom) so it mounts without external init()
+// Architecture: ensureMount() → loadConfig() → applyTheme() → fetchSystem() → buildShell()
+// Preserves cw-* CSS classes, restores visible launcher, adds kbUrl + Continue chip,
+// sends both modern {messages:[]} AND legacy fields, and auto-inits safely.
 
-// ===================== Config & State =====================
+/* ===================== Config & State ===================== */
 
 var DEFAULT_CONFIG = {
   workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
   systemUrl: "/chat-widget/assets/chat/system.md",
-  // NEW: Knowledge base URL used by the Worker to merge bio/portfolio facts
+  // NEW: bio/portfolio knowledge (merged by Worker with system.md)
   kbUrl: "/chat-widget/assets/chat/about-tony.md",
 
   model: "llama-3.1-8b-instant",
@@ -26,46 +19,44 @@ var DEFAULT_CONFIG = {
 
   brand: { accent: "#3e5494", radius: "14px" },
 
-  // Behavior
-  maxHistory: 16,               // messages to include in payload
-  persistHistory: true,         // store conversation across reloads
-  storageKey: "cw_history",     // localStorage key
-  ariaLabel: "Tony chat widget",
+  // Operational
+  maxHistory: 16,
+  persistHistory: true,
+  storageKey: "cw_history",
 
-  // Starter topics for the empty state
+  // Starter topics shown in empty state
   topics: [
     { title: "Projects & dashboards", body: "What did you build at Quibi and Flowserve?" },
     { title: "Career pivot", body: "How did you move from HR into analytics and AI?" },
     { title: "People analytics", body: "Show examples of attrition or onboarding insights." },
     { title: "AI copilots", body: "How do your chat assistants help leaders decide faster?" }
-  ],
-
-  // Optional hooks (all nullable). Pass functions via TonyChatWidget.init({ hooks: {...} })
-  hooks: {
-    onInit:        null, // ({config})
-    onOpen:        null, // ()
-    onClose:       null, // ()
-    onSend:        null, // ({text, history})
-    onContinue:    null, // ()
-    onResponse:    null, // ({content, finishReason, history})
-    onError:       null, // ({error})
-    onTypingStart: null, // ()
-    onTypingEnd:   null  // ()
-  }
+  ]
 };
 
-var CONFIG = null;              // filled by init
-var HISTORY = [];               // [{role, content}]
+// Safe globals for older code paths that referenced these
+var __TONY_PERSONA__  = (typeof __TONY_PERSONA__  !== "undefined") ? __TONY_PERSONA__  : {};
+var __TONY_SOURCES__  = (typeof __TONY_SOURCES__  !== "undefined") ? __TONY_SOURCES__  : [];
+var TONY_AVATAR_URL   = "/chat-widget/assets/chat/avatar.png";
+
+var CONFIG = null;
+var HISTORY = [];
 var BUSY = false;
+var CONTINUE_VISIBLE = false;
 
-var CW_ROOT = null;             // widget root
-var CW_PANE = null;             // messages scroll container
-var CW_FORM = null;             // form
-var CW_INPUT = null;            // textarea
-var CW_SEND = null;             // send button
-var CONTINUE_VISIBLE = false;   // only one continue chip at a time
+// UI refs
+var ui = {
+  root: null,
+  launcher: null,
+  panel: null,
+  head: null,
+  messages: null,
+  form: null,
+  input: null,
+  send: null,
+  close: null
+};
 
-// ===================== Utilities =====================
+/* ===================== Utilities ===================== */
 
 function shallowMerge(a, b) {
   var out = {};
@@ -84,8 +75,6 @@ function esc(s) {
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
 
-function nowISO() { try { return new Date().toISOString(); } catch(_) { return ""; } }
-
 function lsGet(k, fallback) {
   try { var s = localStorage.getItem(k); return s ? JSON.parse(s) : fallback; } catch(_){ return fallback; }
 }
@@ -100,114 +89,212 @@ function autoGrowTextarea(el, minRows) {
 }
 
 function scrollToBottom() {
-  if (!CW_PANE) return;
-  CW_PANE.scrollTop = CW_PANE.scrollHeight + 999;
+  if (!ui.messages) return;
+  ui.messages.scrollTop = ui.messages.scrollHeight + 999;
 }
 
-// ===================== Public Init API =====================
+function nowISO() { try { return new Date().toISOString(); } catch(_) { return ""; } }
 
-window.TonyChatWidget = {
-  init: function init(opts) {
-    CONFIG = shallowMerge(DEFAULT_CONFIG, opts || {});
+/* ===================== Mount & Config ===================== */
 
-    HISTORY = CONFIG.persistHistory ? (lsGet(CONFIG.storageKey, []) || []) : [];
+function ensureMount() {
+  // Root wrapper (kept consistent with your cw-* architecture)
+  var root = document.getElementById("cw");
+  if (!root) {
+    root = document.createElement("section");
+    root.id = "cw";
+    root.className = "cw-root";
+    document.body.appendChild(root);
+  }
+  ui.root = root;
+
+  // Launcher (VISIBLE again)
+  var launcher = document.getElementById("cw-launcher");
+  if (!launcher) {
+    launcher = document.createElement("div");
+    launcher.id = "cw-launcher";
+    launcher.className = "cw-launcher";
+    root.appendChild(launcher);
+  }
+  ui.launcher = launcher;
+
+  // Panel (chat window)
+  var panel = document.getElementById("cw-panel");
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "cw-panel";
+    panel.className = "cw-panel";
+    root.appendChild(panel);
+  }
+  ui.panel = panel;
+
+  // Basic default styles in case site CSS is missing (non-invasive)
+  if (!document.querySelector('style[data-cw-defaults]')) {
+    var css = `
+.cw-root{position:fixed;right:20px;bottom:20px;z-index:2147483647}
+.cw-launcher{position:absolute;right:0;bottom:0}
+.cw-launcher-btn{border:0;background:transparent;cursor:pointer;padding:0}
+.cw-launcher .cw-avatar{width:54px;height:54px;border-radius:50%;box-shadow:0 8px 22px rgba(0,0,0,.18);border:1px solid rgba(0,0,0,.08);display:block}
+.cw-panel{display:none;position:absolute;right:64px;bottom:0;width:360px;max-width:92vw;background:#fff;border:1px solid #e7e7ea;border-radius:${esc(DEFAULT_CONFIG.brand.radius)};box-shadow:0 14px 36px rgba(0,0,0,.14);overflow:hidden}
+.cw-header{display:flex;align-items:center;justify-content:space-between;background:#f1f1f2;border-bottom:1px solid #e7e7ea;padding:10px 12px}
+.cw-title{font:600 14px/1.2 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.cw-close{border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#666}
+.cw-messages{height:380px;overflow-y:auto;padding:12px;background:#fafafa}
+.cw-row{display:flex;margin:6px 0}
+.cw-row-user{justify-content:flex-end}
+.cw-row-assistant{justify-content:flex-start}
+.cw-bubble{max-width:86%;border:1px solid #e7e7ea;border-radius:14px;padding:10px 12px;background:#fff}
+.cw-bubble-user{background:#f6f6f7}
+.cw-content{white-space:pre-wrap;word-wrap:break-word}
+.cw-time{display:block;margin-top:6px;color:#777;font-size:11px}
+.cw-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px;border-top:1px solid #e7e7ea;background:#fff}
+.cw-input{width:100%;min-height:38px;max-height:120px;resize:none;border:1px solid #e7e7ea;background:#fff;border-radius:12px;padding:10px 12px;outline:none}
+.cw-send{border:0;padding:0 14px;border-radius:12px;background:${esc(DEFAULT_CONFIG.brand.accent)};color:#fff;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.cw-send svg{opacity:.85}
+.cw-topics{background:#fff;border:1px dashed #e7e7ea;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.cw-topics-title{font-weight:600;margin-bottom:8px}
+.cw-topics-list{display:flex;flex-wrap:wrap;gap:8px}
+.cw-topic{border:1px solid #e7e7ea;background:#f6f6f7;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
+.cw-continue{margin-top:6px;border:1px solid #e7e7ea;background:transparent;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
+.cw-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+`;
+    var style = document.createElement("style");
+    style.setAttribute("data-cw-defaults","true");
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+  }
+}
+
+function loadConfig() {
+  // Merge defaults with any global config (backward compatible)
+  var pageCfg = (typeof window.TonyChatConfig === "object" && window.TonyChatConfig) ? window.TonyChatConfig : {};
+  var cfg = shallowMerge(DEFAULT_CONFIG, pageCfg);
+
+  // Ensure kbUrl is present
+  cfg.kbUrl = cfg.kbUrl || "/chat-widget/assets/chat/about-tony.md";
+
+  // Optionally try a config.json (non-blocking)
+  // If you prefer not to fetch, you can safely remove this block.
+  return Promise.resolve(cfg);
+}
+
+function applyTheme(cfg) {
+  // Apply accent/radius via CSS variables if root exists
+  if (!ui.panel) return;
+  ui.panel.style.borderRadius = cfg.brand.radius || "14px";
+}
+
+/* ===================== Data Fetchers ===================== */
+
+function fetchSystem(systemUrl) {
+  // Old code path expected the raw system string. We still fetch it,
+  // but even if it fails we’ll send systemUrl + kbUrl so Worker can fetch.
+  if (!systemUrl) return Promise.resolve("");
+  var abs = toAbsolute(systemUrl);
+  return fetch(abs, { redirect: "follow" })
+    .then(function(r){ return r.ok ? r.text() : ""; })
+    .catch(function(){ return ""; });
+}
+
+/* ===================== UI Shell ===================== */
+
+function buildShell(cfg, system) {
+  // 1) Launcher (visible)
+  ui.launcher.innerHTML = `
+    <button class="cw-launcher-btn" type="button" aria-label="Open chat" title="Chat">
+      <img class="cw-avatar" src="${esc(cfg.avatarUrl || TONY_AVATAR_URL)}" alt="Tony" />
+    </button>
+  `;
+  ui.launcher.addEventListener("click", function () {
+    ui.panel.style.display = (ui.panel.style.display === "block") ? "none" : "block";
+    if (ui.panel.style.display === "block") scrollToBottom();
+  });
+
+  // 2) Panel contents
+  ui.panel.innerHTML = `
+    <header class="cw-header">
+      <div class="cw-title">${esc(cfg.title || "Chat")}</div>
+      <button class="cw-close" id="cw-close" type="button" aria-label="Close chat" title="Close">×</button>
+    </header>
+    <div class="cw-messages" id="cw-messages" role="log" aria-live="polite"></div>
+    <form class="cw-form" id="cw-form" novalidate>
+      <label for="cw-input" class="cw-visually-hidden">Type your message</label>
+      <textarea id="cw-input" class="cw-input" rows="1" placeholder="Type a message…" autocomplete="off"></textarea>
+      <button class="cw-send" id="cw-send" type="submit" aria-label="Send message" title="Send">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+             width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+        </svg>
+      </button>
+    </form>
+  `;
+
+  ui.head = ui.panel.querySelector(".cw-header");
+  ui.messages = ui.panel.querySelector("#cw-messages");
+  ui.form = ui.panel.querySelector("#cw-form");
+  ui.input = ui.panel.querySelector("#cw-input");
+  ui.send = ui.panel.querySelector("#cw-send");
+  ui.close = ui.panel.querySelector("#cw-close");
+
+  applyTheme(cfg);
+
+  // Close button
+  ui.close.addEventListener("click", function(){
+    ui.panel.style.display = "none";
+  });
+
+  // Greeting or topics
+  if (cfg.greeting) {
+    addMsg("assistant", cfg.greeting, { meta: true });
+  } else {
+    renderTopics(cfg);
+  }
+
+  // Restore persisted conversation
+  if (cfg.persistHistory) {
+    HISTORY = lsGet(cfg.storageKey, []) || [];
     if (!Array.isArray(HISTORY)) HISTORY = [];
-
-    buildUI();
-
-    // (Optional) Hook: onInit
-    try { CONFIG.hooks && CONFIG.hooks.onInit && CONFIG.hooks.onInit({ config: CONFIG }); } catch(_){}
-
-    if (CONFIG.greeting) {
-      addMsg("assistant", CONFIG.greeting, { meta: true });
-    } else {
-      renderTopics();
-    }
-
-    // restore visible history
     if (HISTORY.length) {
-      for (var i=0;i<HISTORY.length;i++) {
-        addMsg(HISTORY[i].role, HISTORY[i].content, { restoring:true });
-      }
+      for (var i=0;i<HISTORY.length;i++) addMsg(HISTORY[i].role, HISTORY[i].content, { restoring:true });
       scrollToBottom();
     }
   }
-};
 
-// ===================== UI =====================
-
-function buildUI() {
-  // Root wrapper
-  CW_ROOT = document.createElement("section");
-  CW_ROOT.id = "cw";
-  CW_ROOT.className = "cw-root";
-  CW_ROOT.setAttribute("role", "dialog");
-  CW_ROOT.setAttribute("aria-label", CONFIG.ariaLabel);
-  document.body.appendChild(CW_ROOT);
-
-  // Header
-  var hdr = document.createElement("header");
-  hdr.className = "cw-header";
-  hdr.innerHTML = `
-    <div class="cw-title" id="cw-title">${esc(CONFIG.title || "Chat")}</div>
-    <button class="cw-close" id="cw-close" type="button" aria-label="Close chat" title="Close">×</button>
-  `;
-  CW_ROOT.appendChild(hdr);
-
-  // open/close hooks (open fires the first time the widget renders)
-  try { CONFIG.hooks && CONFIG.hooks.onOpen && CONFIG.hooks.onOpen(); } catch(_){}
-  document.getElementById("cw-close").addEventListener("click", function(){
-    CW_ROOT.style.display="none";
-    try { CONFIG.hooks && CONFIG.hooks.onClose && CONFIG.hooks.onClose(); } catch(_){}
-  });
-
-  // Messages pane
-  CW_PANE = document.createElement("div");
-  CW_PANE.id = "cw-messages";
-  CW_PANE.className = "cw-messages";
-  CW_PANE.setAttribute("role", "log");
-  CW_PANE.setAttribute("aria-live", "polite");
-  CW_ROOT.appendChild(CW_PANE);
-
-  // Form
-  CW_FORM = document.createElement("form");
-  CW_FORM.className = "cw-form";
-  CW_FORM.setAttribute("novalidate","novalidate");
-  CW_FORM.innerHTML = `
-    <label for="cw-input" class="cw-visually-hidden">Type your message</label>
-    <textarea id="cw-input" class="cw-input" rows="1" placeholder="Type a message…" autocomplete="off"></textarea>
-    <button class="cw-send" id="cw-send" type="submit" aria-label="Send message" title="Send">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-           width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
-        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
-      </svg>
-    </button>
-  `;
-  CW_ROOT.appendChild(CW_FORM);
-
-  CW_INPUT = CW_FORM.querySelector("#cw-input");
-  CW_SEND  = CW_FORM.querySelector("#cw-send");
-
-  CW_FORM.addEventListener("submit", onSubmit);
-  CW_INPUT.addEventListener("input", function(){ autoGrowTextarea(CW_INPUT, 1); });
-  CW_INPUT.addEventListener("keydown", function(e){
+  // Input behaviors
+  ui.input.addEventListener("input", function(){ autoGrowTextarea(ui.input, 1); });
+  ui.input.addEventListener("keydown", function(e){
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      CW_SEND.click();
+      ui.send.click();
     }
   });
+  autoGrowTextarea(ui.input, 1);
 
-  autoGrowTextarea(CW_INPUT, 1);
+  // Submit handler
+  ui.form.addEventListener("submit", function(e){
+    e.preventDefault();
+    if (BUSY) return;
+
+    var text = (ui.input.value || "").trim();
+    if (!text) return;
+
+    ui.input.value = "";
+    autoGrowTextarea(ui.input, 1);
+
+    // Clear topics if present
+    var box = ui.messages.querySelector(".cw-topics");
+    if (box) box.remove();
+
+    addMsg("user", text);
+    pushHistory("user", text, cfg);
+    sendToWorker(cfg, system, text);
+  });
 }
 
-// ===================== Topics =====================
+/* ===================== Messages & History ===================== */
 
-function renderTopics() {
-  if (!CONFIG.topics || !CONFIG.topics.length) return;
-  // Remove if already present
-  var old = CW_PANE.querySelector(".cw-topics");
-  if (old) old.remove();
-
+function renderTopics(cfg) {
+  if (!cfg.topics || !cfg.topics.length) return;
   var box = document.createElement("div");
   box.className = "cw-topics";
 
@@ -219,26 +306,24 @@ function renderTopics() {
   var list = document.createElement("div");
   list.className = "cw-topics-list";
 
-  CONFIG.topics.forEach(function(t){
+  cfg.topics.forEach(function(t){
     var b = document.createElement("button");
     b.type = "button";
     b.className = "cw-topic";
     b.setAttribute("aria-label", t.title);
     b.textContent = t.title;
     b.addEventListener("click", function(){
-      CW_INPUT.value = t.body || t.title;
-      autoGrowTextarea(CW_INPUT, 1);
-      CW_SEND.click();
+      ui.input.value = t.body || t.title;
+      autoGrowTextarea(ui.input, 1);
+      ui.send.click();
       box.remove();
     });
     list.appendChild(b);
   });
 
   box.appendChild(list);
-  CW_PANE.appendChild(box);
+  ui.messages.appendChild(box);
 }
-
-// ===================== Messages =====================
 
 function addMsg(role, content, opts) {
   opts = opts || {};
@@ -254,11 +339,9 @@ function addMsg(role, content, opts) {
 
   bubble.innerHTML = `<div class="cw-content">${esc(content)}</div>${stamp}`;
   row.appendChild(bubble);
-  CW_PANE.appendChild(row);
+  ui.messages.appendChild(row);
 
-  if (opts.continueChip) {
-    addContinueChip(bubble);
-  }
+  if (opts.continueChip) addContinueChip(bubble);
 
   if (!opts.restoring) scrollToBottom();
 }
@@ -273,16 +356,24 @@ function addContinueChip(bubbleEl) {
     CONTINUE_VISIBLE = false;
     chip.disabled = true;
     chip.textContent = "Continuing…";
-    try { CONFIG.hooks && CONFIG.hooks.onContinue && CONFIG.hooks.onContinue(); } catch(_){}
-    sendMessage("continue");
+    // Send a lightweight continuation token
+    addMsg("user", "continue");
+    pushHistory("user", "continue", CONFIG);
+    sendToWorker(CONFIG, "", "continue"); // system string not needed for continuation
   });
   bubbleEl.appendChild(document.createElement("br"));
   bubbleEl.appendChild(chip);
   CONTINUE_VISIBLE = true;
 }
 
-function removeAssistantPlaceholderIfAny() {
-  var nodes = CW_PANE.querySelectorAll(".cw-row-assistant .cw-content");
+function pushHistory(role, content, cfg) {
+  HISTORY.push({ role: role, content: content });
+  if (HISTORY.length > cfg.maxHistory) HISTORY = HISTORY.slice(-cfg.maxHistory);
+  if (cfg.persistHistory) lsSet(cfg.storageKey, HISTORY);
+}
+
+function popAssistantPlaceholderIfAny() {
+  var nodes = ui.messages.querySelectorAll(".cw-row-assistant .cw-content");
   if (!nodes || !nodes.length) return;
   var last = nodes[nodes.length - 1];
   if (last && last.textContent === "…") {
@@ -292,101 +383,47 @@ function removeAssistantPlaceholderIfAny() {
   }
 }
 
-// ===================== History =====================
+/* ===================== Network ===================== */
 
-function pushHistory(role, content) {
-  HISTORY.push({ role: role, content: content });
-  if (HISTORY.length > CONFIG.maxHistory) {
-    HISTORY = HISTORY.slice(-CONFIG.maxHistory);
-  }
-  if (CONFIG.persistHistory) lsSet(CONFIG.storageKey, HISTORY);
-}
-
-// ===================== Send Flow =====================
-
-async function onSubmit(e) {
-  e.preventDefault();
-  if (BUSY) return;
-
-  var text = (CW_INPUT.value || "").trim();
-  if (!text) return;
-
-  // Hook: onSend (can throw to block submits)
-  try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
-    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
-    return;
-  }
-
-  CW_INPUT.value = "";
-  autoGrowTextarea(CW_INPUT, 1);
-
-  // Clear topics if still visible
-  var topics = CW_PANE.querySelector(".cw-topics");
-  if (topics) topics.remove();
-
-  addMsg("user", text);
-  pushHistory("user", text);
-  await sendToWorker(text);
-}
-
-async function sendMessage(text) {
-  if (BUSY) return;
-  text = String(text || "").trim();
-  if (!text) return;
-  try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
-    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
-    return;
-  }
-  addMsg("user", text);
-  pushHistory("user", text);
-  await sendToWorker(text);
-}
-
-async function sendToWorker(text) {
+async function sendToWorker(cfg, systemRaw, text) {
   BUSY = true;
 
-  // assistant thinking placeholder + typing hook
+  // Assistant typing placeholder
   addMsg("assistant", "…", { meta: true });
-  try { CONFIG.hooks && CONFIG.hooks.onTypingStart && CONFIG.hooks.onTypingStart(); } catch(_){}
 
-  // Build payload (dual shape for safety)
-  var absoluteSystem = toAbsolute(CONFIG.systemUrl);
-  var absoluteKb     = toAbsolute(CONFIG.kbUrl);
+  var absoluteSystem = toAbsolute(cfg.systemUrl);
+  var absoluteKb     = toAbsolute(cfg.kbUrl);
 
+  // Dual payload (modern + legacy) for backward compatibility
   var payload = {
-    // NEW preferred shape used by your Worker:
+    // Modern, Worker-friendly
     messages: HISTORY.map(function(m){ return { role: m.role, content: m.content }; }),
-    model: CONFIG.model,
-    temperature: CONFIG.temperature,
+    model: cfg.model,
+    temperature: cfg.temperature,
     systemUrl: absoluteSystem,
     kbUrl: absoluteKb,
 
-    // Legacy fields (kept for compatibility with earlier worker variants)
+    // Legacy fields (some earlier Workers expected these)
     message: text,
-    system: absoluteSystem,                 // some workers expected the raw system string or URL
-    history: HISTORY.slice(-CONFIG.maxHistory),
-    context: { persona: "__TONY_PERSONA__", sources: "__TONY_SOURCES__", creative_mode: true }
+    system: systemRaw, // keep sending the raw system string if we have it
+    history: HISTORY.slice(-cfg.maxHistory),
+    context: { persona: __TONY_PERSONA__, sources: __TONY_SOURCES__, creative_mode: true }
   };
 
   try {
-    var res = await resilientFetch(CONFIG.workerUrl, {
+    var res = await resilientFetch(cfg.workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     var data = await res.json();
-
-    // typing end hook
-    try { CONFIG.hooks && CONFIG.hooks.onTypingEnd && CONFIG.hooks.onTypingEnd(); } catch(_){}
-
-    removeAssistantPlaceholderIfAny();
+    popAssistantPlaceholderIfAny();
 
     if (data && data.error) {
       var errMsg = "Oops, something went wrong: " + (data.error.message || data.error || "Unknown error");
       addMsg("assistant", errMsg);
-      pushHistory("assistant", errMsg);
-      try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: data.error }); } catch(_){}
+      pushHistory("assistant", errMsg, cfg);
       BUSY = false;
       return;
     }
@@ -395,16 +432,12 @@ async function sendToWorker(text) {
     var finish  = (data && typeof data.finish_reason === "string") ? data.finish_reason : "stop";
 
     addMsg("assistant", content, { continueChip: finish !== "stop" });
-    pushHistory("assistant", content);
-
-    try { CONFIG.hooks && CONFIG.hooks.onResponse && CONFIG.hooks.onResponse({ content, finishReason: finish, history: HISTORY.slice() }); } catch(_){}
+    pushHistory("assistant", content, cfg);
   } catch (err) {
-    removeAssistantPlaceholderIfAny();
-    try { CONFIG.hooks && CONFIG.hooks.onTypingEnd && CONFIG.hooks.onTypingEnd(); } catch(_){}
+    popAssistantPlaceholderIfAny();
     var em = "Network error. Please try again.";
     addMsg("assistant", em);
-    pushHistory("assistant", em);
-    try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: err }); } catch(_){}
+    pushHistory("assistant", em, cfg);
   } finally {
     BUSY = false;
     scrollToBottom();
@@ -434,63 +467,55 @@ async function resilientFetch(url, opts, retries, backoff) {
   }
 }
 
-// ===================== Optional: Minimal inline styles =====================
-//
-// If your site already styles .cw-* classes, you can ignore this block.
-// If you want safe defaults (lighter grays, send icon inherits color), uncomment.
+/* ===================== Boot ===================== */
 
-/*
-;(function injectStyles(){
-  var css = `
-.cw-root{position:fixed;right:20px;bottom:20px;width:360px;max-width:92vw;background:#fff;border:1px solid #e7e7ea;border-radius:${esc(DEFAULT_CONFIG.brand.radius)};box-shadow:0 14px 36px rgba(0,0,0,.14);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111;z-index:2147483647}
-.cw-header{display:flex;align-items:center;justify-content:space-between;background:#f1f1f2;border-bottom:1px solid #e7e7ea;padding:10px 12px}
-.cw-title{font-weight:700}
-.cw-close{border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#666}
-.cw-messages{height:380px;overflow-y:auto;padding:12px;background:#fafafa}
-.cw-row{display:flex;margin:6px 0}
-.cw-row-user{justify-content:flex-end}
-.cw-row-assistant{justify-content:flex-start}
-.cw-bubble{max-width:86%;border:1px solid #e7e7ea;border-radius:14px;padding:10px 12px;background:#fff}
-.cw-bubble-user{background:#f6f6f7}
-.cw-bubble-assistant{background:#fff}
-.cw-content{white-space:pre-wrap;word-wrap:break-word}
-.cw-time{display:block;margin-top:6px;color:#777;font-size:11px}
-.cw-form{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px;border-top:1px solid #e7e7ea;background:#fff}
-.cw-input{width:100%;min-height:38px;max-height:120px;resize:none;border:1px solid #e7e7ea;background:#fff;border-radius:12px;padding:10px 12px;outline:none}
-.cw-send{border:0;padding:0 14px;border-radius:12px;background:${esc(DEFAULT_CONFIG.brand.accent)};color:#fff;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.cw-send svg{opacity:.85} /* lighter gray look via opacity; fill=currentColor */
-.cw-topics{background:#fff;border:1px dashed #e7e7ea;border-radius:12px;padding:10px 12px;margin-bottom:8px}
-.cw-topics-title{font-weight:600;margin-bottom:8px}
-.cw-topics-list{display:flex;flex-wrap:wrap;gap:8px}
-.cw-topic{border:1px solid #e7e7ea;background:#f6f6f7;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
-.cw-continue{margin-top:6px;border:1px solid #e7e7ea;background:transparent;color:#111;border-radius:999px;padding:6px 10px;cursor:pointer}
-.cw-visually-hidden{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-`;
-  var style = document.createElement("style");
-  style.setAttribute("data-cw","inline");
-  style.appendChild(document.createTextNode(css));
-  document.head.appendChild(style);
-})();
-*/
+function boot() {
+  ensureMount();
+  loadConfig().then(function (cfg) {
+    CONFIG = cfg;
+    // Build panel immediately (so UI shows even if fetches are slow)
+    buildShell(cfg, "");
+    // Fetch system text in the background (old path support)
+    return fetchSystem(cfg.systemUrl).then(function (system) {
+      // Overwrite shell with system-aware handlers (keeps UI; listeners already bound)
+      // We don't need to rebuild UI; just keep system string for next sends:
+      // We store it on the ui object for convenience:
+      ui.__systemString = system;
+    });
+  }).catch(function(){
+    // As a fallback, at least keep a visible launcher + basic panel
+    // (Already built in buildShell with empty system)
+  });
+}
 
-// ===================== Auto-init safeguard =====================
-// Ensures the widget mounts even if the page doesn't call init() manually.
+/* ===================== Public API (for manual init if desired) ===================== */
+
+window.TonyChatWidget = {
+  init: function init(opts) {
+    DEFAULT_CONFIG = shallowMerge(DEFAULT_CONFIG, opts || {});
+    boot();
+  }
+};
+
+/* ===================== Auto-init safeguard ===================== */
+
 (function () {
   if (window.__CW_AUTO_INIT_DONE__) return;
   window.__CW_AUTO_INIT_DONE__ = true;
 
-  function boot() {
+  function start() {
     try {
-      window.TonyChatWidget && window.TonyChatWidget.init({});
+      // If a page-level config exists, loadConfig merges it. Otherwise DEFAULT_CONFIG is used.
+      boot();
     } catch (e) {
-      // last-ditch retry if other scripts weren’t ready yet
-      setTimeout(function(){ window.TonyChatWidget && window.TonyChatWidget.init({}); }, 300);
+      // Retry once if other scripts weren’t ready yet
+      setTimeout(function(){ boot(); }, 300);
     }
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", start);
   } else {
-    boot();
+    start();
   }
 })();
