@@ -1,15 +1,14 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Floating chat widget for Tony's site using a Cloudflare Worker backend.
 //
-// What’s included (safe, production-ready):
-// - Preserves cw-* CSS class names (keeps your current styling intact)
-// - Adds kbUrl support (about-tony.md) alongside systemUrl
+// Included (safe, production-ready):
+// - Preserves cw-* CSS class names (keeps existing styling)
+// - Adds kbUrl (about-tony.md) alongside systemUrl
 // - Reads finish_reason to show a "Continue" chip for long answers
 // - Sends BOTH shapes: {messages:[...]} AND legacy {message/system/history/context}
 // - Optional localStorage history
-// - Optional custom hooks (analytics, typing indicators, error logging, etc.)
-//
-// You can use as-is. No other edits required.
+// - Optional custom hooks (analytics, typing indicators, error logging)
+// - Auto-init safeguard (at the very bottom) so it mounts without external init()
 
 // ===================== Config & State =====================
 
@@ -314,7 +313,6 @@ async function onSubmit(e) {
 
   // Hook: onSend (can throw to block submits)
   try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
-    // If a hook intentionally throws, stop submit; also surface optional error hook.
     try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
     return;
   }
@@ -335,7 +333,6 @@ async function sendMessage(text) {
   if (BUSY) return;
   text = String(text || "").trim();
   if (!text) return;
-  // Hook: onSend for explicit calls too
   try { CONFIG.hooks && CONFIG.hooks.onSend && CONFIG.hooks.onSend({ text, history: HISTORY.slice() }); } catch (hookErr) {
     try { CONFIG.hooks && CONFIG.hooks.onError && CONFIG.hooks.onError({ error: hookErr }); } catch(_){}
     return;
@@ -475,15 +472,15 @@ async function resilientFetch(url, opts, retries, backoff) {
   document.head.appendChild(style);
 })();
 */
-// ===== Auto-init safeguard (adds itself if your page doesn't call init) =====
+
+// ===================== Auto-init safeguard =====================
+// Ensures the widget mounts even if the page doesn't call init() manually.
 (function () {
   if (window.__CW_AUTO_INIT_DONE__) return;
   window.__CW_AUTO_INIT_DONE__ = true;
 
   function boot() {
     try {
-      // If you normally pass options, put them here:
-      // e.g., { greeting: "Hi! Ask me about my dashboards." }
       window.TonyChatWidget && window.TonyChatWidget.init({});
     } catch (e) {
       // last-ditch retry if other scripts weren’t ready yet
@@ -497,6 +494,3 @@ async function resilientFetch(url, opts, retries, backoff) {
     boot();
   }
 })();
-
-
-// ===================== End of File =====================
