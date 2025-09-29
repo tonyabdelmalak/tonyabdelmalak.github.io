@@ -9,7 +9,7 @@ var DEFAULT_CONFIG = {
   workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
   systemUrl: "/chat-widget/assets/chat/system.md",
   // NEW: bio/portfolio knowledge (merged by Worker with system.md)
-  kbUrl: "/chat-widget/assets/chat/about-tony.md",
+  kbUrl: "/knowledge/about-tony.md",
 
   model: "llama-3.1-8b-instant",
   temperature: 0.2,
