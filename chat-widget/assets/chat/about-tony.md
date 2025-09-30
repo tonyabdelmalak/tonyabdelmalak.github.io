@@ -2,9 +2,6 @@
 
 > **Start here:** [Knowledge Hub](/knowledge/index)
 
-## Greeting
-Hi, I'm Tony. I'm here to help answer your questions about me, my background and goals, current projects, etc. What's on your mind?
-
 ---
 
 ## Conversational Voice & Guidance
