@@ -1,6 +1,6 @@
 :root {
   --chat-accent: #4f46e5;      /* overwritten by JS from config.accent */
-  --chat-radius: 18px;         /* softened, rounded look */
+  --chat-radius: 14px;         /* softened, rounded look */
   --chat-shadow: 0 10px 36px rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.12);
 
   --chat-bg: #ffffff;
@@ -78,7 +78,7 @@
   z-index: 2147483646;
   width: 360px;
   max-height: calc(100vh - 140px);
-  border-radius: 20px;
+  border-radius: var(--chat-radius);
   background: var(--chat-bg);
   color: var(--chat-fg);
   box-shadow: var(--chat-shadow);
@@ -100,7 +100,7 @@
 /* ---------- Header ---------- */
 .cw-head {
   position: relative;
-  background: #2a2f3a;  /* dark grey */
+  background: #001e42;  /* dark navy */
   color: #fff;
   padding: 14px 16px;
 }
@@ -200,7 +200,6 @@
   padding: 12px 56px 12px 14px;  /* right padding leaves room for icon */
   font-size: 14px;
   line-height: 1.4;
-
   height: 52px;
   min-height: 52px;
   max-height: 120px;             /* used by textarea version */
@@ -281,18 +280,22 @@
 /* Slightly taller chat window */
 .cw-body {
   height: 460px; /* was 420px */
-}
-/* === Light Theme Tweaks === */
-
-/* Header bar */
-.cw-head {
-  background: #f2f3f5;   /* lighter grey header */
-  color: #111;           /* dark text for contrast */
+  background: #003974;   /* dark blue background */
 }
 
 /* Input row background */
 .cw-input {
   background: #f8f9fb;   /* very light grey */
+}
+
+/* Input text color and placeholder */
+.cw-input textarea,
+.cw-input input[type="text"] {
+  color: #0b1220;
+}
+.cw-input textarea::placeholder,
+.cw-input input[type="text"]::placeholder {
+  color: #555;
 }
 
 /* Send button (lighter circle + grey icon) */
@@ -314,7 +317,6 @@
   background: #d5d8dd;   /* slightly darker on hover */
   color: #333;
 }
-
 
 /* Safety: ensure launcher is visible */
 .cw-launcher { display: inline-flex !important; }
