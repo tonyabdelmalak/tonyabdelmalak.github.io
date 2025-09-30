@@ -19,7 +19,7 @@
   --cw-panel-border: #d9dde3;    /* panel border color */
 
   --cw-bot-bg: #2f3a4f;          /* assistant bubble background */
-  --cw-bot-fg: #ffffff;          /* assistant bubble text color */
+  --cw-bot-fg: #000000;          /* assistant bubble text color */
   --cw-bot-border: #263149;      /* assistant bubble border color */
 
   --cw-user-bg: #e0e0e0;         /* user bubble & input background */
