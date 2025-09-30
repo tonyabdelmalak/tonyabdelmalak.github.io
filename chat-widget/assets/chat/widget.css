@@ -1,45 +1,41 @@
 /* ==========================================================================
-   Tony Chat Widget (FULL)
-   - Namespaced: .cw-* and #cw-launcher
-   - Launcher anchored below site header (top offset via --cw-top-offset)
-   - Panel: white background
-   - Assistant bubbles: navy with white text
-   - User bubbles: light gray (#e0e0e0) with black text
-   - Input: light gray (#e0e0e0) with black text
-   - Send: circular, paper-plane, navy
-   - Includes: focus/hover states, dark mode, a11y, responsive, reduced-motion
+   Tony Chat Widget Styles – Updated for formatted replies
+   - Namespaced with .cw-* classes and #cw-launcher for isolation
+   - Layout: fixed-position chat bubble launcher and chat panel
+   - Colors: assistant messages (navy background), user messages (light gray)
+   - Supports Markdown formatting (lists, code blocks, etc.)
    ========================================================================== */
-
 :root {
-  --cw-accent: #2f3a4f;          /* header + send color (accent) */
-  --cw-radius: 18px;             /* panel border radius */
-  --cw-top-offset: 96px;         /* launcher top offset, set via JS */
-  --cw-panel-bg: #ffffff;        /* chat panel background */
-  --cw-panel-fg: #0f1522;        /* chat panel text color */
-  --cw-panel-border: #d9dde3;    /* panel border color */
+  --cw-accent: #2f3a4f;        /* accent color for header and send button */
+  --cw-radius: 18px;           /* border radius for panel corners */
+  --cw-top-offset: 96px;       /* launcher top offset (adjusted via JS) */
 
-  --cw-bot-bg: #2f3a4f;          /* assistant bubble background */
-  --cw-bot-fg: #ffffff;          /* assistant bubble text color */
-  --cw-bot-border: #263149;      /* assistant bubble border color */
+  --cw-panel-bg: #ffffff;      /* panel background (light mode) */
+  --cw-panel-fg: #0f1522;      /* panel text color (light mode) */
+  --cw-panel-border: #d9dde3;  /* panel border color (light mode) */
 
-  --cw-user-bg: #e0e0e0;         /* user bubble & input background */
-  --cw-user-fg: #000000;         /* user bubble & input text */
-  --cw-user-border: #c9ccd2;     /* user bubble border */
+  --cw-bot-bg: #2f3a4f;        /* assistant bubble background (navy) */
+  --cw-bot-fg: #ffffff;        /* assistant bubble text color (white) */
+  --cw-bot-border: #263149;    /* assistant bubble border color (dark navy) */
 
-  --cw-input-bg: #e0e0e0;        /* input field background */
-  --cw-input-fg: #000000;        /* input field text */
-  --cw-input-placeholder: rgba(255,255,255,0.85);
-  --cw-input-border: #cfd6df;    /* input border */
+  --cw-user-bg: #e0e0e0;       /* user bubble background (light gray) */
+  --cw-user-fg: #000000;       /* user bubble text color (black) */
+  --cw-user-border: #c9ccd2;   /* user bubble border color */
 
-  --cw-scroll-bg: #ffffff;       /* messages area background */
-  --cw-msg-border: #d6dbe3;      /* generic bubble border */
+  --cw-input-bg: #e0e0e0;      /* input field background */
+  --cw-input-fg: #000000;      /* input text color */
+  --cw-input-placeholder: rgba(0, 0, 0, 0.6);
+  --cw-input-border: #cfd6df;  /* input field border color */
+
+  --cw-scroll-bg: #ffffff;     /* messages pane background */
+  --cw-msg-border: #d6dbe3;    /* generic bubble border color */
 
   --cw-shadow: 0 18px 40px rgba(0,0,0,0.18);
   --cw-z-panel: 2147483002;
   --cw-z-launch: 2147483001;
 }
 
-/* Dark mode (prefers-color-scheme: dark) */
+/* Dark mode color overrides */
 @media (prefers-color-scheme: dark) {
   :root {
     --cw-panel-bg: #0d1423;
@@ -56,7 +52,7 @@
 
     --cw-input-bg: #3b4250;
     --cw-input-fg: #f1f4fb;
-    --cw-input-placeholder: rgba(241,244,251,0.85);
+    --cw-input-placeholder: rgba(241,244,251,0.5);
     --cw-input-border: #56617a;
 
     --cw-scroll-bg: #0d1423;
@@ -64,7 +60,7 @@
   }
 }
 
-/* Reduced motion preference */
+/* Reduce motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
@@ -72,7 +68,7 @@
   }
 }
 
-/* Print: hide widget */
+/* Hide widget in print */
 @media print {
   #cw-launcher,
   .cw-root {
@@ -80,7 +76,7 @@
   }
 }
 
-/* Launcher (avatar button) */
+/* Launcher button (floating chat bubble icon) */
 #cw-launcher {
   position: fixed;
   top: var(--cw-top-offset);
@@ -114,6 +110,7 @@
   object-fit: cover;
   display: block;
 }
+/* Unread message bubble on launcher (shows "1" when chat is unopened with greeting) */
 #cw-launcher .cw-bubble {
   position: absolute;
   top: -6px;
@@ -132,32 +129,33 @@
   user-select: none;
 }
 
-/* Hide launcher when chat is open */
+/* When chat is open, hide the launcher */
 .cw-open #cw-launcher {
   opacity: 0;
   pointer-events: none;
 }
 
-/* Chat Panel Container */
+/* Chat panel container */
 .cw-root {
   position: fixed;
   top: calc(var(--cw-top-offset) + 0px);
   right: 16px;
   z-index: var(--cw-z-panel);
   width: 420px;
-  max-width: calc(100vw - 24px);
+  max-width: calc(100vw - 32px);
   background: var(--cw-panel-bg);
   color: var(--cw-panel-fg);
   border: 1px solid var(--cw-panel-border);
   border-radius: var(--cw-radius);
   box-shadow: var(--cw-shadow);
-  display: none;  /* toggled via JS */
+  display: none;  /* hidden until opened */
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: system-ui, sans-serif;
 }
 
-/* Panel Header */
+/* Panel header */
 .cw-header {
   display: flex;
   align-items: center;
@@ -181,43 +179,45 @@
   opacity: 0.9;
   font-size: 12px;
 }
+/* Close (X) button */
 .cw-close {
-  background: rgba(255,255,255,0.2);
+  background: transparent;
   border: none;
+  font-size: 24px;
+  line-height: 1;
   color: #fff;
-  inline-size: 36px;
-  block-size: 36px;
-  border-radius: 50%;
   cursor: pointer;
-  font-size: 20px;
-  display: grid;
-  place-items: center;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-.cw-close:hover {
-  background: rgba(255,255,255,0.28);
-  transform: translateY(-1px);
-}
-.cw-close:active {
-  transform: translateY(0);
 }
 .cw-close:focus-visible {
   outline: 2px solid #fff;
   outline-offset: 2px;
 }
 
-/* Messages area */
+/* Messages scrollable pane */
 .cw-messages {
   background: var(--cw-scroll-bg);
-  padding: 14px;
-  height: 460px;  /* scrollable area height */
-  overflow: auto;
+  padding: 16px;
+  height: 360px;
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   scroll-behavior: smooth;
 }
+.cw-messages::-webkit-scrollbar {
+  width: 8px;
+}
+.cw-messages::-webkit-scrollbar-thumb {
+  background: #c1c7d4;
+  border-radius: 4px;
+}
+.cw-messages::-webkit-scrollbar-track {
+  background: #f1f3f7;
+}
+
+/* Message row containers */
 .cw-row {
   display: flex;
-  margin: 10px 0;
-  gap: 8px;
+  margin: 8px 0;
 }
 .cw-row-user {
   justify-content: flex-end;
@@ -226,19 +226,7 @@
   justify-content: flex-start;
 }
 
-/* Optional avatar images in chat (not used by default) */
-.cw-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid rgba(0,0,0,0.06);
-  display: none;
-}
-
-/* Chat bubbles */
+/* Message bubbles */
 .cw-bubble {
   max-width: 85%;
   border-radius: 20px;
@@ -253,7 +241,11 @@
   margin: 6px 0;
 }
 .cw-bubble ul {
-  margin: 6px 0 2px;
+  margin: 6px 0 4px 0;
+  padding-left: 18px;
+}
+.cw-bubble ol {
+  margin: 6px 0 4px 0;
   padding-left: 18px;
 }
 .cw-bubble li {
@@ -263,17 +255,32 @@
   background: rgba(0,0,0,0.06);
   border-radius: 4px;
   padding: 0 4px;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+}
+/* Code block styling */
+.cw-bubble pre {
+  background: rgba(0,0,0,0.06);
+  border-radius: 6px;
+  padding: 10px;
+  overflow-x: auto;
+}
+.cw-bubble pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
 }
 
-/* Assistant bubble (navy style) */
+/* Assistant bubble (navy background) */
 .cw-bubble-assistant {
   background: var(--cw-bot-bg);
   color: var(--cw-bot-fg);
   border-color: var(--cw-bot-border);
   border-top-left-radius: 10px;
 }
-
-/* User bubble (light gray style with white text) */
+/* User bubble (gray background) */
 .cw-bubble-user {
   background: var(--cw-user-bg);
   color: var(--cw-user-fg);
@@ -281,7 +288,7 @@
   border-top-right-radius: 10px;
 }
 
-/* Typing indicator dots */
+/* Typing indicator (three bouncing dots) */
 .cw-typing .cw-bubble {
   display: flex;
   align-items: center;
@@ -298,18 +305,14 @@
   display: block;
   animation: cwblink 1s infinite;
 }
-.cw-dots i:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.cw-dots i:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.cw-dots i:nth-child(2) { animation-delay: 0.2s; }
+.cw-dots i:nth-child(3) { animation-delay: 0.4s; }
 @keyframes cwblink {
   0%, 80%, 100% { opacity: 0.3; }
   40% { opacity: 1; }
 }
 
-/* Input row */
+/* Input area */
 .cw-form {
   display: flex;
   align-items: center;
@@ -328,15 +331,14 @@
   padding: 12px 48px 12px 14px;
   max-height: 140px;
   font-size: 15px;
-  line-height: 1.35;
+  line-height: 1.4;
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
 }
 .cw-input::placeholder {
   color: var(--cw-input-placeholder);
 }
 .cw-input:focus {
-  outline: 2px solid rgba(47,58,79,0.35);
+  outline: 2px solid rgba(47,58,79,0.3);
   outline-offset: 1px;
 }
 
@@ -351,7 +353,7 @@
   display: grid;
   place-items: center;
   color: #fff;
-  transition: transform 0.12s ease, filter 0.12s ease, background 0.12s ease;
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
 .cw-send:hover {
   transform: translateY(-1px);
@@ -365,7 +367,7 @@
   outline-offset: 2px;
 }
 .cw-send:disabled {
-  opacity: 0.55;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 .cw-send svg {
@@ -375,7 +377,7 @@
   display: block;
 }
 
-/* Continue button/chip (for optional "continue" feature) */
+/* Optional "Continue" button for long answers (if implemented in future) */
 .cw-continue {
   position: absolute;
   right: 28px;
@@ -391,7 +393,7 @@
   display: none;
 }
 
-/* Accessibility helper class */
+/* Visually hidden (for accessibility) */
 .cw-visually-hidden {
   position: absolute;
   left: -9999px;
@@ -401,7 +403,7 @@
   overflow: hidden;
 }
 
-/* Responsive adjustments */
+/* Responsive: adjust width on small screens */
 @media (max-width: 520px) {
   .cw-root {
     right: 12px;
@@ -411,35 +413,4 @@
   #cw-launcher {
     right: 12px;
   }
-}
-
-/* Optional suggested topics block (if enabled in future) */
-.cw-topics {
-  background: #fdfdff;
-  border: 1px dashed #cfd6df;
-  border-radius: 14px;
-  padding: 10px;
-  color: #0f1522;
-}
-.cw-topics-title {
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.cw-topics-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.cw-topic {
-  border: 1px solid #d7dde6;
-  background: #fff;
-  border-radius: 999px;
-  padding: 6px 10px;
-  cursor: pointer;
-  color: #2f3a4f;
-  font-weight: 600;
-}
-.cw-topic:hover {
-  border-color: #2f3a4f;
-  color: #2f3a4f;
 }
