@@ -77,20 +77,16 @@
 }
 
 /* Launcher button (floating chat bubble icon) */
-#cw-launcher {
-  position: fixed;
-  top: var(--cw-top-offset);
-  right: 24px;
+#cw-launcher{
   z-index: var(--cw-z-launch);
-  width: 64px;
-  height: 64px;
+  width: 64px; height: 64px;
   border-radius: 50%;
   background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+  border: none; padding: 0; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  /* position set by JS: absolute near #about, or fixed bottom-right fallback */
 }
+
 #cw-launcher:focus-visible {
   outline: 2px solid var(--cw-accent);
   outline-offset: 3px;
