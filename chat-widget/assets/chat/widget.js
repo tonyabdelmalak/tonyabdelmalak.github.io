@@ -1,346 +1,393 @@
-// ============================================================================
-// Tony Chat Widget — Updated to use system.md and about-tony.md only
-// - Loads system and knowledge base markdown files for prompt
-// - Removed persona.json to avoid duplicate persona instructions
-// - Renders assistant replies with Markdown formatting (headings, lists, code, etc.)
-// ============================================================================
-(function() {
+// chat-widget/assets/chat/widget.js
+// Tony Chat Widget — Extended build
+// - Uses system.md (behavior) + about-tony.md (knowledge) only
+// - Shows greeting once on open (no re-greet on first reply)
+// - Enter sends, Shift+Enter = newline
+// - Optional history persistence via config.persistHistory
+// - Markdown rendering (lists, bold, code) + sanitizer
+// - Header-offset aware launcher; updates on resize
+// - Focus trap and a11y roles/labels
+(function () {
   "use strict";
 
-  /* ------------------------ Defaults ------------------------ */
-  var DEFAULTS = {
-    workerUrl: "/chat",  // endpoint for the backend AI worker
-    systemUrl: "/chat-widget/assets/chat/system.md",       // system prompt file (assistant behavior)
-    kbUrl: "/chat-widget/assets/chat/about-tony.md",       // knowledge base file (Tony’s info)
+  /* ===================== Config ===================== */
+  const DEFAULTS = {
+    workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+    systemUrl: "/chat-widget/assets/chat/system.md",
+    kbUrl: "/chat-widget/assets/chat/about-tony.md",
     model: "llama-3.1-8b-instant",
     temperature: 0.275,
-    title: "Hi, I'm Tony. What's on your mind?",    // Chat header title
+    title: "Hi, I'm Tony. What's on your mind?",
     subtitle: "",
     brand: { accent: "#2f3a4f", radius: "18px" },
-    greeting: "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
-    persistHistory: false,
+    greeting:
+      "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
     maxHistory: 16,
     avatarUrl: "/assets/img/profile-img.jpg",
-    enableHighlight: true   // enable code syntax highlighting if Prism is available
+    persistHistory: false,          // if true, stores session in localStorage
+    storageKey: "tony-cw-history",  // storage key when persistHistory = true
+    typingDelayMs: 0                // 0 = show instantly; >0 would simulate streaming
   };
 
-  var CFG = null;
-  var UI = {};
-  var HISTORY = [];    // in-memory chat history for this session
-  var OPEN = false;
-  var BUSY = false;
+  /* ===================== State ===================== */
+  let CFG = null;
+  const UI = {};
+  let HISTORY = [];            // array of {role, content}
+  let OPEN = false;
+  let BUSY = false;
+  let greetingShown = false;   // suppress duplicate greeting
+  let trapPrevFocus = null;    // focus trap return target
+  let detachFns = [];          // for cleanup on hot reloads
 
-  /* ------------------------ Utils ------------------------ */
-  function esc(s) {
-    return String(s || "")
+  /* ===================== Utilities ===================== */
+  const esc = (s) =>
+    String(s || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
-  }
-  function assign() {
-    var o = {};
-    for (var i = 0; i < arguments.length; i++) {
-      var s = arguments[i] || {};
-      for (var k in s) o[k] = s[k];
-    }
-    return o;
-  }
-  function setVar(name, value) {
-    document.documentElement.style.setProperty(name, value);
-  }
-  function scrollPane() {
+
+  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
+
+  const on = (el, ev, fn, opts) => {
+    el.addEventListener(ev, fn, opts);
+    detachFns.push(() => el.removeEventListener(ev, fn, opts));
+  };
+
+  const throttle = (fn, ms) => {
+    let t = 0;
+    return (...a) => {
+      const now = Date.now();
+      if (now - t >= ms) {
+        t = now;
+        fn(...a);
+      }
+    };
+  };
+
+  const scrollPane = () => {
     if (UI.pane) UI.pane.scrollTop = UI.pane.scrollHeight;
-  }
-  function growInput() {
-    var el = UI.input;
+  };
+
+  const growInput = () => {
+    const el = UI.input;
     if (!el) return;
     el.style.height = "auto";
-    var h = Math.min(el.scrollHeight, 140);
-    el.style.height = h + "px";
-  }
-  function computeHeaderOffset() {
-    // Adjust chat launcher position based on any site headers/navbars
-    var el = document.querySelector('header.site-header') ||
-             document.querySelector('header.header') ||
-             document.querySelector('nav.navbar') ||
-             document.querySelector('nav[role="navigation"]') ||
-             document.querySelector('header') ||
-             document.querySelector('nav');
-    var h = el ? (el.offsetHeight || 64) : 64;
-    document.documentElement.style.setProperty('--cw-top-offset', (h + 24) + 'px');
-  }
+    el.style.height = Math.min(el.scrollHeight, 140) + "px";
+  };
 
-  /* ------------------------ Markdown Rendering ------------------------ */
-  // Minimal Markdown-to-HTML converter for chat messages
-  function mdToHtml(input) {
-    var s = String(input || "");
-    s = s.replace(/\r\n/g, "\n");
-    s = esc(s);
+  const computeHeaderOffset = () => {
+    const el =
+      document.querySelector("header.site-header") ||
+      document.querySelector("header.header") ||
+      document.querySelector("nav.navbar") ||
+      document.querySelector('nav[role="navigation"]') ||
+      document.querySelector("header") ||
+      document.querySelector("nav");
+    const h = el ? el.getBoundingClientRect().height : 64;
+    document.documentElement.style.setProperty("--cw-top-offset", h + 24 + "px");
+  };
 
-    // ```code blocks```
-    s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g, function(_, lang, code) {
-      var langClass = lang ? ' class="language-' + lang.toLowerCase() + '"' : "";
-      // Preserve indentation & special chars in code
-      var escapedCode = code.replace(/</g, "&lt;");
-      return "<pre><code" + langClass + ">" + escapedCode + "</code></pre>";
-    });
+  /* ===================== Storage ===================== */
+  const loadHistory = () => {
+    if (!CFG.persistHistory) return;
+    try {
+      const raw = localStorage.getItem(CFG.storageKey);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) HISTORY = data.slice(-CFG.maxHistory);
+    } catch (_) {}
+  };
 
-    // Inline `code`
-    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+  const saveHistory = () => {
+    if (!CFG.persistHistory) return;
+    try {
+      localStorage.setItem(
+        CFG.storageKey,
+        JSON.stringify(HISTORY.slice(-CFG.maxHistory))
+      );
+    } catch (_) {}
+  };
 
-    // Headings (Markdown # to bold text for simplicity)
-    s = s.replace(/^(#{1,6})\s*(.+)$/gm, function(_, hashes, text) {
-      return "<strong>" + text.trim() + "</strong>";
-    });
+  const clearHistory = () => {
+    HISTORY.length = 0;
+    saveHistory();
+  };
 
-    // Bold **text** and italic *text*
-    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-
-    // Links [text](url)
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-    // Ordered lists (1. ... 2. ...)
-    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, function(list) {
-      var items = list.split("\n").map(function(line) {
-        var m = line.match(/^\d+\.\s+(.+)$/);
-        return m ? "<li>" + m[1] + "</li>" : "";
-      }).join("");
-      return "<ol>" + items + "</ol>";
-    });
-
-    // Unordered lists (- ... or * ...)
-    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, function(list) {
-      var items = list.split("\n").map(function(line) {
-        var m = line.match(/^(?:-\s+|\*\s+)(.+)$/);
-        return m ? "<li>" + m[1] + "</li>" : "";
-      }).join("");
-      return "<ul>" + items + "</ul>";
-    });
-
-    // Paragraphs: wrap any remaining text in <p> and line breaks <br>
-    var parts = s.split(/\n{2,}/).map(function(block) {
-      // Skip adding <p> for certain block-level elements
-      if (/^<(?:ul|ol|pre|h|blockquote)/.test(block.trim())) {
-        return block;
-      }
-      var html = block.replace(/\n/g, "<br>");
-      return "<p>" + html + "</p>";
-    }).join("");
-
-    return sanitizeBlocks(parts);
-  }
-
+  /* ===================== Markdown ===================== */
   function sanitizeBlocks(html) {
     try {
-      var doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
-      // Remove potentially unsafe elements
-      ["script", "style", "iframe", "object", "embed"].forEach(function(sel) {
-        doc.querySelectorAll(sel).forEach(function(n) { n.remove(); });
-      });
-      // Ensure all links open in new tab securely
-      doc.querySelectorAll("a").forEach(function(a) {
+      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
+      ["script", "style", "iframe", "object", "embed", "link"].forEach((sel) =>
+        doc.querySelectorAll(sel).forEach((n) => n.remove())
+      );
+      doc.querySelectorAll("a").forEach((a) => {
         a.setAttribute("rel", "noopener noreferrer");
         a.setAttribute("target", "_blank");
       });
       return doc.body.firstChild.innerHTML;
-    } catch (_) {
+    } catch {
       return html;
     }
   }
 
-  function highlightIfPossible(container) {
-    if (!CFG.enableHighlight) return;
-    if (window.Prism && typeof Prism.highlightAllUnder === "function") {
-      Prism.highlightAllUnder(container);
-    }
+  function mdToHtml(input) {
+    let s = esc(String(input || "")).replace(/\r\n/g, "\n");
+
+    // Fenced code blocks
+    s = s.replace(
+      /```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
+      (_, lang, code) =>
+        `<pre><code${lang ? ` class="language-${lang.toLowerCase()}"` : ""}>${code.replace(
+          /</g,
+          "&lt;"
+        )}</code></pre>`
+    );
+    // Inline code
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    // Headings -> bold line
+    s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
+    // Bold/Italic
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    // Links
+    s = s.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+    // Ordered lists
+    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, (list) => {
+      const items = list
+        .split("\n")
+        .map((l) => l.replace(/^\d+\.\s+(.+)$/, "<li>$1</li>"))
+        .join("");
+      return `<ol>${items}</ol>`;
+    });
+    // Unordered lists
+    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, (list) => {
+      const items = list
+        .split("\n")
+        .map((l) => l.replace(/^(?:-\s+|\*\s+)(.+)$/, "<li>$1</li>"))
+        .join("");
+      return `<ul>${items}</ul>`;
+    });
+    // Paragraphs and line breaks
+    const blocks = s.split(/\n{2,}/).map((b) => {
+      if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
+      return `<p>${b.replace(/\n/g, "<br>")}</p>`;
+    });
+    return sanitizeBlocks(blocks.join(""));
   }
 
-  /* ------------------------ UI Build ------------------------ */
-  // Builds the chat widget UI elements and injects into page
-  function build() {
-    // Create launcher button
-    var launcher = document.createElement("button");
-    launcher.id = "cw-launcher";
-    launcher.setAttribute("aria-label", "Open chat");
-    launcher.innerHTML =
-      '<div class="cw-avatar-wrap">' +
-        '<img src="' + esc(CFG.avatarUrl) + '" alt="Tony Avatar">' +
-        '<div class="cw-bubble">1</div>' +
-      '</div>';
-    document.body.appendChild(launcher);
+  /* ===================== UI Builders ===================== */
+  function buildLauncher() {
+    const btn = document.createElement("button");
+    btn.id = "cw-launcher";
+    btn.setAttribute("aria-label", "Open chat");
+    btn.innerHTML =
+      `<div class="cw-avatar-wrap">
+         <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
+         <div class="cw-bubble">1</div>
+       </div>`;
+    document.body.appendChild(btn);
+    UI.launcher = btn;
+  }
 
-    // Create chat panel root
-    var root = document.createElement("div");
+  function buildRoot() {
+    const root = document.createElement("div");
     root.className = "cw-root";
     root.setAttribute("role", "dialog");
+    root.setAttribute("aria-modal", "true");
     root.setAttribute("aria-label", "Tony Chat");
-    root.innerHTML = "";
+    root.style.display = "none";
     document.body.appendChild(root);
+    UI.root = root;
 
-    // Header section with title and close button
-    var hdr = document.createElement("div");
+    // Header
+    const hdr = document.createElement("div");
     hdr.className = "cw-header";
     hdr.innerHTML =
-      '<div class="cw-head">' +
-        '<div class="cw-title">' + esc(CFG.title) + '</div>' +
-        (CFG.subtitle ? '<div class="cw-subtitle">' + esc(CFG.subtitle) + '</div>' : '') +
-      '</div>' +
-      '<button class="cw-close" aria-label="Close chat">&times;</button>';
+      `<div class="cw-head">
+         <div class="cw-title">${esc(CFG.title)}</div>
+         ${CFG.subtitle ? `<div class="cw-subtitle">${esc(CFG.subtitle)}</div>` : ""}
+       </div>
+       <button class="cw-close" aria-label="Close chat" title="Close">&times;</button>`;
     root.appendChild(hdr);
+    UI.close = hdr.querySelector(".cw-close");
 
-    // Messages pane
-    var pane = document.createElement("div");
+    // Messages
+    const pane = document.createElement("div");
     pane.className = "cw-messages";
     pane.id = "cw-messages";
     pane.setAttribute("role", "log");
+    pane.setAttribute("aria-live", "polite");
     root.appendChild(pane);
+    UI.pane = pane;
 
-    // Input form
-    var form = document.createElement("form");
+    // Form
+    const form = document.createElement("form");
     form.className = "cw-form";
     form.setAttribute("novalidate", "novalidate");
     form.innerHTML =
-      '<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1"></textarea>' +
-      '<button type="submit" id="cw-send" class="cw-send" aria-label="Send">' +
-        '<svg viewBox="0 0 20 20"><path d="M2 2 L18 10 L2 18 L2 11 L11 10 L2 9 Z"></path></svg>' +
-      '</button>';
+      `<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1" aria-label="Message input"></textarea>
+       <button type="submit" id="cw-send" class="cw-send" aria-label="Send message" title="Send">
+         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 2 L18 10 L2 18 L2 11 L11 10 L2 9 Z"></path></svg>
+       </button>`;
     root.appendChild(form);
-
-    // Reference UI elements
-    UI.launcher = launcher;
-    UI.root = root;
-    UI.pane = pane;
     UI.form = form;
     UI.input = form.querySelector("#cw-input");
     UI.send = form.querySelector("#cw-send");
-    UI.close = root.querySelector(".cw-close");
 
-    // Show greeting message on open (if configured)
-    if (CFG.greeting) {
-      addAssistant(CFG.greeting);
+    // Initial greeting in pane only when opened (handled in openChat)
+  }
+
+  /* ===================== Rendering ===================== */
+  function addRow(role, htmlOrText, isHtml) {
+    const row = document.createElement("div");
+    row.className = "cw-row " + (role === "assistant" ? "cw-row-assistant" : "cw-row-user");
+
+    const bubble = document.createElement("div");
+    bubble.className = "cw-bubble " + (role === "assistant" ? "cw-bubble-assistant" : "cw-bubble-user");
+    if (isHtml) bubble.innerHTML = htmlOrText;
+    else bubble.textContent = htmlOrText;
+
+    row.appendChild(bubble);
+    UI.pane.appendChild(row);
+    scrollPane();
+    return row;
+  }
+
+  function addAssistant(text) {
+    addRow("assistant", mdToHtml(text), true);
+  }
+  function addUser(text) {
+    addRow("user", text, false);
+  }
+  function addTyping() {
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-assistant cw-typing";
+    row.innerHTML =
+      '<div class="cw-bubble cw-bubble-assistant"><span class="cw-dots"><i></i><i></i><i></i></span></div>';
+    UI.pane.appendChild(row);
+    scrollPane();
+    return { remove: () => row.remove() };
+  }
+
+  /* ===================== Focus Trap ===================== */
+  function trapFocus() {
+    trapPrevFocus = document.activeElement;
+    const focusables = UI.root.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const list = Array.from(focusables);
+    if (!list.length) return;
+    const first = list[0];
+    const last = list[list.length - 1];
+
+    const handler = (e) => {
+      if (e.key !== "Tab") return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    on(UI.root, "keydown", handler);
+    first.focus();
+  }
+
+  function releaseFocus() {
+    if (trapPrevFocus && typeof trapPrevFocus.focus === "function") {
+      trapPrevFocus.focus();
+    }
+  }
+
+  /* ===================== Transport ===================== */
+  function makePayload(userText) {
+    const recent = HISTORY.slice(-CFG.maxHistory);
+    const msgs = recent.concat([{ role: "user", content: userText }]);
+
+    // One-time nudge: avoid re-greeting in first assistant reply
+    if (greetingShown && !recent.some((m) => m.role === "user")) {
+      msgs.unshift({
+        role: "system",
+        content:
+          "The UI already displayed a greeting. Answer directly without re-greeting."
+      });
     }
 
-    // Event listeners for open/close
-    launcher.addEventListener("click", function() {
-      OPEN = true;
-      root.style.display = "block";
-      document.documentElement.classList.add("cw-open");
-      computeHeaderOffset();
-      UI.input.focus();
-      scrollPane();
-    });
-    UI.close.addEventListener("click", function() {
-      OPEN = false;
-      root.style.display = "none";
-      document.documentElement.classList.remove("cw-open");
-    });
-
-    // Submit message on form submit
-    form.addEventListener("submit", onSubmit);
-
-    // Auto-grow textarea height on input
-    UI.input.addEventListener("input", growInput);
-  }
-
-  /* ------------------------ Renderers ------------------------ */
-  function addAssistant(text) {
-    var row = document.createElement("div");
-    row.className = "cw-row cw-row-assistant";
-    var bubble = document.createElement("div");
-    bubble.className = "cw-bubble cw-bubble-assistant";
-    bubble.innerHTML = mdToHtml(text);
-    row.appendChild(bubble);
-    UI.pane.appendChild(row);
-    highlightIfPossible(bubble);
-    scrollPane();
-  }
-
-  function addUser(text) {
-    var row = document.createElement("div");
-    row.className = "cw-row cw-row-user";
-    var bubble = document.createElement("div");
-    bubble.className = "cw-bubble cw-bubble-user";
-    bubble.textContent = text;
-    row.appendChild(bubble);
-    UI.pane.appendChild(row);
-    scrollPane();
-  }
-
-  function addTyping() {
-    var row = document.createElement("div");
-    row.className = "cw-row cw-row-assistant cw-typing";
-    row.innerHTML = '<div class="cw-bubble cw-bubble-assistant"><span class="cw-dots"><i></i><i></i><i></i></span></div>';
-    UI.pane.appendChild(row);
-    scrollPane();
-    return {
-      remove: function() { row.remove(); }
-    };
-  }
-
-  /* ------------------------ Transport ------------------------ */
-  // Prepare payload with latest conversation and config for the AI worker
-  function payload(userText) {
-    // Include recent history (up to maxHistory) plus the new user message
-    var msgs = HISTORY.slice(-CFG.maxHistory).concat([{ role: "user", content: userText }]);
     return {
       model: CFG.model,
       temperature: CFG.temperature,
       messages: msgs,
       systemUrl: CFG.systemUrl,
       kbUrl: CFG.kbUrl
-      // personaUrl removed – all persona/behavior instructions are in system.md
     };
   }
 
+  async function sendToWorker(userText) {
+    const r = await fetch(CFG.workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(makePayload(userText))
+    });
+    const ok = r.ok;
+    let data = null,
+      txt = "";
+    try {
+      data = await r.json();
+    } catch {
+      txt = await r.text();
+    }
+    if (!ok) throw new Error((data && data.error) || txt || "HTTP " + r.status);
+
+    const content =
+      data?.content ||
+      data?.reply ||
+      data?.choices?.[0]?.message?.content ||
+      "";
+
+    return content || "I couldn’t generate a reply just now.";
+  }
+
+  /* ===================== Handlers ===================== */
   async function onSubmit(e) {
     e.preventDefault();
     if (BUSY) return;
-    var text = (UI.input.value || "").trim();
+
+    const text = (UI.input.value || "").trim();
     if (!text) return;
 
-    // Render user message in UI
     addUser(text);
     HISTORY.push({ role: "user", content: text });
+    saveHistory();
+
     UI.input.value = "";
     growInput();
 
-    // Show typing indicator while waiting for response
-    var typing = addTyping();
+    const typing = addTyping();
     BUSY = true;
     UI.send.disabled = true;
 
     try {
-      // Send request to AI worker with user message and context URLs
-      var r = await fetch(CFG.workerUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload(text))
-      });
-      var ok = r.ok;
-      var data = null, txt = "";
-      try {
-        data = await r.json();
-      } catch(_) {
-        txt = await r.text();
-      }
-      if (!ok) throw new Error((data && data.error) || txt || ("HTTP " + r.status));
+      let reply = await sendToWorker(text);
 
-      // Extract assistant's reply content from response
-      var content = (data && (data.content || data.reply || (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content))) || "";
-      if (!content) content = "I couldn’t generate a reply just now.";
+      // Strip duplicate greeting at start of first reply
+      reply = reply.replace(/^hi[,!.\s]*i['’]m tony.*\n?/i, "").trim() || reply;
 
-      // Render assistant reply in UI
-      addAssistant(content);
-      HISTORY.push({ role: "assistant", content: content });
-    } catch(err) {
+      // Optional typing delay (visual)
+      if (CFG.typingDelayMs > 0) await new Promise((r) => setTimeout(r, CFG.typingDelayMs));
+
+      addAssistant(reply);
+      HISTORY.push({ role: "assistant", content: reply });
+      saveHistory();
+    } catch (err) {
       console.error(err);
       addAssistant("Sorry — I ran into an error. Please try again.");
     } finally {
-      // Remove typing indicator and re-enable input
       typing.remove();
       BUSY = false;
       UI.send.disabled = false;
@@ -348,24 +395,95 @@
     }
   }
 
-  /* ------------------------ Boot ------------------------ */
-  async function init() {
-    // Load configuration from config.json (if exists), then build UI
-    try {
-      var res = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
-      var cfg = await res.json();
-      CFG = assign({}, DEFAULTS, cfg || {});
-    } catch(_) {
-      CFG = assign({}, DEFAULTS);
-    }
-    // Apply brand accent color and border radius from config
-    if (CFG.brand && CFG.brand.accent) setVar('--cw-accent', CFG.brand.accent);
-    if (CFG.brand && CFG.brand.radius) setVar('--cw-radius', CFG.brand.radius);
+  function openChat() {
+    if (OPEN) return;
+    OPEN = true;
+    UI.root.style.display = "block";
+    document.documentElement.classList.add("cw-open");
+    trapFocus();
 
-    build();  // build the chat widget UI
+    // Greeting once on open (not on first model reply)
+    if (CFG.greeting && !greetingShown) {
+      addAssistant(CFG.greeting);
+      HISTORY.push({ role: "assistant", content: CFG.greeting });
+      saveHistory();
+      greetingShown = true;
+    }
+    UI.input.focus();
+    scrollPane();
   }
 
-  // Initialize on page load
+  function closeChat() {
+    if (!OPEN) return;
+    OPEN = false;
+    UI.root.style.display = "none";
+    document.documentElement.classList.remove("cw-open");
+    releaseFocus();
+  }
+
+  function bindEvents() {
+    on(UI.launcher, "click", openChat);
+    on(UI.close, "click", closeChat);
+
+    // Submit via button
+    on(UI.form, "submit", onSubmit);
+
+    // Enter sends; Shift+Enter newline
+    on(UI.input, "keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        UI.form.requestSubmit();
+      }
+    });
+
+    // Auto-grow input
+    on(UI.input, "input", growInput);
+
+    // Resize-aware launcher offset
+    computeHeaderOffset();
+    const onResize = throttle(computeHeaderOffset, 200);
+    on(window, "resize", onResize);
+
+    // ESC closes
+    on(document, "keydown", (e) => {
+      if (e.key === "Escape" && OPEN) closeChat();
+    });
+  }
+
+  /* ===================== Boot ===================== */
+  async function init() {
+    // Cleanup if hot reloading
+    detachFns.forEach((fn) => fn());
+    detachFns = [];
+
+    // Load config
+    try {
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), {
+        cache: "no-store"
+      });
+      const cfg = r.ok ? await r.json() : {};
+      CFG = Object.assign({}, DEFAULTS, cfg || {});
+    } catch {
+      CFG = Object.assign({}, DEFAULTS);
+    }
+
+    // Theme vars
+    if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
+    if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
+
+    // History
+    loadHistory();
+
+    // Build UI
+    buildLauncher();
+    buildRoot();
+    bindEvents();
+
+    // If there is persisted history, render last assistant message preview (optional)
+    // We do not auto-open the panel; greeting will show on first open if never shown.
+  }
+
+  // DOM ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {
