@@ -23,7 +23,7 @@
     personaUrl: "/chat-widget/assets/chat/persona.json",
     model: "llama-3.1-8b-instant",
     temperature: 0.275,
-    title: "What's on your mind?",
+    title: "Hi, I'm Tony. What's on your mind?",
     subtitle: "",
     brand: { accent: "#2f3a4f", radius: "18px" },
     greeting: "Hi, I’m Tony. I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards. What's on your mind?",
