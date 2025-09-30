@@ -1,46 +1,48 @@
 // =====================================================================
 // Cloudflare Worker — Tony Chat (EXTENDED)
-// - Dynamic fetch of system.md, about-tony.md, persona.json (tiny in-mem cache)
-// - GROQ primary (GROQ_API_KEY), OpenRouter fallback (OPENROUTER_API_KEY)
-// - Optional SSE streaming: pass { stream: true } in request body
-// - Retry with timeout per provider; strict first-person voice guard
-// - CORS + /health; structured JSON on non-streaming
+// - Dynamic fetch of system.md, about-tony.md, persona.json (with small in-memory cache)
+// - Primary provider: GROQ (env.GROQ_API_KEY), fallback: OpenRouter (env.OPENROUTER_API_KEY)
+// - Optional SSE streaming: include { stream: true } in request body
+// - Per-provider retry with timeout; enforces first-person voice consistency
+// - Provides CORS headers and /health endpoint; returns structured JSON for non-streaming
 // =====================================================================
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // CORS preflight
+    // CORS preflight handling
     if (request.method === "OPTIONS") return ok204();
 
-    // Health
-    if (url.pathname === "/health") return new Response("ok", { status: 200, headers: cors() });
+    // Health check endpoint
+    if (url.pathname === "/health") {
+      return new Response("ok", { status: 200, headers: cors() });
+    }
 
-    // Chat
+    // Chat completion endpoint
     if (url.pathname === "/chat" && request.method === "POST") {
       try {
         const body = await safeJson(request);
 
-        const model        = body.model || "llama-3.1-8b-instant";
-        const temperature  = typeof body.temperature === "number" ? body.temperature : 0.275;
-        const stream       = !!body.stream; // default off (your widget uses non-stream)
-        const messagesIn   = Array.isArray(body.messages) ? body.messages : [];
+        const model       = body.model || "llama-3.1-8b-instant";
+        const temperature = (typeof body.temperature === "number") ? body.temperature : 0.275;
+        const stream      = !!body.stream;  // default streaming off (widget uses non-streaming)
+        const messagesIn  = Array.isArray(body.messages) ? body.messages : [];
 
+        // Use provided URLs or fall back to Tony's GitHub repository raw URLs
         const systemUrl  = body.systemUrl  || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/system.md";
         const kbUrl      = body.kbUrl      || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/about-tony.md";
         const personaUrl = body.personaUrl || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/persona.json";
 
-        // Fetch guidance files with a small cache
+        // Fetch the guidance documents (with caching)
         const [systemMd, kbMd, persona] = await Promise.all([
           cachedText(systemUrl, 300),
           cachedText(kbUrl, 300),
           cachedJson(personaUrl, 300).catch(() => ({}))
         ]);
-
         const personaNote = formatPersona(persona);
 
-        // Unified system prompt — enforces first-person, punctuation, brevity
+        // Compose unified system prompt to steer the assistant
         const unifiedSystem = [
           "## Role & Voice",
           "You are Tony. Speak in the first person as Tony. Be concise, professional, friendly. Use complete sentences with proper periods.",
@@ -60,20 +62,20 @@ export default {
         const messages = [{ role: "system", content: unifiedSystem }]
           .concat(messagesIn.filter(m => m && typeof m.content === "string" && m.role));
 
-        // Streaming path (optional)
+        // Streaming SSE response (if requested)
         if (stream) {
           const sse = await streamFromProviders({ env, model, temperature, messages });
           if (!sse) return json({ error: "No completion from providers" }, 502);
           return sse;
         }
 
-        // Non-streaming (your widget uses this)
+        // Standard non-streaming response
         const result = await completeFromProviders({ env, model, temperature, messages });
         if (!result || !result.text) {
           return json({ error: "No completion from providers" }, 502);
         }
 
-        // Light post-guard
+        // Enforce first-person answer (post-process guard)
         const content = enforceFirstPerson(result.text);
 
         return json({
@@ -89,16 +91,17 @@ export default {
       }
     }
 
+    // Fallback for any other request
     return new Response("Not found", { status: 404, headers: cors() });
   }
 };
 
 /* ===================================================================== */
-/*                          Provider Orchestration                        */
+/*                        Provider Orchestration                         */
 /* ===================================================================== */
 
 async function completeFromProviders({ env, model, temperature, messages }) {
-  // Try Groq first
+  // Try primary provider (Groq)
   if (env.GROQ_API_KEY) {
     const r = await withRetry(() =>
       groqChat({ apiKey: env.GROQ_API_KEY, model, temperature, messages, stream: false }),
@@ -107,7 +110,7 @@ async function completeFromProviders({ env, model, temperature, messages }) {
     if (r && r.text) return { ...r, provider: "groq" };
   }
 
-  // Fallback: OpenRouter
+  // Fallback provider (OpenRouter)
   if (env.OPENROUTER_API_KEY) {
     const fallbackModel = "gpt-4o-mini";
     const r = await withRetry(() =>
@@ -120,7 +123,7 @@ async function completeFromProviders({ env, model, temperature, messages }) {
   return null;
 }
 
-// Optional streaming SSE
+// Optional SSE streaming route (tries providers in order)
 async function streamFromProviders({ env, model, temperature, messages }) {
   if (env.GROQ_API_KEY) {
     const resp = await groqStream({ apiKey: env.GROQ_API_KEY, model, temperature, messages });
@@ -135,16 +138,18 @@ async function streamFromProviders({ env, model, temperature, messages }) {
 }
 
 /* ===================================================================== */
-/*                            Provider Clients                            */
+/*                            Provider Clients                           */
 /* ===================================================================== */
 
-// ---------- Groq ----------
+// ---------- Groq (Chat Completion) ----------
 async function groqChat({ apiKey, model, temperature, messages, stream }) {
   const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model, temperature, messages,
+      model,
+      temperature,
+      messages,
       max_tokens: 1024,
       stream: !!stream
     }),
@@ -170,15 +175,21 @@ async function groqStream({ apiKey, model, temperature, messages }) {
   const stream = new ReadableStream({
     async pull(controller) {
       const { value, done } = await reader.read();
-      if (done) { controller.enqueue(encodeSSE("event: done\ndata: [DONE]\n\n")); controller.close(); return; }
-      controller.enqueue(value); // pass-through
+      if (done) {
+        controller.enqueue(encodeSSE("event: done\ndata: [DONE]\n\n"));
+        controller.close();
+        return;
+      }
+      controller.enqueue(value); // pass chunks through directly
     },
-    cancel() { try { reader.cancel(); } catch {} }
+    cancel() {
+      try { reader.cancel(); } catch {}
+    }
   });
   return new Response(stream, { status: 200, headers });
 }
 
-// ---------- OpenRouter ----------
+// ---------- OpenRouter (Chat Completion) ----------
 async function openrouterChat({ apiKey, model, temperature, messages, stream }) {
   const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -189,7 +200,9 @@ async function openrouterChat({ apiKey, model, temperature, messages, stream }) 
       "X-Title": "Tony Chat Widget"
     },
     body: JSON.stringify({
-      model, temperature, messages,
+      model,
+      temperature,
+      messages,
       max_tokens: 1024,
       stream: !!stream
     }),
@@ -222,37 +235,47 @@ async function openrouterStream({ apiKey, model, temperature, messages }) {
   const stream = new ReadableStream({
     async pull(controller) {
       const { value, done } = await reader.read();
-      if (done) { controller.enqueue(encoder.encode("event: done\ndata: [DONE]\n\n")); controller.close(); return; }
+      if (done) {
+        controller.enqueue(encoder.encode("event: done\ndata: [DONE]\n\n"));
+        controller.close();
+        return;
+      }
       controller.enqueue(value);
     },
-    cancel() { try { reader.cancel(); } catch {} }
+    cancel() {
+      try { reader.cancel(); } catch {}
+    }
   });
   return new Response(stream, { status: 200, headers });
 }
 
 /* ===================================================================== */
-/*                                Helpers                                 */
+/*                                Helpers                                */
 /* ===================================================================== */
 
-const MEMO = new Map(); // in-mem cache
+const MEMO = new Map();  // simple in-memory cache
 
-async function cachedText(u, ttl = 300) {
-  const k = "T:" + u, now = Date.now(), hit = MEMO.get(k);
+async function cachedText(url, ttl = 300) {
+  const key = "T:" + url;
+  const now = Date.now();
+  const hit = MEMO.get(key);
   if (hit && now - hit.t < ttl * 1000) return hit.v;
-  const r = await fetch(u, { redirect: "follow" });
-  if (!r.ok) throw new Error(`Fetch ${u} ${r.status}`);
+  const r = await fetch(url, { redirect: "follow" });
+  if (!r.ok) throw new Error(`Fetch ${url} ${r.status}`);
   const v = await r.text();
-  MEMO.set(k, { v, t: now });
+  MEMO.set(key, { v, t: now });
   return v;
 }
 
-async function cachedJson(u, ttl = 300) {
-  const k = "J:" + u, now = Date.now(), hit = MEMO.get(k);
+async function cachedJson(url, ttl = 300) {
+  const key = "J:" + url;
+  const now = Date.now();
+  const hit = MEMO.get(key);
   if (hit && now - hit.t < ttl * 1000) return hit.v;
-  const r = await fetch(u, { redirect: "follow" });
-  if (!r.ok) throw new Error(`Fetch ${u} ${r.status}`);
+  const r = await fetch(url, { redirect: "follow" });
+  if (!r.ok) throw new Error(`Fetch ${url} ${r.status}`);
   const v = await r.json();
-  MEMO.set(k, { v, t: now });
+  MEMO.set(key, { v, t: now });
   return v;
 }
 
@@ -267,10 +290,15 @@ function formatPersona(p) {
       lines.push("- Links:\n" + links);
     }
     return lines.length ? lines.join("\n") : "- (empty)";
-  } catch { return "- (empty)"; }
+  } catch {
+    return "- (empty)";
+  }
 }
 
-function clip(s, n) { s = String(s || ""); return s.length > n ? s.slice(0, n) : s; }
+function clip(text, maxLen) {
+  text = String(text || "");
+  return text.length > maxLen ? text.slice(0, maxLen) : text;
+}
 
 function enforceFirstPerson(text) {
   const t = String(text || "").trim();
@@ -284,19 +312,25 @@ async function withRetry(fn, { attempts = 2, timeoutMs = 25000 } = {}) {
   let err;
   for (let i = 0; i < attempts; i++) {
     try {
-      const c = await Promise.race([
+      const result = await Promise.race([
         fn(),
-        new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), timeoutMs))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs))
       ]);
-      return c;
-    } catch (e) { err = e; }
+      return result;
+    } catch (e) {
+      err = e;
+    }
   }
-  if (err) console.warn("withRetry exhausted:", err?.message || err);
+  if (err) console.warn("withRetry exhausted:", err.message || err);
   return null;
 }
 
 async function safeJson(req) {
-  try { return await req.json(); } catch { return {}; }
+  try {
+    return await req.json();
+  } catch {
+    return {};
+  }
 }
 
 function cors() {
@@ -306,7 +340,9 @@ function cors() {
     "Access-Control-Allow-Headers": "Content-Type, Authorization, HTTP-Referer, X-Title"
   };
 }
-function ok204() { return new Response(null, { status: 204, headers: cors() }); }
+function ok204() {
+  return new Response(null, { status: 204, headers: cors() });
+}
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
@@ -314,6 +350,8 @@ function json(obj, status = 200) {
   });
 }
 
-// SSE helpers
+// SSE encoding helper
 const sseEncoder = new TextEncoder();
-function encodeSSE(s) { return sseEncoder.encode(s); }
+function encodeSSE(s) {
+  return sseEncoder.encode(s);
+}
