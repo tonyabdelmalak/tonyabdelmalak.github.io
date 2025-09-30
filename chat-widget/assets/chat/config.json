@@ -13,5 +13,11 @@
   "brand": { "accent": "#2f3a4f", "radius": "18px" },
 
   "persistHistory": false,
-  "maxHistory": 16
+  "storageKey": "tony-cw-history",
+  "maxHistory": 16,
+  "typingDelayMs": 0,
+
+  "avatarUrl": "/assets/img/profile-img.jpg",
+
+  "launcherAnchor": "#about"
 }
