@@ -63,6 +63,17 @@
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   };
 
+  function stripGreeting(t) {
+  let s = String(t || "").trim();
+  // drop leading salutations
+  s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
+  // drop “I'm Tony …” opener if it’s now first
+  s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
+  // common combos: “Hi back! I'm Tony …”
+  s = s.replace(/^(?:hi[^.\n!?]*[.!?]\s*)?i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
+  return s.trim();
+}
+
   /* ===================== Storage ===================== */
   const loadHistory = () => {
     if (!CFG.persistHistory) return;
@@ -327,7 +338,7 @@
     try {
       let reply = await sendToWorker(text);
       // strip duplicate “Hi, I'm Tony …” if model tries it
-      reply = reply.replace(/^hi[,!.\s]*i['’]m tony.*\n?/i, "").trim() || reply;
+      reply = stripGreeting(reply) || reply;
 
       if (CFG.typingDelayMs > 0) await new Promise(r => setTimeout(r, CFG.typingDelayMs));
 
