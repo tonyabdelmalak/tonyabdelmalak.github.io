@@ -1,12 +1,11 @@
-// chat-widget/assets/chat/widget.js
-// Tony Chat Widget — Extended build
-// - Uses system.md (behavior) + about-tony.md (knowledge) only
-// - Shows greeting once on open (no re-greet on first reply)
-// - Enter sends, Shift+Enter = newline
-// - Optional history persistence via config.persistHistory
-// - Markdown rendering (lists, bold, code) + sanitizer
-// - Header-offset aware launcher; updates on resize
-// - Focus trap and a11y roles/labels
+// Tony Chat Widget — drop-in
+// - Uses system.md (behavior) + about-tony.md (knowledge)
+// - Greeting shows once on open (no re-greet on first reply)
+// - Enter sends; Shift+Enter inserts newline
+// - Markdown rendering + sanitizer
+// - Launcher can be "fixed" or anchored near #about
+// - Badge with 3 dots overlaps launcher avatar
+
 (function () {
   "use strict";
 
@@ -24,22 +23,23 @@
       "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
     maxHistory: 16,
     avatarUrl: "/assets/img/profile-img.jpg",
-    persistHistory: false,          // if true, stores session in localStorage
-    storageKey: "tony-cw-history",  // storage key when persistHistory = true
-    typingDelayMs: 0                // 0 = show instantly; >0 would simulate streaming
+    persistHistory: false,
+    storageKey: "tony-cw-history",
+    typingDelayMs: 0,
+    launcherAnchor: "#about",     // used when launcherMode = "anchor"
+    launcherMode: "fixed"         // "fixed" | "anchor"
   };
 
   /* ===================== State ===================== */
   let CFG = null;
   const UI = {};
-  let HISTORY = [];            // array of {role, content}
+  let HISTORY = [];
   let OPEN = false;
   let BUSY = false;
-  let greetingShown = false;   // suppress duplicate greeting
-  let trapPrevFocus = null;    // focus trap return target
-  let detachFns = [];          // for cleanup on hot reloads
+  let greetingShown = false;
+  let detachFns = [];
 
-  /* ===================== Utilities ===================== */
+  /* ===================== Utils ===================== */
   const esc = (s) =>
     String(s || "")
       .replace(/&/g, "&amp;")
@@ -55,68 +55,13 @@
     detachFns.push(() => el.removeEventListener(ev, fn, opts));
   };
 
-  const throttle = (fn, ms) => {
-    let t = 0;
-    return (...a) => {
-      const now = Date.now();
-      if (now - t >= ms) {
-        t = now;
-        fn(...a);
-      }
-    };
-  };
-
-  const scrollPane = () => {
-    if (UI.pane) UI.pane.scrollTop = UI.pane.scrollHeight;
-  };
+  const scrollPane = () => { if (UI.pane) UI.pane.scrollTop = UI.pane.scrollHeight; };
 
   const growInput = () => {
-    const el = UI.input;
-    if (!el) return;
+    const el = UI.input; if (!el) return;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   };
-
-  // New: position the launcher next to a page anchor (e.g., #about).
-function placeLauncher() {
-  const btn = UI.launcher;
-  if (!btn) return;
-
-  // try configured selector, then common fallbacks
-  const sel = (CFG.launcherAnchor || "").trim() ||
-              "section#about, #about, a[name='about'], section.about";
-  const anchor = document.querySelector(sel);
-
-  if (anchor) {
-    const r = anchor.getBoundingClientRect();
-    const pageTop = window.scrollY || document.documentElement.scrollTop || 0;
-
-    // Sit a bit below the top edge of the About section
-    const topPx = Math.max(0, pageTop + r.top + 16);
-    btn.style.position = "absolute";
-    btn.style.top = topPx + "px";
-    btn.style.right = "24px";
-    btn.style.bottom = "";
-  } else {
-    // Fallback: fixed at bottom-right
-    btn.style.position = "fixed";
-    btn.style.right = "24px";
-    btn.style.bottom = "16px";
-    btn.style.top = "";
-  }
-}
-
-const placeLauncherThrottled = (() => {
-  let t = 0;
-  return () => {
-    const now = Date.now();
-    if (now - t > 120) {
-      t = now;
-      placeLauncher();
-    }
-  };
-})();
-
 
   /* ===================== Storage ===================== */
   const loadHistory = () => {
@@ -126,34 +71,23 @@ const placeLauncherThrottled = (() => {
       if (!raw) return;
       const data = JSON.parse(raw);
       if (Array.isArray(data)) HISTORY = data.slice(-CFG.maxHistory);
-    } catch (_) {}
+    } catch {}
   };
-
   const saveHistory = () => {
     if (!CFG.persistHistory) return;
-    try {
-      localStorage.setItem(
-        CFG.storageKey,
-        JSON.stringify(HISTORY.slice(-CFG.maxHistory))
-      );
-    } catch (_) {}
-  };
-
-  const clearHistory = () => {
-    HISTORY.length = 0;
-    saveHistory();
+    try { localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory))); } catch {}
   };
 
   /* ===================== Markdown ===================== */
   function sanitizeBlocks(html) {
     try {
       const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
-      ["script", "style", "iframe", "object", "embed", "link"].forEach((sel) =>
-        doc.querySelectorAll(sel).forEach((n) => n.remove())
+      ["script","style","iframe","object","embed","link"].forEach(sel =>
+        doc.querySelectorAll(sel).forEach(n => n.remove())
       );
-      doc.querySelectorAll("a").forEach((a) => {
-        a.setAttribute("rel", "noopener noreferrer");
-        a.setAttribute("target", "_blank");
+      doc.querySelectorAll("a").forEach(a => {
+        a.setAttribute("rel","noopener noreferrer");
+        a.setAttribute("target","_blank");
       });
       return doc.body.firstChild.innerHTML;
     } catch {
@@ -164,48 +98,42 @@ const placeLauncherThrottled = (() => {
   function mdToHtml(input) {
     let s = esc(String(input || "")).replace(/\r\n/g, "\n");
 
-    // Fenced code blocks
-    s = s.replace(
-      /```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
-      (_, lang, code) =>
-        `<pre><code${lang ? ` class="language-${lang.toLowerCase()}"` : ""}>${code.replace(
-          /</g,
-          "&lt;"
-        )}</code></pre>`
-    );
+    // Fenced code
+    s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
+      (_, lang, code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
+
     // Inline code
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+
     // Headings -> bold line
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
-    // Bold/Italic
+
+    // Bold / italic
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+
     // Links
-    s = s.replace(
-      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
-    );
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
     // Ordered lists
-    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, (list) => {
-      const items = list
-        .split("\n")
-        .map((l) => l.replace(/^\d+\.\s+(.+)$/, "<li>$1</li>"))
-        .join("");
+    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
+      const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/, "<li>$1</li>")).join("");
       return `<ol>${items}</ol>`;
     });
+
     // Unordered lists
-    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, (list) => {
-      const items = list
-        .split("\n")
-        .map((l) => l.replace(/^(?:-\s+|\*\s+)(.+)$/, "<li>$1</li>"))
-        .join("");
+    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, list => {
+      const items = list.split("\n").map(l => l.replace(/^(?:-\s+|\*\s+)(.+)$/, "<li>$1</li>")).join("");
       return `<ul>${items}</ul>`;
     });
-    // Paragraphs and line breaks
-    const blocks = s.split(/\n{2,}/).map((b) => {
+
+    // Paragraphs / line breaks
+    const blocks = s.split(/\n{2,}/).map(b => {
       if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
-      return `<p>${b.replace(/\n/g, "<br>")}</p>`;
+      return `<p>${b.replace(/\n/g,"<br>")}</p>`;
     });
+
     return sanitizeBlocks(blocks.join(""));
   }
 
@@ -213,11 +141,12 @@ const placeLauncherThrottled = (() => {
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
-    btn.setAttribute("aria-label", "Open chat");
+    btn.setAttribute("aria-label","Open chat");
+    // with 3-dot badge overlap
     btn.innerHTML =
       `<div class="cw-avatar-wrap">
          <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
-         <div class="cw-bubble">1</div>
+         <div class="cw-launcher-badge" aria-hidden="true"><i></i><i></i><i></i></div>
        </div>`;
     document.body.appendChild(btn);
     UI.launcher = btn;
@@ -226,14 +155,13 @@ const placeLauncherThrottled = (() => {
   function buildRoot() {
     const root = document.createElement("div");
     root.className = "cw-root";
-    root.setAttribute("role", "dialog");
-    root.setAttribute("aria-modal", "true");
-    root.setAttribute("aria-label", "Tony Chat");
+    root.setAttribute("role","dialog");
+    root.setAttribute("aria-modal","true");
+    root.setAttribute("aria-label","Tony Chat");
     root.style.display = "none";
     document.body.appendChild(root);
     UI.root = root;
 
-    // Header
     const hdr = document.createElement("div");
     hdr.className = "cw-header";
     hdr.innerHTML =
@@ -245,19 +173,17 @@ const placeLauncherThrottled = (() => {
     root.appendChild(hdr);
     UI.close = hdr.querySelector(".cw-close");
 
-    // Messages
     const pane = document.createElement("div");
     pane.className = "cw-messages";
     pane.id = "cw-messages";
-    pane.setAttribute("role", "log");
-    pane.setAttribute("aria-live", "polite");
+    pane.setAttribute("role","log");
+    pane.setAttribute("aria-live","polite");
     root.appendChild(pane);
     UI.pane = pane;
 
-    // Form
     const form = document.createElement("form");
     form.className = "cw-form";
-    form.setAttribute("novalidate", "novalidate");
+    form.setAttribute("novalidate","novalidate");
     form.innerHTML =
       `<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1" aria-label="Message input"></textarea>
        <button type="submit" id="cw-send" class="cw-send" aria-label="Send message" title="Send">
@@ -267,32 +193,39 @@ const placeLauncherThrottled = (() => {
     UI.form = form;
     UI.input = form.querySelector("#cw-input");
     UI.send = form.querySelector("#cw-send");
-
-    // Initial greeting in pane only when opened (handled in openChat)
   }
 
   /* ===================== Rendering ===================== */
-  function addRow(role, htmlOrText, isHtml) {
+  // UPDATED addAssistant(): includes trailing-question emphasis
+  function addAssistant(text) {
+    let html = mdToHtml(text);
+    // emphasize trailing question if present
+    html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
+      if (!q) return m;
+      return `${body}<span class="cw-callout">${q}</span>`;
+    });
+
     const row = document.createElement("div");
-    row.className = "cw-row " + (role === "assistant" ? "cw-row-assistant" : "cw-row-user");
-
+    row.className = "cw-row cw-row-assistant";
     const bubble = document.createElement("div");
-    bubble.className = "cw-bubble " + (role === "assistant" ? "cw-bubble-assistant" : "cw-bubble-user");
-    if (isHtml) bubble.innerHTML = htmlOrText;
-    else bubble.textContent = htmlOrText;
-
+    bubble.className = "cw-bubble cw-bubble-assistant";
+    bubble.innerHTML = html;
     row.appendChild(bubble);
     UI.pane.appendChild(row);
     scrollPane();
-    return row;
   }
 
-  function addAssistant(text) {
-    addRow("assistant", mdToHtml(text), true);
-  }
   function addUser(text) {
-    addRow("user", text, false);
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-user";
+    const bubble = document.createElement("div");
+    bubble.className = "cw-bubble cw-bubble-user";
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    UI.pane.appendChild(row);
+    scrollPane();
   }
+
   function addTyping() {
     const row = document.createElement("div");
     row.className = "cw-row cw-row-assistant cw-typing";
@@ -303,35 +236,35 @@ const placeLauncherThrottled = (() => {
     return { remove: () => row.remove() };
   }
 
-  /* ===================== Focus Trap ===================== */
-  function trapFocus() {
-    trapPrevFocus = document.activeElement;
-    const focusables = UI.root.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const list = Array.from(focusables);
-    if (!list.length) return;
-    const first = list[0];
-    const last = list[list.length - 1];
+  /* ===================== Launcher positioning ===================== */
+  function placeLauncher() {
+    const btn = UI.launcher;
+    if (!btn) return;
 
-    const handler = (e) => {
-      if (e.key !== "Tab") return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
+    const mode = (CFG.launcherMode || "fixed").toLowerCase();
+
+    if (mode === "anchor") {
+      const sel = (CFG.launcherAnchor || "").trim()
+        || "section#about, #about, a[name='about'], section.about";
+      const anchor = document.querySelector(sel);
+      if (anchor) {
+        const r = anchor.getBoundingClientRect();
+        const pageTop = window.scrollY || document.documentElement.scrollTop || 0;
+        const topPx = Math.max(0, pageTop + r.top + 16);
+        btn.style.position = "absolute";
+        btn.style.top = topPx + "px";
+        btn.style.right = "24px";
+        btn.style.bottom = "";
+        return;
       }
-    };
-    on(UI.root, "keydown", handler);
-    first.focus();
-  }
-
-  function releaseFocus() {
-    if (trapPrevFocus && typeof trapPrevFocus.focus === "function") {
-      trapPrevFocus.focus();
+      // fall through to fixed if anchor not found
     }
+
+    // fixed mode (always visible)
+    btn.style.position = "fixed";
+    btn.style.right = "24px";
+    btn.style.bottom = "16px";
+    btn.style.top = "";
   }
 
   /* ===================== Transport ===================== */
@@ -339,12 +272,11 @@ const placeLauncherThrottled = (() => {
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
-    // One-time nudge: avoid re-greeting in first assistant reply
-    if (greetingShown && !recent.some((m) => m.role === "user")) {
+    // one-time nudge: avoid re-greeting in first model reply
+    if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
-        content:
-          "The UI already displayed a greeting. Answer directly without re-greeting."
+        content: "The UI already displayed a greeting. Answer directly without re-greeting."
       });
     }
 
@@ -364,21 +296,14 @@ const placeLauncherThrottled = (() => {
       body: JSON.stringify(makePayload(userText))
     });
     const ok = r.ok;
-    let data = null,
-      txt = "";
-    try {
-      data = await r.json();
-    } catch {
-      txt = await r.text();
-    }
+    let data = null, txt = "";
+    try { data = await r.json(); } catch { txt = await r.text(); }
     if (!ok) throw new Error((data && data.error) || txt || "HTTP " + r.status);
-
     const content =
       data?.content ||
       data?.reply ||
       data?.choices?.[0]?.message?.content ||
       "";
-
     return content || "I couldn’t generate a reply just now.";
   }
 
@@ -386,7 +311,6 @@ const placeLauncherThrottled = (() => {
   async function onSubmit(e) {
     e.preventDefault();
     if (BUSY) return;
-
     const text = (UI.input.value || "").trim();
     if (!text) return;
 
@@ -398,17 +322,14 @@ const placeLauncherThrottled = (() => {
     growInput();
 
     const typing = addTyping();
-    BUSY = true;
-    UI.send.disabled = true;
+    BUSY = true; UI.send.disabled = true;
 
     try {
       let reply = await sendToWorker(text);
-
-      // Strip duplicate greeting at start of first reply
+      // strip duplicate “Hi, I'm Tony …” if model tries it
       reply = reply.replace(/^hi[,!.\s]*i['’]m tony.*\n?/i, "").trim() || reply;
 
-      // Optional typing delay (visual)
-      if (CFG.typingDelayMs > 0) await new Promise((r) => setTimeout(r, CFG.typingDelayMs));
+      if (CFG.typingDelayMs > 0) await new Promise(r => setTimeout(r, CFG.typingDelayMs));
 
       addAssistant(reply);
       HISTORY.push({ role: "assistant", content: reply });
@@ -418,8 +339,7 @@ const placeLauncherThrottled = (() => {
       addAssistant("Sorry — I ran into an error. Please try again.");
     } finally {
       typing.remove();
-      BUSY = false;
-      UI.send.disabled = false;
+      BUSY = false; UI.send.disabled = false;
       scrollPane();
     }
   }
@@ -429,9 +349,7 @@ const placeLauncherThrottled = (() => {
     OPEN = true;
     UI.root.style.display = "block";
     document.documentElement.classList.add("cw-open");
-    trapFocus();
 
-    // Greeting once on open (not on first model reply)
     if (CFG.greeting && !greetingShown) {
       addAssistant(CFG.greeting);
       HISTORY.push({ role: "assistant", content: CFG.greeting });
@@ -447,14 +365,12 @@ const placeLauncherThrottled = (() => {
     OPEN = false;
     UI.root.style.display = "none";
     document.documentElement.classList.remove("cw-open");
-    releaseFocus();
   }
 
   function bindEvents() {
     on(UI.launcher, "click", openChat);
     on(UI.close, "click", closeChat);
 
-    // Submit via button
     on(UI.form, "submit", onSubmit);
 
     // Enter sends; Shift+Enter newline
@@ -465,37 +381,34 @@ const placeLauncherThrottled = (() => {
       }
     });
 
-    // Auto-grow input
     on(UI.input, "input", growInput);
 
-    // ESC closes
-    on(document, "keydown", (e) => {
-      if (e.key === "Escape" && OPEN) closeChat();
-    });
+    // Reposition launcher on scroll/resize
+    const throttled = (() => {
+      let t = 0;
+      return () => {
+        const now = Date.now();
+        if (now - t > 120) { t = now; placeLauncher(); }
+      };
+    })();
+    on(window, "resize", throttled);
+    on(window, "scroll", throttled);
   }
 
   /* ===================== Boot ===================== */
   async function init() {
-    // Cleanup if hot reloading
-    detachFns.forEach((fn) => fn());
-    detachFns = [];
-
-    // Load config
+    // load config
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), {
-        cache: "no-store"
-      });
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
       const cfg = r.ok ? await r.json() : {};
       CFG = Object.assign({}, DEFAULTS, cfg || {});
     } catch {
       CFG = Object.assign({}, DEFAULTS);
     }
 
-    // Theme vars
     if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
     if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
 
-    // History
     loadHistory();
 
     // Build UI
@@ -503,19 +416,10 @@ const placeLauncherThrottled = (() => {
     buildRoot();
     bindEvents();
 
+    // Initial placement of launcher
     placeLauncher();
-    window.addEventListener("resize", placeLauncherThrottled);
-    window.addEventListener("scroll", placeLauncherThrottled);
-
-
-    // If there is persisted history, render last assistant message preview (optional)
-    // We do not auto-open the panel; greeting will show on first open if never shown.
   }
 
-  // DOM ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
