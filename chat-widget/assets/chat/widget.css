@@ -39,7 +39,7 @@
   --cw-z-launch: 2147483001;
 }
 
-/* Dark mode variants (kept for completeness, you requested white panel by default) */
+/* Dark mode variants (kept for completeness; default is white panel) */
 @media (prefers-color-scheme: dark){
   :root{
     --cw-panel-bg: #0d1423;
@@ -64,7 +64,7 @@
   }
 }
 
-/* Respect reduced motion */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce){
   * { animation: none !important; transition: none !important; }
 }
@@ -167,7 +167,7 @@
 .cw-messages{
   background: var(--cw-scroll-bg);
   padding: 14px;
-  height: 460px;                 /* taller as requested */
+  height: 460px;                 /* taller by design */
   overflow: auto;
   scroll-behavior: smooth;
 }
@@ -175,12 +175,12 @@
 .cw-row-user{ justify-content: flex-end; }
 .cw-row-assistant{ justify-content: flex-start; }
 
-/* Avatars (optional, kept for completeness) */
+/* Optional avatars inside chat (hidden by default) */
 .cw-avatar{
   width: 28px; height: 28px; border-radius: 50%; flex: 0 0 auto;
   background-size: cover; background-position: center;
   border: 1px solid rgba(0,0,0,.06);
-  display: none; /* hidden by default; enable if you add avatar nodes */
+  display: none;
 }
 
 /* Bubbles */
@@ -279,7 +279,7 @@
   #cw-launcher{ right:12px; }
 }
 
-/* Optional: subtle separators for “topics” blocks if you ever enable them */
+/* Optional “topics” block if you enable later */
 .cw-topics{ background:#fdfdff; border:1px dashed #cfd6df; border-radius:14px; padding:10px; color:#0f1522; }
 .cw-topics-title{ font-weight:700; margin-bottom:6px; }
 .cw-topics-list{ display:flex; flex-wrap:wrap; gap:8px; }
