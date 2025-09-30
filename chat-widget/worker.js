@@ -1,4 +1,4 @@
-// worker.js — Tony’s Copilot (Groq first, OpenAI fallback)
+// worker.js — Tony’s Copilot (Groq first, OpenRouter fallback, then OpenAI)
 // Merges system.md (rules) + about-tony.md (KB) into a single system prompt.
 // Accepts absolute URLs from the widget; falls back to sane defaults.
 // Returns finish_reason so the UI can show a “Continue” button.
@@ -43,8 +43,9 @@ export default {
       // Prepend as system message
       const modelMessages = [{ role: "system", content: unifiedSystem }, ...messages];
 
-      // Try Groq first; fallback to OpenAI if available
+      // Try Groq first; fallback to OpenRouter, then OpenAI if available
       const groqKey = env.GROQ_API_KEY || env.SECRET_GROQ_API_KEY;
+      const openrouterKey = env.OPENROUTER_API_KEY || env.SECRET_OPENROUTER_API_KEY;
       const openaiKey = env.OPENAI_API_KEY || env.SECRET_OPENAI_API_KEY;
 
       let completion, usedModel = model, finish_reason = "stop";
@@ -71,7 +72,38 @@ export default {
           completion = j.choices?.[0]?.message?.content ?? "";
           finish_reason = j.choices?.[0]?.finish_reason ?? "stop";
         } catch (e) {
-          if (!openaiKey) throw e; // bubble if no fallback
+          if (!openrouterKey && !openaiKey) throw e; // bubble error if no other fallback
+        }
+      }
+
+      // Fallback to OpenRouter if needed/available
+      if (!completion && openrouterKey) {
+        try {
+          const openrouterModel = body.openaiModel || "gpt-4o-mini";
+          usedModel = openrouterModel;
+          const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openrouterKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: openrouterModel,
+              temperature,
+              messages: modelMessages,
+              max_tokens: 1024,
+              stream: false
+            })
+          });
+          if (!r.ok) {
+            const txt = await r.text();
+            throw new Error(`OpenRouter ${r.status}: ${txt}`);
+          }
+          const j = await r.json();
+          completion = j.choices?.[0]?.message?.content ?? "";
+          finish_reason = j.choices?.[0]?.finish_reason ?? "stop";
+        } catch (e) {
+          if (!openaiKey) throw e;
         }
       }
 
