@@ -1,14 +1,18 @@
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "systemUrl": "chat-widget/assets/chat/system.md",
+  "systemUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/system.md",
+  "kbUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/about-tony.md",
+  "personaUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/persona.json",
+
   "model": "llama-3.1-8b-instant",
   "temperature": 0.275,
 
   "title": "What's on your mind?",
-  "greeting": "",
+  "subtitle": "",
+  "greeting": "Hi, I’m Tony. I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards. What's on your mind?",
 
-  "brand": { "accent": "#3e5494", "radius": "14px" },
+  "brand": { "accent": "#2f3a4f", "radius": "18px" },
 
-  "intro_once": true,
-  "firstMessage": ""
+  "persistHistory": false,
+  "maxHistory": 16
 }
