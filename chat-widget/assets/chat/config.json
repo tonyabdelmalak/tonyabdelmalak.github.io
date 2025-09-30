@@ -9,7 +9,7 @@
 
   "title": "Hi, I'm Tony. What's on your mind?",
   "subtitle": "",
-  "greeting": "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards. What's on your mind?",
+  "greeting": "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
 
   "brand": { "accent": "#2f3a4f", "radius": "18px" },
 
