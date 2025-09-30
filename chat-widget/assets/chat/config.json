@@ -1,8 +1,7 @@
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-  "systemUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/system.md",
-  "kbUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/about-tony.md",
-  "personaUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/persona.json",
+  "systemUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/system.md",
+  "kbUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/about-tony.md",
 
   "model": "llama-3.1-8b-instant",
   "temperature": 0.275,
