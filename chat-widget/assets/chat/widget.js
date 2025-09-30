@@ -77,17 +77,46 @@
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   };
 
-  const computeHeaderOffset = () => {
-    const el =
-      document.querySelector("header.site-header") ||
-      document.querySelector("header.header") ||
-      document.querySelector("nav.navbar") ||
-      document.querySelector('nav[role="navigation"]') ||
-      document.querySelector("header") ||
-      document.querySelector("nav");
-    const h = el ? el.getBoundingClientRect().height : 64;
-    document.documentElement.style.setProperty("--cw-top-offset", h + 24 + "px");
+  // New: position the launcher next to a page anchor (e.g., #about).
+function placeLauncher() {
+  const btn = UI.launcher;
+  if (!btn) return;
+
+  // try configured selector, then common fallbacks
+  const sel = (CFG.launcherAnchor || "").trim() ||
+              "section#about, #about, a[name='about'], section.about";
+  const anchor = document.querySelector(sel);
+
+  if (anchor) {
+    const r = anchor.getBoundingClientRect();
+    const pageTop = window.scrollY || document.documentElement.scrollTop || 0;
+
+    // Sit a bit below the top edge of the About section
+    const topPx = Math.max(0, pageTop + r.top + 16);
+    btn.style.position = "absolute";
+    btn.style.top = topPx + "px";
+    btn.style.right = "24px";
+    btn.style.bottom = "";
+  } else {
+    // Fallback: fixed at bottom-right
+    btn.style.position = "fixed";
+    btn.style.right = "24px";
+    btn.style.bottom = "16px";
+    btn.style.top = "";
+  }
+}
+
+const placeLauncherThrottled = (() => {
+  let t = 0;
+  return () => {
+    const now = Date.now();
+    if (now - t > 120) {
+      t = now;
+      placeLauncher();
+    }
   };
+})();
+
 
   /* ===================== Storage ===================== */
   const loadHistory = () => {
@@ -439,11 +468,6 @@
     // Auto-grow input
     on(UI.input, "input", growInput);
 
-    // Resize-aware launcher offset
-    computeHeaderOffset();
-    const onResize = throttle(computeHeaderOffset, 200);
-    on(window, "resize", onResize);
-
     // ESC closes
     on(document, "keydown", (e) => {
       if (e.key === "Escape" && OPEN) closeChat();
@@ -478,6 +502,11 @@
     buildLauncher();
     buildRoot();
     bindEvents();
+
+    placeLauncher();
+    window.addEventListener("resize", placeLauncherThrottled);
+    window.addEventListener("scroll", placeLauncherThrottled);
+
 
     // If there is persisted history, render last assistant message preview (optional)
     // We do not auto-open the panel; greeting will show on first open if never shown.
