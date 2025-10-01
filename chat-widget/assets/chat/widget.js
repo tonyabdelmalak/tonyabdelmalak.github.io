@@ -1,10 +1,10 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Vanilla JS floating chat with secret-phrase mini-personas for Des and Susie.
-// - Secret phrases:
+// Secret-phrase mini-personas for Des and Susie.
+// - Secrets (typed in chat input):
 //    * "Jerry's shiny shoes"  -> role_active:friend_desi_des
 //    * "I love my Wally boy"  -> role_active:friend_susie
-// - Exact greetings on unlock (shown by UI), then persona persists for session
-// - Secret phrases are scrubbed from text sent to the model
+// - Emits exact greetings on unlock, persists persona for session,
+//   and scrubs secrets from text sent to the model.
 
 (function () {
   "use strict";
@@ -38,7 +38,6 @@
   let BUSY = false;
   let greetingShown = false;
   let detachFns = [];
-  // Persona persistence for this browser session
   let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
 
   /* ===================== Utils ===================== */
@@ -253,12 +252,10 @@
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
-    // Inject persona switch so the model adopts the correct mini persona
     if (activePersona) {
       msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     }
 
-    // Prevent duplicate greetings from the model
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
@@ -293,7 +290,7 @@
     return content || "I couldn’t generate a reply just now.";
   }
 
-  /* ===================== Secret phrases + Submit ===================== */
+  /* ===================== Submit (with secret handling) ===================== */
   async function onSubmit(e) {
     e.preventDefault();
     if (BUSY) return;
@@ -301,7 +298,6 @@
     const originalText = (UI.input.value || "").trim();
     if (!originalText) return;
 
-    // Detect secret phrases only if no persona is active yet
     let text = originalText;
     let triggered = false;
 
@@ -309,19 +305,16 @@
       if (text.toLowerCase().includes("jerry's shiny shoes")) {
         activePersona = "friend_desi_des";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
-        text = text.replace(/jerry's shiny shoes/ig, "").trim();
+        text = text.replace(/jerry's shiny shoes/ig, "").trim(); // scrub
         triggered = true;
       } else if (text.toLowerCase().includes("i love my wally boy")) {
         activePersona = "friend_susie";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
-        text = text.replace(/i love my wally boy/ig, "").trim();
+        text = text.replace(/i love my wally boy/ig, "").trim(); // scrub
         triggered = true;
       }
     }
 
-    // Show the user's message minus any secret phrase
     if (text) {
       addUser(text);
       HISTORY.push({ role: "user", content: text });
@@ -329,11 +322,9 @@
       UI.input.value = "";
       growInput();
     } else {
-      // user only typed the secret phrase
       UI.input.value = "";
     }
 
-    // Emit EXACT custom greeting on unlock
     if (triggered) {
       let greet = "";
       if (activePersona === "friend_desi_des") {
@@ -354,11 +345,9 @@
       saveHistory();
       scrollPane();
 
-      // If only the secret phrase was entered, stop here
       if (!text) return;
     }
 
-    // Normal flow
     const typing = addTyping();
     BUSY = true; UI.send.disabled = true;
     try {
