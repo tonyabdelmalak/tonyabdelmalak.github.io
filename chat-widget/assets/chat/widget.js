@@ -4,7 +4,7 @@
 //    * "Jerry's shiny shoes"  -> role_active:friend_desi_des
 //    * "I love my Wally boy"  -> role_active:friend_susie
 // - Emits exact greetings on unlock, persists persona for session,
-//   and scrubs secrets from text sent to the model.
+//   scrubs secrets from text sent to the model, and supports switching.
 
 (function () {
   "use strict";
@@ -291,28 +291,34 @@
   }
 
   /* ===================== Submit (with secret handling) ===================== */
+  function tryActivatePersonaFrom(text) {
+    const t = text.toLowerCase();
+    if (t.includes("i love my wally boy")) return "friend_susie";
+    if (t.includes("jerry's shiny shoes")) return "friend_desi_des";
+    return null;
+  }
+
   async function onSubmit(e) {
     e.preventDefault();
     if (BUSY) return;
 
-    const originalText = (UI.input.value || "").trim();
-    if (!originalText) return;
+    let text = (UI.input.value || "").trim();
+    if (!text) return;
 
-    let text = originalText;
     let triggered = false;
+    const detected = tryActivatePersonaFrom(text);
+    if (detected) {
+      const prev = activePersona;
+      activePersona = detected;
+      sessionStorage.setItem("cwPersonaActive", activePersona);
 
-    if (!activePersona) {
-      if (text.toLowerCase().includes("jerry's shiny shoes")) {
-        activePersona = "friend_desi_des";
-        sessionStorage.setItem("cwPersonaActive", activePersona);
-        text = text.replace(/jerry's shiny shoes/ig, "").trim(); // scrub
-        triggered = true;
-      } else if (text.toLowerCase().includes("i love my wally boy")) {
-        activePersona = "friend_susie";
-        sessionStorage.setItem("cwPersonaActive", activePersona);
-        text = text.replace(/i love my wally boy/ig, "").trim(); // scrub
-        triggered = true;
-      }
+      // scrub both secrets
+      text = text
+        .replace(/i love my wally boy/ig, "")
+        .replace(/jerry's shiny shoes/ig, "")
+        .trim();
+
+      triggered = (prev !== activePersona);
     }
 
     if (text) {
