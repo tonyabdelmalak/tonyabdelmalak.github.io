@@ -1,21 +1,21 @@
-// Tony Chat Widget — drop-in
-// - Uses system.md (behavior) + about-tony.md (knowledge)
-// - Greeting shows once on open (no re-greet on first reply)
-// - Enter sends; Shift+Enter inserts newline
-// - Markdown rendering + sanitizer
-// - Launcher can be "fixed" or anchored near #about
-// - Badge with 3 dots overlaps launcher avatar
+// Chat Widget — /chat-widget/assets/chat/widget.js
+// Vanilla JS floating chat with secret-phrase mini-personas for Des and Susie.
+// - Secret phrases:
+//    * "Jerry's shiny shoes"  -> role_active:friend_desi_des
+//    * "I love my Wally boy"  -> role_active:friend_susie
+// - Exact greetings on unlock (shown by UI), then persona persists for session
+// - Secret phrases are scrubbed from text sent to the model
 
 (function () {
   "use strict";
 
-  /* ===================== Config ===================== */
+  /* ===================== Defaults ===================== */
   const DEFAULTS = {
     workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
     systemUrl: "/chat-widget/assets/chat/system.md",
     kbUrl: "/chat-widget/assets/chat/about-tony.md",
     model: "llama-3.1-8b-instant",
-    temperature: 0.275,
+    temperature: 0.25,
     title: "Hi, I'm Tony. What's on your mind?",
     subtitle: "",
     brand: { accent: "#2f3a4f", radius: "18px" },
@@ -26,8 +26,8 @@
     persistHistory: false,
     storageKey: "tony-cw-history",
     typingDelayMs: 0,
-    launcherAnchor: "#about",     // used when launcherMode = "anchor"
-    launcherMode: "fixed"         // "fixed" | "anchor"
+    launcherAnchor: "#about",
+    launcherMode: "fixed"
   };
 
   /* ===================== State ===================== */
@@ -38,17 +38,19 @@
   let BUSY = false;
   let greetingShown = false;
   let detachFns = [];
+  // Persona persistence for this browser session
+  let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
 
   /* ===================== Utils ===================== */
   const esc = (s) =>
-    String(s || "")
+    String(s||"")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
-  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
+  const setVar = (n,v) => document.documentElement.style.setProperty(n,v);
 
   const on = (el, ev, fn, opts) => {
     el.addEventListener(ev, fn, opts);
@@ -64,17 +66,53 @@
   };
 
   function stripGreeting(t) {
-  let s = String(t || "").trim();
-  // drop leading salutations
-  s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
-  // drop “I'm Tony …” opener if it’s now first
-  s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
-  // common combos: “Hi back! I'm Tony …”
-  s = s.replace(/^(?:hi[^.\n!?]*[.!?]\s*)?i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
-  return s.trim();
-}
+    let s = String(t||"").trim();
+    s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
+    s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
+    return s.trim();
+  }
 
-  /* ===================== Storage ===================== */
+  /* ===================== Minimal Markdown ===================== */
+  function sanitizeBlocks(html) {
+    try {
+      const doc = new DOMParser().parseFromString("<div>"+html+"</div>","text/html");
+      ["script","style","iframe","object","embed","link"].forEach(sel =>
+        doc.querySelectorAll(sel).forEach(n => n.remove()));
+      doc.querySelectorAll("a").forEach(a => {
+        a.setAttribute("rel","noopener noreferrer");
+        a.setAttribute("target","_blank");
+      });
+      return doc.body.firstChild.innerHTML;
+    } catch {
+      return html;
+    }
+  }
+  function mdToHtml(input) {
+    let s = esc(String(input||"")).replace(/\r\n/g,"\n");
+    s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
+      (_,lang,code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
+      const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/,"<li>$1</li>")).join("");
+      return `<ol>${items}</ol>`;
+    });
+    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, list => {
+      const items = list.split("\n").map(l => l.replace(/^(?:-\s+|\*\s+)(.+)$/,"<li>$1</li>")).join("");
+      return `<ul>${items}</ul>`;
+    });
+    const blocks = s.split(/\n{2,}/).map(b => {
+      if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
+      return `<p>${b.replace(/\n/g,"<br>")}</p>`;
+    });
+    return sanitizeBlocks(blocks.join(""));
+  }
+
+  /* ===================== History ===================== */
   const loadHistory = () => {
     if (!CFG.persistHistory) return;
     try {
@@ -86,74 +124,16 @@
   };
   const saveHistory = () => {
     if (!CFG.persistHistory) return;
-    try { localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory))); } catch {}
+    try {
+      localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory)));
+    } catch {}
   };
 
-  /* ===================== Markdown ===================== */
-  function sanitizeBlocks(html) {
-    try {
-      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
-      ["script","style","iframe","object","embed","link"].forEach(sel =>
-        doc.querySelectorAll(sel).forEach(n => n.remove())
-      );
-      doc.querySelectorAll("a").forEach(a => {
-        a.setAttribute("rel","noopener noreferrer");
-        a.setAttribute("target","_blank");
-      });
-      return doc.body.firstChild.innerHTML;
-    } catch {
-      return html;
-    }
-  }
-
-  function mdToHtml(input) {
-    let s = esc(String(input || "")).replace(/\r\n/g, "\n");
-
-    // Fenced code
-    s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
-      (_, lang, code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
-
-    // Inline code
-    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-    // Headings -> bold line
-    s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
-
-    // Bold / italic
-    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-
-    // Links
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-    // Ordered lists
-    s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
-      const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/, "<li>$1</li>")).join("");
-      return `<ol>${items}</ol>`;
-    });
-
-    // Unordered lists
-    s = s.replace(/^(?:-\s+|\*\s+).+(?:\n(?:-\s+|\*\s+).+)*/gm, list => {
-      const items = list.split("\n").map(l => l.replace(/^(?:-\s+|\*\s+)(.+)$/, "<li>$1</li>")).join("");
-      return `<ul>${items}</ul>`;
-    });
-
-    // Paragraphs / line breaks
-    const blocks = s.split(/\n{2,}/).map(b => {
-      if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
-      return `<p>${b.replace(/\n/g,"<br>")}</p>`;
-    });
-
-    return sanitizeBlocks(blocks.join(""));
-  }
-
-  /* ===================== UI Builders ===================== */
+  /* ===================== UI ===================== */
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
     btn.setAttribute("aria-label","Open chat");
-    // with 3-dot badge overlap
     btn.innerHTML =
       `<div class="cw-avatar-wrap">
          <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
@@ -206,16 +186,12 @@
     UI.send = form.querySelector("#cw-send");
   }
 
-  /* ===================== Rendering ===================== */
-  // UPDATED addAssistant(): includes trailing-question emphasis
   function addAssistant(text) {
     let html = mdToHtml(text);
-    // emphasize trailing question if present
     html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
       if (!q) return m;
       return `${body}<span class="cw-callout">${q}</span>`;
     });
-
     const row = document.createElement("div");
     row.className = "cw-row cw-row-assistant";
     const bubble = document.createElement("div");
@@ -247,13 +223,10 @@
     return { remove: () => row.remove() };
   }
 
-  /* ===================== Launcher positioning ===================== */
   function placeLauncher() {
     const btn = UI.launcher;
     if (!btn) return;
-
     const mode = (CFG.launcherMode || "fixed").toLowerCase();
-
     if (mode === "anchor") {
       const sel = (CFG.launcherAnchor || "").trim()
         || "section#about, #about, a[name='about'], section.about";
@@ -268,10 +241,7 @@
         btn.style.bottom = "";
         return;
       }
-      // fall through to fixed if anchor not found
     }
-
-    // fixed mode (always visible)
     btn.style.position = "fixed";
     btn.style.right = "24px";
     btn.style.bottom = "16px";
@@ -283,11 +253,16 @@
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
-    // one-time nudge: avoid re-greeting in first model reply
+    // Inject persona switch so the model adopts the correct mini persona
+    if (activePersona) {
+      msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
+    }
+
+    // Prevent duplicate greetings from the model
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
-        content: "The UI already displayed a greeting. Answer directly without re-greeting."
+        content: "UI already displayed a greeting. Answer directly without re-greeting."
       });
     }
 
@@ -318,30 +293,78 @@
     return content || "I couldn’t generate a reply just now.";
   }
 
-  /* ===================== Handlers ===================== */
+  /* ===================== Secret phrases + Submit ===================== */
   async function onSubmit(e) {
     e.preventDefault();
     if (BUSY) return;
-    const text = (UI.input.value || "").trim();
-    if (!text) return;
 
-    addUser(text);
-    HISTORY.push({ role: "user", content: text });
-    saveHistory();
+    const originalText = (UI.input.value || "").trim();
+    if (!originalText) return;
 
-    UI.input.value = "";
-    growInput();
+    // Detect secret phrases only if no persona is active yet
+    let text = originalText;
+    let triggered = false;
 
+    if (!activePersona) {
+      if (text.toLowerCase().includes("jerry's shiny shoes")) {
+        activePersona = "friend_desi_des";
+        sessionStorage.setItem("cwPersonaActive", activePersona);
+        // scrub phrase from the user text
+        text = text.replace(/jerry's shiny shoes/ig, "").trim();
+        triggered = true;
+      } else if (text.toLowerCase().includes("i love my wally boy")) {
+        activePersona = "friend_susie";
+        sessionStorage.setItem("cwPersonaActive", activePersona);
+        // scrub phrase from the user text
+        text = text.replace(/i love my wally boy/ig, "").trim();
+        triggered = true;
+      }
+    }
+
+    // Show the user's message minus any secret phrase
+    if (text) {
+      addUser(text);
+      HISTORY.push({ role: "user", content: text });
+      saveHistory();
+      UI.input.value = "";
+      growInput();
+    } else {
+      // user only typed the secret phrase
+      UI.input.value = "";
+    }
+
+    // Emit EXACT custom greeting on unlock
+    if (triggered) {
+      let greet = "";
+      if (activePersona === "friend_desi_des") {
+        greet =
+          "What it be like Desi Des?\n\n" +
+          "- I appreciate you and love you. You’re family, my ride or die.\n" +
+          "- How balmy is your house right now?\n\n" +
+          "Tell me what’s up and I’ll roll with you.";
+      } else if (activePersona === "friend_susie") {
+        greet =
+          "Hi! I love my Susieeee!!!! I miss you. Since we don't talk often, you can chat with me here.\n\n" +
+          "- I appreciate you and love you. You’re family, my ride or die.\n" +
+          "- What do you plan to eat next?\n\n" +
+          "Catch me up and let’s dive in.";
+      }
+      addAssistant(greet);
+      HISTORY.push({ role: "assistant", content: greet });
+      saveHistory();
+      scrollPane();
+
+      // If only the secret phrase was entered, stop here
+      if (!text) return;
+    }
+
+    // Normal flow
     const typing = addTyping();
     BUSY = true; UI.send.disabled = true;
-
     try {
       let reply = await sendToWorker(text);
-      // strip duplicate “Hi, I'm Tony …” if model tries it
       reply = stripGreeting(reply) || reply;
-
       if (CFG.typingDelayMs > 0) await new Promise(r => setTimeout(r, CFG.typingDelayMs));
-
       addAssistant(reply);
       HISTORY.push({ role: "assistant", content: reply });
       saveHistory();
@@ -355,6 +378,7 @@
     }
   }
 
+  /* ===================== Open/Close/Bind ===================== */
   function openChat() {
     if (OPEN) return;
     OPEN = true;
@@ -381,20 +405,15 @@
   function bindEvents() {
     on(UI.launcher, "click", openChat);
     on(UI.close, "click", closeChat);
-
     on(UI.form, "submit", onSubmit);
-
-    // Enter sends; Shift+Enter newline
     on(UI.input, "keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         UI.form.requestSubmit();
       }
     });
-
     on(UI.input, "input", growInput);
 
-    // Reposition launcher on scroll/resize
     const throttled = (() => {
       let t = 0;
       return () => {
@@ -408,29 +427,26 @@
 
   /* ===================== Boot ===================== */
   async function init() {
-    // load config
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts="+Date.now(), { cache: "no-store" });
       const cfg = r.ok ? await r.json() : {};
       CFG = Object.assign({}, DEFAULTS, cfg || {});
     } catch {
       CFG = Object.assign({}, DEFAULTS);
     }
-
     if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
     if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
 
     loadHistory();
-
-    // Build UI
     buildLauncher();
     buildRoot();
     bindEvents();
-
-    // Initial placement of launcher
     placeLauncher();
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
