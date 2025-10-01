@@ -1,12 +1,13 @@
-// Chat Widget — /chat-widget/assets/chat/widget.js  v3
-// Secrets (typed in the input):
+// Chat Widget — /chat-widget/assets/chat/widget.js  v4-safe
+// Secrets:
 //  * "Jerry's shiny shoes"  -> role_active:friend_desi_des
 //  * "I love my Wally boy"  -> role_active:friend_susie
-// Behaviors: detect every time, allow switching, scrub secrets, greet on detection,
-// ignore punctuation-only leftovers, persist persona in sessionStorage.
+// Features: switching, secret scrubbing, exact greetings, session persistence, safe guards.
 
 (function () {
   "use strict";
+  const VERSION = "v4-safe";
+  try { console.log("[CW]", VERSION); } catch {}
 
   /* ===================== Defaults ===================== */
   const DEFAULTS = {
@@ -37,18 +38,19 @@
   let BUSY = false;
   let greetingShown = false;
   let detachFns = [];
-  let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
+  let activePersona = null;
+
+  try {
+    activePersona = sessionStorage.getItem("cwPersonaActive") || null;
+  } catch { activePersona = null; }
 
   /* ===================== Utils ===================== */
   const esc = (s) =>
     String(s || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
-  const on = (el, ev, fn, opts) => { el.addEventListener(ev, fn, opts); detachFns.push(() => el.removeEventListener(ev, fn, opts)); };
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  const setVar = (n, v) => { try { document.documentElement.style.setProperty(n, v); } catch {} };
+  const on = (el, ev, fn, opts) => { if (!el) return; el.addEventListener(ev, fn, opts); detachFns.push(() => el.removeEventListener(ev, fn, opts)); };
   const scrollPane = () => { if (UI.pane) UI.pane.scrollTop = UI.pane.scrollHeight; };
   const growInput = () => { const el = UI.input; if (!el) return; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 140) + "px"; };
   function stripGreeting(t) {
@@ -82,7 +84,7 @@
 
   /* ===================== History ===================== */
   const loadHistory = () => {
-    if (!CFG.persistHistory) return;
+    if (!CFG || !CFG.persistHistory) return;
     try {
       const raw = localStorage.getItem(CFG.storageKey);
       if (!raw) return;
@@ -91,83 +93,127 @@
     } catch {}
   };
   const saveHistory = () => {
-    if (!CFG.persistHistory) return;
-    try {
-      localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory)));
-    } catch {}
+    if (!CFG || !CFG.persistHistory) return;
+    try { localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory))); } catch {}
   };
 
   /* ===================== UI ===================== */
   function buildLauncher() {
-    const btn = document.createElement("button");
-    btn.id = "cw-launcher"; btn.setAttribute("aria-label","Open chat");
-    btn.innerHTML = `<div class="cw-avatar-wrap"><img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar"><div class="cw-launcher-badge" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
-    document.body.appendChild(btn); UI.launcher = btn;
+    try {
+      const btn = document.createElement("button");
+      btn.id = "cw-launcher";
+      btn.setAttribute("aria-label","Open chat");
+      btn.style.position = "fixed"; btn.style.right = "24px"; btn.style.bottom = "16px";
+      btn.innerHTML =
+        `<div class="cw-avatar-wrap" style="width:56px;height:56px;border-radius:28px;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.18);border:0;">
+           <img src="${esc((CFG && CFG.avatarUrl) || "/assets/img/profile-img.jpg")}" alt="Tony Avatar" style="width:100%;height:100%;object-fit:cover">
+         </div>`;
+      document.body.appendChild(btn);
+      UI.launcher = btn;
+      on(btn, "click", openChat);
+    } catch (e) { try { console.error("[CW] launcher error:", e); } catch {} }
   }
+
   function buildRoot() {
     const root = document.createElement("div");
-    root.className = "cw-root"; root.setAttribute("role","dialog"); root.setAttribute("aria-modal","true"); root.setAttribute("aria-label","Tony Chat"); root.style.display = "none";
-    document.body.appendChild(root); UI.root = root;
+    root.className = "cw-root";
+    root.setAttribute("role","dialog");
+    root.setAttribute("aria-modal","true");
+    root.setAttribute("aria-label","Tony Chat");
+    root.style.display = "none";
+    root.innerHTML =
+      `<div class="cw-header" style="background:#2f3a4f;color:#fff;padding:12px 16px;border-top-left-radius:12px;border-top-right-radius:12px">
+         <div class="cw-title" style="font-weight:700">${esc(CFG.title)}</div>
+         ${CFG.subtitle ? `<div class="cw-subtitle" style="opacity:.9">${esc(CFG.subtitle)}</div>` : ""}
+         <button class="cw-close" aria-label="Close" title="Close" style="position:absolute;right:8px;top:6px;background:transparent;border:0;color:#fff;font-size:24px;cursor:pointer">&times;</button>
+       </div>
+       <div class="cw-messages" id="cw-messages" role="log" aria-live="polite" style="background:#f7f8fb;padding:12px;max-height:50vh;overflow:auto"></div>
+       <form class="cw-form" novalidate style="display:flex;gap:8px;padding:8px;background:#fff;border-bottom-left-radius:12px;border-bottom-right-radius:12px">
+         <textarea id="cw-input" class="cw-input" rows="1" aria-label="Message input" placeholder="Type a message..." style="flex:1;resize:none;border:1px solid #cfd3df;border-radius:12px;padding:10px 12px"></textarea>
+         <button type="submit" id="cw-send" class="cw-send" aria-label="Send" title="Send" style="border:0;background:#2f3a4f;color:#fff;border-radius:12px;padding:0 14px">▶</button>
+       </form>`;
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "position:fixed;right:24px;bottom:88px;width:360px;max-width:92vw;border-radius:12px;box-shadow:0 14px 36px rgba(0,0,0,.2);overflow:hidden;background:#fff;z-index:999999;";
+    wrap.appendChild(root);
+    document.body.appendChild(wrap);
 
-    const hdr = document.createElement("div");
-    hdr.className = "cw-header";
-    hdr.innerHTML = `<div class="cw-head"><div class="cw-title">${esc(CFG.title)}</div>${CFG.subtitle?`<div class="cw-subtitle">${esc(CFG.subtitle)}</div>`:""}</div><button class="cw-close" aria-label="Close chat" title="Close">&times;</button>`;
-    root.appendChild(hdr); UI.close = hdr.querySelector(".cw-close");
+    UI.rootWrap = wrap;
+    UI.root = root;
+    UI.close = root.querySelector(".cw-close");
+    UI.pane = root.querySelector("#cw-messages");
+    UI.form = root.querySelector(".cw-form");
+    UI.input = root.querySelector("#cw-input");
+    UI.send = root.querySelector("#cw-send");
 
-    const pane = document.createElement("div");
-    pane.className = "cw-messages"; pane.id = "cw-messages"; pane.setAttribute("role","log"); pane.setAttribute("aria-live","polite");
-    root.appendChild(pane); UI.pane = pane;
-
-    const form = document.createElement("form");
-    form.className = "cw-form"; form.setAttribute("novalidate","novalidate");
-    form.innerHTML = `<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1" aria-label="Message input"></textarea>
-      <button type="submit" id="cw-send" class="cw-send" aria-label="Send message" title="Send"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 2 L18 10 L2 18 L2 11 L11 10 L2 9 Z"></path></svg></button>`;
-    root.appendChild(form); UI.form = form; UI.input = form.querySelector("#cw-input"); UI.send = form.querySelector("#cw-send");
+    on(UI.close, "click", closeChat);
+    on(UI.form, "submit", onSubmit);
+    on(UI.input, "keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); UI.form.requestSubmit(); } });
+    on(UI.input, "input", growInput);
   }
+
   function addAssistant(text) {
-    let html = mdToHtml(text);
-    html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => q ? `${body}<span class="cw-callout">${q}</span>` : m);
-    const row = document.createElement("div"); row.className = "cw-row cw-row-assistant";
-    const bubble = document.createElement("div"); bubble.className = "cw-bubble cw-bubble-assistant"; bubble.innerHTML = html;
-    row.appendChild(bubble); UI.pane.appendChild(row); scrollPane();
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-assistant";
+    const bubble = document.createElement("div");
+    bubble.className = "cw-bubble cw-bubble-assistant";
+    bubble.style.cssText = "background:#2f3a4f;color:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;margin:8px 0;white-space:pre-wrap";
+    bubble.innerHTML = mdToHtml(text);
+    row.appendChild(bubble);
+    UI.pane.appendChild(row);
+    scrollPane();
   }
   function addUser(text) {
-    const row = document.createElement("div"); row.className = "cw-row cw-row-user";
-    const bubble = document.createElement("div"); bubble.className = "cw-bubble cw-bubble-user"; bubble.textContent = text;
-    row.appendChild(bubble); UI.pane.appendChild(row); scrollPane();
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-user";
+    const bubble = document.createElement("div");
+    bubble.className = "cw-bubble cw-bubble-user";
+    bubble.style.cssText = "background:#e9edf7;color:#182033;border-radius:14px 14px 4px 14px;padding:10px 12px;margin:8px 0;white-space:pre-wrap";
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    UI.pane.appendChild(row);
+    scrollPane();
   }
   function addTyping() {
-    const row = document.createElement("div"); row.className = "cw-row cw-row-assistant cw-typing";
-    row.innerHTML = '<div class="cw-bubble cw-bubble-assistant"><span class="cw-dots"><i></i><i></i><i></i></span></div>';
-    UI.pane.appendChild(row); scrollPane(); return { remove: () => row.remove() };
-  }
-  function placeLauncher() {
-    const btn = UI.launcher; if (!btn) return;
-    const mode = (CFG.launcherMode || "fixed").toLowerCase();
-    if (mode === "anchor") {
-      const sel = (CFG.launcherAnchor || "").trim() || "section#about, #about, a[name='about'], section.about";
-      const anchor = document.querySelector(sel);
-      if (anchor) { const r = anchor.getBoundingClientRect(); const pageTop = window.scrollY || document.documentElement.scrollTop || 0;
-        btn.style.position = "absolute"; btn.style.top = Math.max(0, pageTop + r.top + 16) + "px"; btn.style.right = "24px"; btn.style.bottom = ""; return; }
-    }
-    btn.style.position = "fixed"; btn.style.right = "24px"; btn.style.bottom = "16px"; btn.style.top = "";
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-assistant cw-typing";
+    const b = document.createElement("div");
+    b.className = "cw-bubble cw-bubble-assistant";
+    b.style.cssText = "background:#2f3a4f;color:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;margin:8px 0;";
+    b.innerHTML = '<span class="cw-dots"><i>•••</i></span>';
+    row.appendChild(b);
+    UI.pane.appendChild(row);
+    scrollPane();
+    return { remove: () => row.remove() };
   }
 
   /* ===================== Transport ===================== */
   function makePayload(userText) {
-    const recent = HISTORY.slice(-CFG.maxHistory);
+    const recent = HISTORY.slice(-((CFG && CFG.maxHistory) || 16));
     const msgs = recent.concat([{ role: "user", content: userText }]);
     if (activePersona) msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({ role: "system", content: "UI already displayed a greeting. Answer directly without re-greeting." });
     }
-    return { model: CFG.model, temperature: CFG.temperature, messages: msgs, systemUrl: CFG.systemUrl, kbUrl: CFG.kbUrl };
+    return {
+      model: (CFG && CFG.model) || "llama-3.1-8b-instant",
+      temperature: (CFG && CFG.temperature) || 0.25,
+      messages: msgs,
+      systemUrl: (CFG && CFG.systemUrl) || "/chat-widget/assets/chat/system.md",
+      kbUrl: (CFG && CFG.kbUrl) || "/chat-widget/assets/chat/about-tony.md"
+    };
   }
+
   async function sendToWorker(userText) {
-    const r = await fetch(CFG.workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(makePayload(userText)) });
-    const ok = r.ok; let data = null, txt = "";
+    const url = (CFG && CFG.workerUrl) || "https://my-chat-agent.tonyabdelmalak.workers.dev/chat";
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(makePayload(userText))
+    });
+    const ok = r.ok;
+    let data = null, txt = "";
     try { data = await r.json(); } catch { txt = await r.text(); }
-    if (!ok) throw new Error((data && data.error) || txt || "HTTP " + r.status);
+    if (!ok) throw new Error((data && data.error) || txt || ("HTTP " + r.status));
     const content = data?.content || data?.reply || data?.choices?.[0]?.message?.content || "";
     return content || "I couldn’t generate a reply just now.";
   }
@@ -192,106 +238,120 @@
 
   /* ===================== Submit ===================== */
   async function onSubmit(e) {
-    e.preventDefault();
-    if (BUSY) return;
-
-    const original = (UI.input.value || "").trim();
-    if (!original) return;
-
-    const prev = activePersona;
-    const detected = detectPersona(original);
-    if (detected) {
-      activePersona = detected;
-      sessionStorage.setItem("cwPersonaActive", activePersona);
-    }
-
-    const text = scrubSecrets(original);
-
-    if (text) {
-      addUser(text);
-      HISTORY.push({ role: "user", content: text });
-      saveHistory();
-    }
-    UI.input.value = "";
-    growInput();
-
-    if (detected && prev !== activePersona) {
-      let greet = "";
-      if (activePersona === "friend_desi_des") {
-        greet =
-          "What it be like Desi Des?\n\n" +
-          "- I appreciate you and love you. You’re family, my ride or die.\n" +
-          "- How balmy is your house right now?\n\n" +
-          "Tell me what’s up and I’ll roll with you.";
-      } else if (activePersona === "friend_susie") {
-        greet =
-          "Hi! I love my Susieeee!!!! I miss you. Since we don't talk often, you can chat with me here.\n\n" +
-          "- I appreciate you and love you. You’re family, my ride or die.\n" +
-          "- What do you plan to eat next?\n\n" +
-          "Catch me up and let’s dive in.";
-      }
-      addAssistant(greet);
-      HISTORY.push({ role: "assistant", content: greet });
-      saveHistory();
-      scrollPane();
-      if (!text) return; // secret-only
-    }
-
-    const typing = addTyping();
-    BUSY = true; UI.send.disabled = true;
     try {
-      let reply = await sendToWorker(text || "");
-      reply = stripGreeting(reply) || reply;
-      if (CFG.typingDelayMs > 0) await new Promise(r => setTimeout(r, CFG.typingDelayMs));
-      addAssistant(reply);
-      HISTORY.push({ role: "assistant", content: reply });
-      saveHistory();
-    } catch (err) {
-      console.error(err);
-      addAssistant("Sorry — I ran into an error. Please try again.");
-    } finally {
-      typing.remove();
-      BUSY = false; UI.send.disabled = false;
-      scrollPane();
+      e.preventDefault();
+      if (BUSY) return;
+
+      const original = (UI.input.value || "").trim();
+      if (!original) return;
+
+      const prev = activePersona;
+      const detected = detectPersona(original);
+      if (detected) {
+        activePersona = detected;
+        try { sessionStorage.setItem("cwPersonaActive", activePersona); } catch {}
+      }
+
+      const text = scrubSecrets(original);
+
+      if (text) {
+        addUser(text);
+        HISTORY.push({ role: "user", content: text });
+        saveHistory();
+      }
+      UI.input.value = "";
+      growInput();
+
+      if (detected && prev !== activePersona) {
+        let greet = "";
+        if (activePersona === "friend_desi_des") {
+          greet =
+            "What it be like Desi Des?\n\n" +
+            "- I appreciate you and love you. You’re family, my ride or die.\n" +
+            "- How balmy is your house right now?\n\n" +
+            "Tell me what’s up and I’ll roll with you.";
+        } else if (activePersona === "friend_susie") {
+          greet =
+            "Hi! I love my Susieeee!!!! I miss you. Since we don't talk often, you can chat with me here.\n\n" +
+            "- I appreciate you and love you. You’re family, my ride or die.\n" +
+            "- What do you plan to eat next?\n\n" +
+            "Catch me up and let’s dive in.";
+        }
+        addAssistant(greet);
+        HISTORY.push({ role: "assistant", content: greet });
+        saveHistory();
+        scrollPane();
+        if (!text) return; // secret-only
+      }
+
+      const typing = addTyping();
+      BUSY = true; UI.send.disabled = true;
+      try {
+        let reply = await sendToWorker(text || "");
+        reply = stripGreeting(reply) || reply;
+        if (CFG && CFG.typingDelayMs > 0) await new Promise(r => setTimeout(r, CFG.typingDelayMs));
+        addAssistant(reply);
+        HISTORY.push({ role: "assistant", content: reply });
+        saveHistory();
+      } catch (err) {
+        try { console.error("[CW] send error:", err); } catch {}
+        addAssistant("Sorry — I ran into an error. Please try again.");
+      } finally {
+        typing.remove();
+        BUSY = false; UI.send.disabled = false;
+        scrollPane();
+      }
+    } catch (e2) {
+      try { console.error("[CW] submit error:", e2); } catch {}
     }
   }
 
-  /* ===================== Open/Close/Bind ===================== */
+  /* ===================== Open/Close ===================== */
   function openChat() {
-    if (OPEN) return;
-    OPEN = true;
-    UI.root.style.display = "block";
-    document.documentElement.classList.add("cw-open");
-    if (CFG.greeting && !greetingShown) {
-      addAssistant(CFG.greeting);
-      HISTORY.push({ role: "assistant", content: CFG.greeting });
-      saveHistory();
-      greetingShown = true;
-    }
-    UI.input.focus(); scrollPane();
+    try {
+      if (OPEN) return;
+      OPEN = true;
+      UI.rootWrap.style.display = "block";
+      if (CFG.greeting && !greetingShown) {
+        addAssistant(CFG.greeting);
+        HISTORY.push({ role: "assistant", content: CFG.greeting });
+        saveHistory();
+        greetingShown = true;
+      }
+      UI.input.focus(); scrollPane();
+    } catch (e) { try { console.error("[CW] open error:", e); } catch {} }
   }
-  function closeChat() { if (!OPEN) return; OPEN = false; UI.root.style.display = "none"; document.documentElement.classList.remove("cw-open"); }
-  function bindEvents() {
-    on(UI.launcher, "click", openChat);
-    on(UI.close, "click", closeChat);
-    on(UI.form, "submit", onSubmit);
-    on(UI.input, "keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); UI.form.requestSubmit(); } });
-    on(UI.input, "input", growInput);
-    const throttled = (() => { let t = 0; return () => { const now = Date.now(); if (now - t > 120) { t = now; placeLauncher(); } }; })();
-    on(window, "resize", throttled);
-    on(window, "scroll", throttled);
+  function closeChat() {
+    try {
+      if (!OPEN) return;
+      OPEN = false;
+      UI.rootWrap.style.display = "none";
+    } catch (e) { try { console.error("[CW] close error:", e); } catch {} }
   }
 
   /* ===================== Boot ===================== */
   async function init() {
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
-      const cfg = r.ok ? await r.json() : {};
+      // show launcher ASAP even if config fails
+      buildLauncher();
+
+      // fetch config with cache-bust to avoid stale
+      let cfg = {};
+      try {
+        const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
+        cfg = r.ok ? await r.json() : {};
+      } catch {}
       CFG = Object.assign({}, DEFAULTS, cfg || {});
-    } catch { CFG = Object.assign({}, DEFAULTS); }
-    if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
-    if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
-    loadHistory(); buildLauncher(); buildRoot(); bindEvents(); placeLauncher();
+      if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
+      if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
+
+      loadHistory();
+      buildRoot(); // attach main UI
+    } catch (err) {
+      try { console.error("[CW] init error:", err); } catch {}
+    }
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
