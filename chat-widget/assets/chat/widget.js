@@ -1,15 +1,7 @@
 // Chat Widget — /chat-widget/assets/chat/widget.js
-// Secret-phrase mini-personas for Des and Susie.
-// - Secrets (typed in chat input):
-//    * "Jerry's shiny shoes"  -> role_active:friend_desi_des
-//    * "I love my Wally boy"  -> role_active:friend_susie
-// - Emits exact greetings on unlock, persists persona for session,
-//   scrubs secrets from text sent to the model, and supports switching.
-
 (function () {
   "use strict";
 
-  /* ===================== Defaults ===================== */
   const DEFAULTS = {
     workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
     systemUrl: "/chat-widget/assets/chat/system.md",
@@ -30,7 +22,12 @@
     launcherMode: "fixed"
   };
 
-  /* ===================== State ===================== */
+  // Robust triggers (handles punctuation and smart apostrophes)
+  const TRIGGERS = [
+    { id: "friend_susie", re: /\bi\s*love\s*my\s*wally\s*boy\b[\s.!?]*$/iu },
+    { id: "friend_desi_des", re: /jerry[’']s\s*shiny\s*shoes\b[\s.!?]*$/iu }
+  ];
+
   let CFG = null;
   const UI = {};
   let HISTORY = [];
@@ -40,61 +37,52 @@
   let detachFns = [];
   let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
 
-  /* ===================== Utils ===================== */
   const esc = (s) =>
-    String(s||"")
+    String(s || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
-
-  const setVar = (n,v) => document.documentElement.style.setProperty(n,v);
-
+  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
   const on = (el, ev, fn, opts) => {
     el.addEventListener(ev, fn, opts);
     detachFns.push(() => el.removeEventListener(ev, fn, opts));
   };
-
   const scrollPane = () => { if (UI.pane) UI.pane.scrollTop = UI.pane.scrollHeight; };
-
   const growInput = () => {
     const el = UI.input; if (!el) return;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   };
-
   function stripGreeting(t) {
-    let s = String(t||"").trim();
+    let s = String(t || "").trim();
     s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
     s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
     return s.trim();
   }
 
-  /* ===================== Minimal Markdown ===================== */
   function sanitizeBlocks(html) {
     try {
-      const doc = new DOMParser().parseFromString("<div>"+html+"</div>","text/html");
-      ["script","style","iframe","object","embed","link"].forEach(sel =>
+      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
+      ["script", "style", "iframe", "object", "embed", "link"].forEach(sel =>
         doc.querySelectorAll(sel).forEach(n => n.remove()));
       doc.querySelectorAll("a").forEach(a => {
-        a.setAttribute("rel","noopener noreferrer");
-        a.setAttribute("target","_blank");
+        a.setAttribute("rel", "noopener noreferrer");
+        a.setAttribute("target", "_blank");
       });
       return doc.body.firstChild.innerHTML;
-    } catch {
-      return html;
-    }
+    } catch { return html; }
   }
   function mdToHtml(input) {
-    let s = esc(String(input||"")).replace(/\r\n/g,"\n");
+    let s = esc(String(input || "")).replace(/\r\n/g, "\n");
     s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
-      (_,lang,code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
+      (_, lang, code) => `<pre><code${lang ? ` class="language-${lang.toLowerCase()}"` : ""}>${code.replace(/</g, "&lt;")}</code></pre>`);
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    s = s.replace(/$begin:math:display$([^$end:math:display$]+)\]$begin:math:text$(https?:\\/\\/[^\\s)]+)$end:math:text$/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
       const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/,"<li>$1</li>")).join("");
@@ -111,7 +99,6 @@
     return sanitizeBlocks(blocks.join(""));
   }
 
-  /* ===================== History ===================== */
   const loadHistory = () => {
     if (!CFG.persistHistory) return;
     try {
@@ -128,7 +115,6 @@
     } catch {}
   };
 
-  /* ===================== UI ===================== */
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
@@ -141,7 +127,6 @@
     document.body.appendChild(btn);
     UI.launcher = btn;
   }
-
   function buildRoot() {
     const root = document.createElement("div");
     root.className = "cw-root";
@@ -200,7 +185,6 @@
     UI.pane.appendChild(row);
     scrollPane();
   }
-
   function addUser(text) {
     const row = document.createElement("div");
     row.className = "cw-row cw-row-user";
@@ -211,7 +195,6 @@
     UI.pane.appendChild(row);
     scrollPane();
   }
-
   function addTyping() {
     const row = document.createElement("div");
     row.className = "cw-row cw-row-assistant cw-typing";
@@ -223,8 +206,7 @@
   }
 
   function placeLauncher() {
-    const btn = UI.launcher;
-    if (!btn) return;
+    const btn = UI.launcher; if (!btn) return;
     const mode = (CFG.launcherMode || "fixed").toLowerCase();
     if (mode === "anchor") {
       const sel = (CFG.launcherAnchor || "").trim()
@@ -247,55 +229,35 @@
     btn.style.top = "";
   }
 
-  /* ===================== Transport ===================== */
   function makePayload(userText) {
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
-
-    if (activePersona) {
-      msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
-    }
-
+    if (activePersona) msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     if (greetingShown && !recent.some(m => m.role === "user")) {
-      msgs.unshift({
-        role: "system",
-        content: "UI already displayed a greeting. Answer directly without re-greeting."
-      });
+      msgs.unshift({ role: "system", content: "UI already displayed a greeting. Answer directly without re-greeting." });
     }
-
-    return {
-      model: CFG.model,
-      temperature: CFG.temperature,
-      messages: msgs,
-      systemUrl: CFG.systemUrl,
-      kbUrl: CFG.kbUrl
-    };
+    return { model: CFG.model, temperature: CFG.temperature, messages: msgs, systemUrl: CFG.systemUrl, kbUrl: CFG.kbUrl };
   }
-
   async function sendToWorker(userText) {
-    const r = await fetch(CFG.workerUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(makePayload(userText))
-    });
+    const r = await fetch(CFG.workerUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(makePayload(userText)) });
     const ok = r.ok;
     let data = null, txt = "";
     try { data = await r.json(); } catch { txt = await r.text(); }
     if (!ok) throw new Error((data && data.error) || txt || "HTTP " + r.status);
-    const content =
-      data?.content ||
-      data?.reply ||
-      data?.choices?.[0]?.message?.content ||
-      "";
+    const content = data?.content || data?.reply || data?.choices?.[0]?.message?.content || "";
     return content || "I couldn’t generate a reply just now.";
   }
 
-  /* ===================== Submit (with secret handling) ===================== */
-  function tryActivatePersonaFrom(text) {
-    const t = text.toLowerCase();
-    if (t.includes("i love my wally boy")) return "friend_susie";
-    if (t.includes("jerry's shiny shoes")) return "friend_desi_des";
-    return null;
+  function detectAndScrub(input) {
+    let persona = null;
+    let cleaned = input;
+    for (const t of TRIGGERS) {
+      if (t.re.test(cleaned)) {
+        persona = t.id;
+        cleaned = cleaned.replace(t.re, "").trim();
+      }
+    }
+    return { persona, cleaned };
   }
 
   async function onSubmit(e) {
@@ -305,21 +267,17 @@
     let text = (UI.input.value || "").trim();
     if (!text) return;
 
+    const prev = activePersona;
+    const { persona, cleaned } = detectAndScrub(text);
     let triggered = false;
-    const detected = tryActivatePersonaFrom(text);
-    if (detected) {
-      const prev = activePersona;
-      activePersona = detected;
+
+    if (persona) {
+      activePersona = persona;
       sessionStorage.setItem("cwPersonaActive", activePersona);
-
-      // scrub both secrets
-      text = text
-        .replace(/i love my wally boy/ig, "")
-        .replace(/jerry's shiny shoes/ig, "")
-        .trim();
-
       triggered = (prev !== activePersona);
     }
+
+    text = cleaned;
 
     if (text) {
       addUser(text);
@@ -350,7 +308,6 @@
       HISTORY.push({ role: "assistant", content: greet });
       saveHistory();
       scrollPane();
-
       if (!text) return;
     }
 
@@ -373,13 +330,11 @@
     }
   }
 
-  /* ===================== Open/Close/Bind ===================== */
   function openChat() {
     if (OPEN) return;
     OPEN = true;
     UI.root.style.display = "block";
     document.documentElement.classList.add("cw-open");
-
     if (CFG.greeting && !greetingShown) {
       addAssistant(CFG.greeting);
       HISTORY.push({ role: "assistant", content: CFG.greeting });
@@ -389,14 +344,12 @@
     UI.input.focus();
     scrollPane();
   }
-
   function closeChat() {
     if (!OPEN) return;
     OPEN = false;
     UI.root.style.display = "none";
     document.documentElement.classList.remove("cw-open");
   }
-
   function bindEvents() {
     on(UI.launcher, "click", openChat);
     on(UI.close, "click", closeChat);
@@ -408,40 +361,27 @@
       }
     });
     on(UI.input, "input", growInput);
-
-    const throttled = (() => {
-      let t = 0;
-      return () => {
-        const now = Date.now();
-        if (now - t > 120) { t = now; placeLauncher(); }
-      };
-    })();
+    const throttled = (() => { let t = 0; return () => { const n = Date.now(); if (n - t > 120) { t = n; placeLauncher(); } }; })();
     on(window, "resize", throttled);
     on(window, "scroll", throttled);
   }
 
-  /* ===================== Boot ===================== */
   async function init() {
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts="+Date.now(), { cache: "no-store" });
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
       const cfg = r.ok ? await r.json() : {};
       CFG = Object.assign({}, DEFAULTS, cfg || {});
-    } catch {
-      CFG = Object.assign({}, DEFAULTS);
-    }
+    } catch { CFG = Object.assign({}, DEFAULTS); }
     if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
     if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
-
     loadHistory();
     buildLauncher();
     buildRoot();
     bindEvents();
     placeLauncher();
+    console.log("widget.js loaded, persona:", activePersona || "none");
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
