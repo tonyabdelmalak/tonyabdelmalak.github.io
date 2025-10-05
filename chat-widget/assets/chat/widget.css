@@ -71,8 +71,8 @@
   bottom: 24px;
   right: 24px;
   z-index: var(--cw-z-launch);
-  width: 90px;                 /* enlarged */
-  height: 90px;                /* enlarged */
+  width: 80px;                 /* enlarged */
+  height: 80px;                /* enlarged */
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -84,7 +84,7 @@
 
 #cw-launcher .cw-avatar-wrap{
   position: relative;
-  width: 80px; height: 80px;
+  width: 90px; height: 90px;
   border-radius: 50%;
   overflow: hidden;            /* clips anything underneath */
   background: #fff;
