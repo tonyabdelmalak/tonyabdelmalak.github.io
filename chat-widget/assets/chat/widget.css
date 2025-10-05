@@ -71,8 +71,8 @@
   bottom: 24px;
   right: 24px;
   z-index: var(--cw-z-launch);
-  width: 72px;                 /* enlarged to cover legacy badge */
-  height: 72px;                /* enlarged to cover legacy badge */
+  width: 72px;                 /* enlarged */
+  height: 72px;                /* enlarged */
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -84,9 +84,9 @@
 
 #cw-launcher .cw-avatar-wrap{
   position: relative;
-  width: 72px; height: 72px;   /* match launcher size */
+  width: 72px; height: 72px;
   border-radius: 50%;
-  overflow: hidden;            /* clip anything underneath */
+  overflow: hidden;            /* clips anything underneath */
   background: #fff;
   box-shadow: 0 10px 26px rgba(0,0,0,0.24);
   z-index: 2;                  /* above any old bubble */
@@ -99,13 +99,14 @@
   border-radius: 50%;
 }
 
-/* Badge above avatar */
+/* Badge snug against avatar rim (gap closed) */
 #cw-launcher .cw-launcher-badge{
   position: absolute;
-  right: -2px; top: -10px;
-  min-width: 18px;
-  height: 18px;
-  padding: 2px 6px;
+  right: -4px;                 /* tighter to edge */
+  top: -2px;                   /* lowered to touch avatar */
+  min-width: 20px;
+  height: 20px;
+  padding: 3px 7px;
   border-radius: 999px;
   background: var(--cw-accent);
   color: #fff;
@@ -114,7 +115,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
   border: 1px solid rgba(0,0,0,.1);
-  z-index: 3;                  /* above avatar */
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -250,7 +251,7 @@
   max-height:140px; font-size:15px; line-height:1.4; outline:none;
 }
 .cw-input::placeholder{ color: var(--cw-input-placeholder); }
-.cw-input:focus{ outline:2px solid rgba(47,58,79,0.3); outline-offset:1px; }
+c .cw-input:focus{ outline:2px solid rgba(47,58,79,0.3); outline-offset:1px; }
 
 .cw-send{
   inline-size:46px; block-size:46px;
