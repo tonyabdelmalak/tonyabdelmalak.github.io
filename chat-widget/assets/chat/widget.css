@@ -67,28 +67,29 @@
 
 /* ===== Launcher button (fixed) ===== */
 #cw-launcher {
-  position: fixed;              /* ensure consistent placement */
+  position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: var(--cw-z-launch);
-  width: 64px;
-  height: 64px;
+  width: 72px;                 /* enlarged to cover legacy badge */
+  height: 72px;                /* enlarged to cover legacy badge */
   border-radius: 50%;
   background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  overflow: visible;            /* critical: allow badge to sit outside */
+  overflow: visible;
 }
 
 #cw-launcher .cw-avatar-wrap{
   position: relative;
-  width: 64px; height: 64px;
+  width: 72px; height: 72px;   /* match launcher size */
   border-radius: 50%;
-  overflow: visible;            /* do not clip the badge */
+  overflow: hidden;            /* clip anything underneath */
   background: #fff;
   box-shadow: 0 10px 26px rgba(0,0,0,0.24);
+  z-index: 2;                  /* above any old bubble */
 }
 
 #cw-launcher img,
@@ -101,7 +102,7 @@
 /* Badge above avatar */
 #cw-launcher .cw-launcher-badge{
   position: absolute;
-  right: -2px; top: -10px;      /* sits above the avatar rim */
+  right: -2px; top: -10px;
   min-width: 18px;
   height: 18px;
   padding: 2px 6px;
@@ -113,8 +114,8 @@
   display: inline-flex; align-items: center; justify-content: center;
   box-shadow: 0 2px 6px rgba(0,0,0,.25);
   border: 1px solid rgba(0,0,0,.1);
-  z-index: calc(var(--cw-z-launch) + 1);
-  pointer-events: none;         /* never block launcher clicks */
+  z-index: 3;                  /* above avatar */
+  pointer-events: none;
 }
 
 /* Optional animated 3-dot style inside badge */
@@ -268,3 +269,6 @@
 @media (max-width: 520px) {
   .cw-root { right: 12px; left: 12px; width: auto; }
 }
+
+/* Minimal duplicate-badge suppression */
+#cw-bubble{ display:none !important; }  /* hide legacy bubble */
