@@ -65,8 +65,11 @@
   #cw-launcher, .cw-root { display: none !important; }
 }
 
-/* ===== Launcher button ===== */
+/* ===== Launcher button (fixed) ===== */
 #cw-launcher {
+  position: fixed;              /* ensure consistent placement */
+  bottom: 24px;
+  right: 24px;
   z-index: var(--cw-z-launch);
   width: 64px;
   height: 64px;
@@ -76,29 +79,45 @@
   padding: 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  /* position set dynamically by JS (fixed or absolute near #about) */
+  overflow: visible;            /* critical: allow badge to sit outside */
 }
+
 #cw-launcher .cw-avatar-wrap{
   position: relative;
   width: 64px; height: 64px;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;            /* do not clip the badge */
   background: #fff;
   box-shadow: 0 10px 26px rgba(0,0,0,0.24);
 }
-#cw-launcher img{
-  width: 100%; height: 100%; object-fit: cover; display: block;
+
+#cw-launcher img,
+#cw-avatar{
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  border-radius: 50%;
 }
-/* Overlapping 3-dot badge */
+
+/* Badge above avatar */
 #cw-launcher .cw-launcher-badge{
-  position:absolute;
-  right:-2px; top:-6px;
-  width:26px; height:18px;
-  border-radius:999px;
-  background:#1e2a3a;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 6px rgba(0,0,0,.25);
+  position: absolute;
+  right: -2px; top: -10px;      /* sits above the avatar rim */
+  min-width: 18px;
+  height: 18px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--cw-accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  border: 1px solid rgba(0,0,0,.1);
+  z-index: calc(var(--cw-z-launch) + 1);
+  pointer-events: none;         /* never block launcher clicks */
 }
+
+/* Optional animated 3-dot style inside badge */
 #cw-launcher .cw-launcher-badge i{
   width:4px; height:4px; border-radius:50%;
   background:#fff; opacity:.9; margin:0 2px;
