@@ -84,7 +84,7 @@
 
 #cw-launcher .cw-avatar-wrap{
   position: relative;
-  width: 72px; height: 72px;
+  width: 80px; height: 80px;
   border-radius: 50%;
   overflow: hidden;            /* clips anything underneath */
   background: #fff;
