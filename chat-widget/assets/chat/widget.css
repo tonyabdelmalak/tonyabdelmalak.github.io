@@ -71,8 +71,8 @@
   bottom: 24px;
   right: 24px;
   z-index: var(--cw-z-launch);
-  width: 72px;                 /* enlarged */
-  height: 72px;                /* enlarged */
+  width: 80px;                 /* enlarged */
+  height: 80px;                /* enlarged */
   border-radius: 50%;
   background: transparent;
   border: none;
