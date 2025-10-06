@@ -1,3 +1,5 @@
+Here’s the full drop-in widget.js with clean CAI section rendering. I removed the old formatSections and use only toSectionsHtml + the updated addAssistant.
+
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat with secret-phrase mini-personas for Des and Susie.
 // - Secret phrases:
@@ -95,7 +97,7 @@
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    s = s.replace(/$begin:math:display$([^$end:math:display$]+)\]$begin:math:text$(https?:\\/\\/[^\\s)]+)$end:math:text$/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
       const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/,"<li>$1</li>")).join("");
@@ -186,46 +188,65 @@
     UI.send = form.querySelector("#cw-send");
   }
 
- // Normalize CAI sections to their own lines before Markdown -> HTML
-function formatSections(t) {
-  let s = String(t || "");
+  /* ===================== Sectionizer ===================== */
+  // Build clean paragraphs for CAI sections
+  function toSectionsHtml(t) {
+    let s = String(t || "").trim();
+    s = s.replace(/\.(?=[A-Z])/g, ". "); // add missing post-period spaces
 
-  // ensure a space after periods when followed by A–Z
-  s = s.replace(/\.([A-Z])/g, ". $1");
+    const re = /(Challenge:|Approach:|Impact:|Follow-?up:)/gi;
+    const items = [];
+    let m, cur = null;
 
-  // start labeled sections as new paragraphs and bold the label (Markdown)
-  const labels = ["Challenge:", "Approach:", "Impact:", "Follow-up:", "Follow up:"];
-  for (const lab of labels) {
-    const safe = lab.replace(" ", "\\s?"); // allow "Follow up:"
-    const re = new RegExp("\\s*" + safe, "gi");
-    const norm = lab === "Follow up:" ? "Follow-up:" : lab;
-    s = s.replace(re, `\n\n**${norm}** `);
+    while ((m = re.exec(s)) !== null) {
+      if (!cur && m.index > 0) {
+        items.push({ type: "intro", text: s.slice(0, m.index) });
+      }
+      if (cur) {
+        cur.text = s.slice(cur.start, m.index);
+        items.push(cur);
+      }
+      cur = {
+        type: "section",
+        label: m[1].replace(/Follow-?up:/i, "Follow-up:"),
+        start: re.lastIndex
+      };
+    }
+    if (cur) {
+      cur.text = s.slice(cur.start).trim();
+      items.push(cur);
+    }
+    if (!items.length) return mdToHtml(s); // no labels detected
+
+    let html = "";
+    for (const it of items) {
+      const body = mdToHtml(it.text).replace(/^<p>|<\/p>$/g, "");
+      if (it.type === "intro") html += `<p>${body}</p>`;
+      else html += `<p><strong>${it.label}</strong> ${body}</p>`;
+    }
+    return html;
   }
-  return s.trim();
-}
 
-function addAssistant(text) {
-  // 1) structure CAI sections
-  const structured = formatSections(text);
+  /* ===================== Messages ===================== */
+  function addAssistant(text) {
+    // Structure CAI blocks into paragraphs
+    let html = toSectionsHtml(text);
 
-  // 2) convert to HTML via existing Markdown renderer
-  let html = mdToHtml(structured);
+    // Preserve final question as callout chip
+    html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
+      if (!q) return m;
+      return `${body}<span class="cw-callout">${q}</span>`;
+    });
 
-  // 3) keep your callout chip behavior
-  html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
-    if (!q) return m;
-    return `${body}<span class="cw-callout">${q}</span>`;
-  });
-
-  const row = document.createElement("div");
-  row.className = "cw-row cw-row-assistant";
-  const bubble = document.createElement("div");
-  bubble.className = "cw-bubble cw-bubble-assistant";
-  bubble.innerHTML = html;
-  row.appendChild(bubble);
-  UI.pane.appendChild(row);
-  scrollPane();
-}
+    const row = document.createElement("div");
+    row.className = "cw-row cw-row-assistant";
+    const bubble = document.createElement("div");
+    bubble.className = "cw-bubble cw-bubble-assistant";
+    bubble.innerHTML = html;
+    row.appendChild(bubble);
+    UI.pane.appendChild(row);
+    scrollPane();
+  }
 
   function addUser(text) {
     const row = document.createElement("div");
@@ -278,19 +299,15 @@ function addAssistant(text) {
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
-    // Inject persona switch so the model adopts the correct mini persona
     if (activePersona) {
       msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     }
-
-    // Prevent duplicate greetings from the model
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
         content: "UI already displayed a greeting. Answer directly without re-greeting."
       });
     }
-
     return {
       model: CFG.model,
       temperature: CFG.temperature,
@@ -334,19 +351,16 @@ function addAssistant(text) {
       if (text.toLowerCase().includes("jerry's shiny shoes")) {
         activePersona = "friend_desi_des";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
         text = text.replace(/jerry's shiny shoes/ig, "").trim();
         triggered = true;
       } else if (text.toLowerCase().includes("i love my wally boy")) {
         activePersona = "friend_susie";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
         text = text.replace(/i love my wally boy/ig, "").trim();
         triggered = true;
       }
     }
 
-    // Show the user's message minus any secret phrase
     if (text) {
       addUser(text);
       HISTORY.push({ role: "user", content: text });
@@ -354,11 +368,9 @@ function addAssistant(text) {
       UI.input.value = "";
       growInput();
     } else {
-      // user only typed the secret phrase
       UI.input.value = "";
     }
 
-    // Emit EXACT custom greeting on unlock
     if (triggered) {
       let greet = "";
       if (activePersona === "friend_desi_des") {
@@ -378,12 +390,9 @@ function addAssistant(text) {
       HISTORY.push({ role: "assistant", content: greet });
       saveHistory();
       scrollPane();
-
-      // If only the secret phrase was entered, stop here
       if (!text) return;
     }
 
-    // Normal flow
     const typing = addTyping();
     BUSY = true; UI.send.disabled = true;
     try {
