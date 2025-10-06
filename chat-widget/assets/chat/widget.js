@@ -28,13 +28,8 @@
     typingDelayMs: 0,
     launcherAnchor: "#about",
     launcherMode: "fixed",
-
-    // ===================== NEW OPTIONS =====================
-    // When true, closing the panel wipes visible messages and in-memory history.
-    // Persona remains active for the session. LocalStorage is also cleared.
+    // New options (overridable via config.json)
     resetOnClose: true,
-
-    // Optional absolute timeout for worker fetch in ms
     requestTimeoutMs: 30000
   };
 
@@ -46,21 +41,21 @@
   let BUSY = false;
   let greetingShown = false;
   let detachFns = [];
-  // Persona persistence for this browser session
   let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
 
   /* ===================== Utils ===================== */
   const esc = (s) =>
-    String(s||"")
+    String(s || "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
-  const setVar = (n,v) => document.documentElement.style.setProperty(n,v);
+  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
 
   const on = (el, ev, fn, opts) => {
+    if (!el) return;
     el.addEventListener(ev, fn, opts);
     detachFns.push(() => el.removeEventListener(ev, fn, opts));
   };
@@ -74,7 +69,7 @@
   };
 
   function stripGreeting(t) {
-    let s = String(t||"").trim();
+    let s = String(t || "").trim();
     s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
     s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
     return s.trim();
@@ -83,22 +78,25 @@
   /* ===================== Minimal Markdown ===================== */
   function sanitizeBlocks(html) {
     try {
-      const doc = new DOMParser().parseFromString("<div>"+html+"</div>","text/html");
-      ["script","style","iframe","object","embed","link"].forEach(sel =>
-        doc.querySelectorAll(sel).forEach(n => n.remove()));
+      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
+      ["script", "style", "iframe", "object", "embed", "link"].forEach(sel =>
+        doc.querySelectorAll(sel).forEach(n => n.remove())
+      );
       doc.querySelectorAll("a").forEach(a => {
-        a.setAttribute("rel","noopener noreferrer");
-        a.setAttribute("target","_blank");
+        a.setAttribute("rel", "noopener noreferrer");
+        a.setAttribute("target", "_blank");
       });
-      return doc.body.firstChild.innerHTML;
+      const container = doc.body && doc.body.firstChild;
+      return container ? container.innerHTML : html; // null-guard fix
     } catch {
       return html;
     }
   }
+
   function mdToHtml(input) {
-    let s = esc(String(input||"")).replace(/\r\n/g,"\n");
+    let s = esc(String(input || "")).replace(/\r\n/g, "\n");
     s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
-      (_,lang,code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
+      (_, lang, code) => `<pre><code${lang ? ` class="language-${lang.toLowerCase()}"` : ""}>${code.replace(/</g, "&lt;")}</code></pre>`);
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
@@ -115,7 +113,7 @@
     });
     const blocks = s.split(/\n{2,}/).map(b => {
       if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
-      return `<p>${b.replace(/\n/g,"<br>")}</p>`;
+      return `<p>${b.replace(/\n/g, "<br>")}</p>`;
     });
     return sanitizeBlocks(blocks.join(""));
   }
@@ -130,13 +128,14 @@
       if (Array.isArray(data)) HISTORY = data.slice(-CFG.maxHistory);
     } catch {}
   };
+
   const saveHistory = () => {
     if (!CFG.persistHistory) return;
     try {
       localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory)));
     } catch {}
   };
-  // ===================== NEW: hard clear =====================
+
   function clearStoredHistory() {
     try { localStorage.removeItem(CFG.storageKey); } catch {}
   }
@@ -145,10 +144,10 @@
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
-    btn.setAttribute("aria-label","Open chat");
+    btn.setAttribute("aria-label", "Open chat");
     btn.innerHTML =
       `<div class="cw-avatar-wrap">
-         <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
+         <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar" />
          <div class="cw-launcher-badge" aria-hidden="true"><i></i><i></i><i></i></div>
        </div>`;
     document.body.appendChild(btn);
@@ -158,9 +157,9 @@
   function buildRoot() {
     const root = document.createElement("div");
     root.className = "cw-root";
-    root.setAttribute("role","dialog");
-    root.setAttribute("aria-modal","true");
-    root.setAttribute("aria-label","Tony Chat");
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-modal", "true");
+    root.setAttribute("aria-label", "Tony Chat");
     root.style.display = "none";
     document.body.appendChild(root);
     UI.root = root;
@@ -179,14 +178,14 @@
     const pane = document.createElement("div");
     pane.className = "cw-messages";
     pane.id = "cw-messages";
-    pane.setAttribute("role","log");
-    pane.setAttribute("aria-live","polite");
+    pane.setAttribute("role", "log");
+    pane.setAttribute("aria-live", "polite");
     root.appendChild(pane);
     UI.pane = pane;
 
     const form = document.createElement("form");
     form.className = "cw-form";
-    form.setAttribute("novalidate","novalidate");
+    form.setAttribute("novalidate", "novalidate");
     form.innerHTML =
       `<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1" aria-label="Message input"></textarea>
        <button type="submit" id="cw-send" class="cw-send" aria-label="Send message" title="Send">
@@ -265,12 +264,10 @@
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
-    // Inject persona switch so the model adopts the correct mini persona
     if (activePersona) {
       msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     }
 
-    // Prevent duplicate greetings from the model
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
@@ -287,7 +284,6 @@
     };
   }
 
-  // ===================== NEW: fetch with timeout =====================
   async function fetchWithTimeout(url, opts = {}, timeoutMs = 30000) {
     const ac = new AbortController();
     const t = setTimeout(() => ac.abort(), timeoutMs);
@@ -329,9 +325,9 @@
     const originalText = (UI.input.value || "").trim();
     if (!originalText) return;
 
-    // Quick command: /clear (local reset without closing)
+    // Quick command: /clear
     if (originalText.toLowerCase() === "/clear") {
-      resetConversation(/*preservePersona*/true);
+      resetConversation(true);
       addAssistant("Chat cleared. How can I help?");
       UI.input.value = "";
       return;
@@ -345,13 +341,11 @@
       if (text.toLowerCase().includes("jerry's shiny shoes")) {
         activePersona = "friend_desi_des";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
         text = text.replace(/jerry's shiny shoes/ig, "").trim();
         triggered = true;
       } else if (text.toLowerCase().includes("i love my wally boy")) {
         activePersona = "friend_susie";
         sessionStorage.setItem("cwPersonaActive", activePersona);
-        // scrub phrase from the user text
         text = text.replace(/i love my wally boy/ig, "").trim();
         triggered = true;
       }
@@ -365,7 +359,6 @@
       UI.input.value = "";
       growInput();
     } else {
-      // user only typed the secret phrase
       UI.input.value = "";
     }
 
@@ -390,7 +383,6 @@
       saveHistory();
       scrollPane();
 
-      // If only the secret phrase was entered, stop here
       if (!text) return;
     }
 
@@ -421,14 +413,13 @@
     UI.root.style.display = "block";
     document.documentElement.classList.add("cw-open");
 
-    // Fresh session gets greeting again
     if (CFG.greeting && !greetingShown) {
       addAssistant(CFG.greeting);
       HISTORY.push({ role: "assistant", content: CFG.greeting });
       saveHistory();
       greetingShown = true;
     }
-    UI.input.focus();
+    UI.input && UI.input.focus();
     scrollPane();
   }
 
@@ -438,22 +429,16 @@
     UI.root.style.display = "none";
     document.documentElement.classList.remove("cw-open");
 
-    // ===================== NEW: reset-on-close =====================
     if (CFG.resetOnClose) {
-      resetConversation(/*preservePersona*/true);
+      resetConversation(true); // keep persona for session
     }
   }
 
-  // ===================== NEW: reset helper =====================
   function resetConversation(preservePersona = true) {
-    // wipe UI
     if (UI.pane) UI.pane.innerHTML = "";
-    // wipe history
     HISTORY = [];
     clearStoredHistory();
-    // allow greeting to show on next open
     greetingShown = false;
-    // keep or clear persona
     if (!preservePersona) {
       activePersona = null;
       sessionStorage.removeItem("cwPersonaActive");
@@ -486,14 +471,15 @@
   /* ===================== Boot ===================== */
   async function init() {
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts="+Date.now(), { cache: "no-store" });
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
       const cfg = r.ok ? await r.json() : {};
       CFG = Object.assign({}, DEFAULTS, cfg || {});
     } catch {
       CFG = Object.assign({}, DEFAULTS);
     }
-    if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
-    if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
+
+    if (CFG.brand && CFG.brand.accent) setVar("--cw-accent", CFG.brand.accent);
+    if (CFG.brand && CFG.brand.radius) setVar("--cw-radius", CFG.brand.radius);
 
     loadHistory();
     buildLauncher();
