@@ -186,21 +186,46 @@
     UI.send = form.querySelector("#cw-send");
   }
 
-  function addAssistant(text) {
-    let html = mdToHtml(text);
-    html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
-      if (!q) return m;
-      return `${body}<span class="cw-callout">${q}</span>`;
-    });
-    const row = document.createElement("div");
-    row.className = "cw-row cw-row-assistant";
-    const bubble = document.createElement("div");
-    bubble.className = "cw-bubble cw-bubble-assistant";
-    bubble.innerHTML = html;
-    row.appendChild(bubble);
-    UI.pane.appendChild(row);
-    scrollPane();
+ // Normalize CAI sections to their own lines before Markdown -> HTML
+function formatSections(t) {
+  let s = String(t || "");
+
+  // ensure a space after periods when followed by A–Z
+  s = s.replace(/\.([A-Z])/g, ". $1");
+
+  // start labeled sections as new paragraphs and bold the label (Markdown)
+  const labels = ["Challenge:", "Approach:", "Impact:", "Follow-up:", "Follow up:"];
+  for (const lab of labels) {
+    const safe = lab.replace(" ", "\\s?"); // allow "Follow up:"
+    const re = new RegExp("\\s*" + safe, "gi");
+    const norm = lab === "Follow up:" ? "Follow-up:" : lab;
+    s = s.replace(re, `\n\n**${norm}** `);
   }
+  return s.trim();
+}
+
+function addAssistant(text) {
+  // 1) structure CAI sections
+  const structured = formatSections(text);
+
+  // 2) convert to HTML via existing Markdown renderer
+  let html = mdToHtml(structured);
+
+  // 3) keep your callout chip behavior
+  html = html.replace(/([\s\S]*?)(?:([^.?!\n][^?]*\?)\s*)$/m, (m, body, q) => {
+    if (!q) return m;
+    return `${body}<span class="cw-callout">${q}</span>`;
+  });
+
+  const row = document.createElement("div");
+  row.className = "cw-row cw-row-assistant";
+  const bubble = document.createElement("div");
+  bubble.className = "cw-bubble cw-bubble-assistant";
+  bubble.innerHTML = html;
+  row.appendChild(bubble);
+  UI.pane.appendChild(row);
+  scrollPane();
+}
 
   function addUser(text) {
     const row = document.createElement("div");
