@@ -27,7 +27,15 @@
     storageKey: "tony-cw-history",
     typingDelayMs: 0,
     launcherAnchor: "#about",
-    launcherMode: "fixed"
+    launcherMode: "fixed",
+
+    // ===================== NEW OPTIONS =====================
+    // When true, closing the panel wipes visible messages and in-memory history.
+    // Persona remains active for the session. LocalStorage is also cleared.
+    resetOnClose: true,
+
+    // Optional absolute timeout for worker fetch in ms
+    requestTimeoutMs: 30000
   };
 
   /* ===================== State ===================== */
@@ -95,7 +103,7 @@
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    s = s.replace(/$begin:math:display$([^$end:math:display$]+)\]$begin:math:text$(https?:\\/\\/[^\\s)]+)$end:math:text$/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
       const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/,"<li>$1</li>")).join("");
@@ -128,6 +136,10 @@
       localStorage.setItem(CFG.storageKey, JSON.stringify(HISTORY.slice(-CFG.maxHistory)));
     } catch {}
   };
+  // ===================== NEW: hard clear =====================
+  function clearStoredHistory() {
+    try { localStorage.removeItem(CFG.storageKey); } catch {}
+  }
 
   /* ===================== UI ===================== */
   function buildLauncher() {
@@ -275,12 +287,28 @@
     };
   }
 
+  // ===================== NEW: fetch with timeout =====================
+  async function fetchWithTimeout(url, opts = {}, timeoutMs = 30000) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, { ...opts, signal: ac.signal });
+      return r;
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
   async function sendToWorker(userText) {
-    const r = await fetch(CFG.workerUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(makePayload(userText))
-    });
+    const r = await fetchWithTimeout(
+      CFG.workerUrl,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(makePayload(userText))
+      },
+      CFG.requestTimeoutMs
+    );
     const ok = r.ok;
     let data = null, txt = "";
     try { data = await r.json(); } catch { txt = await r.text(); }
@@ -300,6 +328,14 @@
 
     const originalText = (UI.input.value || "").trim();
     if (!originalText) return;
+
+    // Quick command: /clear (local reset without closing)
+    if (originalText.toLowerCase() === "/clear") {
+      resetConversation(/*preservePersona*/true);
+      addAssistant("Chat cleared. How can I help?");
+      UI.input.value = "";
+      return;
+    }
 
     // Detect secret phrases only if no persona is active yet
     let text = originalText;
@@ -378,13 +414,14 @@
     }
   }
 
-  /* ===================== Open/Close/Bind ===================== */
+  /* ===================== Open/Close/Reset/Bind ===================== */
   function openChat() {
     if (OPEN) return;
     OPEN = true;
     UI.root.style.display = "block";
     document.documentElement.classList.add("cw-open");
 
+    // Fresh session gets greeting again
     if (CFG.greeting && !greetingShown) {
       addAssistant(CFG.greeting);
       HISTORY.push({ role: "assistant", content: CFG.greeting });
@@ -400,6 +437,27 @@
     OPEN = false;
     UI.root.style.display = "none";
     document.documentElement.classList.remove("cw-open");
+
+    // ===================== NEW: reset-on-close =====================
+    if (CFG.resetOnClose) {
+      resetConversation(/*preservePersona*/true);
+    }
+  }
+
+  // ===================== NEW: reset helper =====================
+  function resetConversation(preservePersona = true) {
+    // wipe UI
+    if (UI.pane) UI.pane.innerHTML = "";
+    // wipe history
+    HISTORY = [];
+    clearStoredHistory();
+    // allow greeting to show on next open
+    greetingShown = false;
+    // keep or clear persona
+    if (!preservePersona) {
+      activePersona = null;
+      sessionStorage.removeItem("cwPersonaActive");
+    }
   }
 
   function bindEvents() {
