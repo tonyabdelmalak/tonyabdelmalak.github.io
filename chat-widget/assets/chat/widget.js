@@ -27,10 +27,7 @@
     storageKey: "tony-cw-history",
     typingDelayMs: 0,
     launcherAnchor: "#about",
-    launcherMode: "fixed",
-    // New options (overridable via config.json)
-    resetOnClose: true,
-    requestTimeoutMs: 30000
+    launcherMode: "fixed"
   };
 
   /* ===================== State ===================== */
@@ -41,21 +38,21 @@
   let BUSY = false;
   let greetingShown = false;
   let detachFns = [];
+  // Persona persistence for this browser session
   let activePersona = sessionStorage.getItem("cwPersonaActive") || null;
 
   /* ===================== Utils ===================== */
   const esc = (s) =>
-    String(s || "")
+    String(s||"")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
 
-  const setVar = (n, v) => document.documentElement.style.setProperty(n, v);
+  const setVar = (n,v) => document.documentElement.style.setProperty(n,v);
 
   const on = (el, ev, fn, opts) => {
-    if (!el) return;
     el.addEventListener(ev, fn, opts);
     detachFns.push(() => el.removeEventListener(ev, fn, opts));
   };
@@ -69,7 +66,7 @@
   };
 
   function stripGreeting(t) {
-    let s = String(t || "").trim();
+    let s = String(t||"").trim();
     s = s.replace(/^(?:hi|hello|hey|howdy|greetings)[^.\n!?]*[.!?]\s*/i, "");
     s = s.replace(/^i['’]m\s+tony[^.\n!?]*[.!?]\s*/i, "");
     return s.trim();
@@ -78,30 +75,27 @@
   /* ===================== Minimal Markdown ===================== */
   function sanitizeBlocks(html) {
     try {
-      const doc = new DOMParser().parseFromString("<div>" + html + "</div>", "text/html");
-      ["script", "style", "iframe", "object", "embed", "link"].forEach(sel =>
-        doc.querySelectorAll(sel).forEach(n => n.remove())
-      );
+      const doc = new DOMParser().parseFromString("<div>"+html+"</div>","text/html");
+      ["script","style","iframe","object","embed","link"].forEach(sel =>
+        doc.querySelectorAll(sel).forEach(n => n.remove()));
       doc.querySelectorAll("a").forEach(a => {
-        a.setAttribute("rel", "noopener noreferrer");
-        a.setAttribute("target", "_blank");
+        a.setAttribute("rel","noopener noreferrer");
+        a.setAttribute("target","_blank");
       });
-      const container = doc.body && doc.body.firstChild;
-      return container ? container.innerHTML : html; // null-guard fix
+      return doc.body.firstChild.innerHTML;
     } catch {
       return html;
     }
   }
-
   function mdToHtml(input) {
-    let s = esc(String(input || "")).replace(/\r\n/g, "\n");
+    let s = esc(String(input||"")).replace(/\r\n/g,"\n");
     s = s.replace(/```([a-zA-Z0-9_-]+)?\n([\s\S]*?)```/g,
-      (_, lang, code) => `<pre><code${lang ? ` class="language-${lang.toLowerCase()}"` : ""}>${code.replace(/</g, "&lt;")}</code></pre>`);
+      (_,lang,code) => `<pre><code${lang?` class="language-${lang.toLowerCase()}"`:""}>${code.replace(/</g,"&lt;")}</code></pre>`);
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
     s = s.replace(/^\s*#{1,6}\s*(.+)$/gm, "<strong>$1</strong>");
     s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    s = s.replace(/$begin:math:display$([^$end:math:display$]+)\]$begin:math:text$(https?:\\/\\/[^\\s)]+)$end:math:text$/g,
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
       '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     s = s.replace(/^(?:\d+\.)\s+.+(?:\n\d+\.\s+.+)*/gm, list => {
       const items = list.split("\n").map(l => l.replace(/^\d+\.\s+(.+)$/,"<li>$1</li>")).join("");
@@ -113,7 +107,7 @@
     });
     const blocks = s.split(/\n{2,}/).map(b => {
       if (/^<(ul|ol|pre|blockquote|strong)/.test(b.trim())) return b;
-      return `<p>${b.replace(/\n/g, "<br>")}</p>`;
+      return `<p>${b.replace(/\n/g,"<br>")}</p>`;
     });
     return sanitizeBlocks(blocks.join(""));
   }
@@ -128,7 +122,6 @@
       if (Array.isArray(data)) HISTORY = data.slice(-CFG.maxHistory);
     } catch {}
   };
-
   const saveHistory = () => {
     if (!CFG.persistHistory) return;
     try {
@@ -136,18 +129,14 @@
     } catch {}
   };
 
-  function clearStoredHistory() {
-    try { localStorage.removeItem(CFG.storageKey); } catch {}
-  }
-
   /* ===================== UI ===================== */
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
-    btn.setAttribute("aria-label", "Open chat");
+    btn.setAttribute("aria-label","Open chat");
     btn.innerHTML =
       `<div class="cw-avatar-wrap">
-         <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar" />
+         <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
          <div class="cw-launcher-badge" aria-hidden="true"><i></i><i></i><i></i></div>
        </div>`;
     document.body.appendChild(btn);
@@ -157,9 +146,9 @@
   function buildRoot() {
     const root = document.createElement("div");
     root.className = "cw-root";
-    root.setAttribute("role", "dialog");
-    root.setAttribute("aria-modal", "true");
-    root.setAttribute("aria-label", "Tony Chat");
+    root.setAttribute("role","dialog");
+    root.setAttribute("aria-modal","true");
+    root.setAttribute("aria-label","Tony Chat");
     root.style.display = "none";
     document.body.appendChild(root);
     UI.root = root;
@@ -178,14 +167,14 @@
     const pane = document.createElement("div");
     pane.className = "cw-messages";
     pane.id = "cw-messages";
-    pane.setAttribute("role", "log");
-    pane.setAttribute("aria-live", "polite");
+    pane.setAttribute("role","log");
+    pane.setAttribute("aria-live","polite");
     root.appendChild(pane);
     UI.pane = pane;
 
     const form = document.createElement("form");
     form.className = "cw-form";
-    form.setAttribute("novalidate", "novalidate");
+    form.setAttribute("novalidate","novalidate");
     form.innerHTML =
       `<textarea id="cw-input" class="cw-input" placeholder="Type a message..." rows="1" aria-label="Message input"></textarea>
        <button type="submit" id="cw-send" class="cw-send" aria-label="Send message" title="Send">
@@ -264,10 +253,12 @@
     const recent = HISTORY.slice(-CFG.maxHistory);
     const msgs = recent.concat([{ role: "user", content: userText }]);
 
+    // Inject persona switch so the model adopts the correct mini persona
     if (activePersona) {
       msgs.unshift({ role: "system", content: `role_active:${activePersona}` });
     }
 
+    // Prevent duplicate greetings from the model
     if (greetingShown && !recent.some(m => m.role === "user")) {
       msgs.unshift({
         role: "system",
@@ -284,27 +275,12 @@
     };
   }
 
-  async function fetchWithTimeout(url, opts = {}, timeoutMs = 30000) {
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), timeoutMs);
-    try {
-      const r = await fetch(url, { ...opts, signal: ac.signal });
-      return r;
-    } finally {
-      clearTimeout(t);
-    }
-  }
-
   async function sendToWorker(userText) {
-    const r = await fetchWithTimeout(
-      CFG.workerUrl,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(makePayload(userText))
-      },
-      CFG.requestTimeoutMs
-    );
+    const r = await fetch(CFG.workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(makePayload(userText))
+    });
     const ok = r.ok;
     let data = null, txt = "";
     try { data = await r.json(); } catch { txt = await r.text(); }
@@ -325,14 +301,6 @@
     const originalText = (UI.input.value || "").trim();
     if (!originalText) return;
 
-    // Quick command: /clear
-    if (originalText.toLowerCase() === "/clear") {
-      resetConversation(true);
-      addAssistant("Chat cleared. How can I help?");
-      UI.input.value = "";
-      return;
-    }
-
     // Detect secret phrases only if no persona is active yet
     let text = originalText;
     let triggered = false;
@@ -341,11 +309,13 @@
       if (text.toLowerCase().includes("jerry's shiny shoes")) {
         activePersona = "friend_desi_des";
         sessionStorage.setItem("cwPersonaActive", activePersona);
+        // scrub phrase from the user text
         text = text.replace(/jerry's shiny shoes/ig, "").trim();
         triggered = true;
       } else if (text.toLowerCase().includes("i love my wally boy")) {
         activePersona = "friend_susie";
         sessionStorage.setItem("cwPersonaActive", activePersona);
+        // scrub phrase from the user text
         text = text.replace(/i love my wally boy/ig, "").trim();
         triggered = true;
       }
@@ -359,6 +329,7 @@
       UI.input.value = "";
       growInput();
     } else {
+      // user only typed the secret phrase
       UI.input.value = "";
     }
 
@@ -383,6 +354,7 @@
       saveHistory();
       scrollPane();
 
+      // If only the secret phrase was entered, stop here
       if (!text) return;
     }
 
@@ -406,7 +378,7 @@
     }
   }
 
-  /* ===================== Open/Close/Reset/Bind ===================== */
+  /* ===================== Open/Close/Bind ===================== */
   function openChat() {
     if (OPEN) return;
     OPEN = true;
@@ -419,7 +391,7 @@
       saveHistory();
       greetingShown = true;
     }
-    UI.input && UI.input.focus();
+    UI.input.focus();
     scrollPane();
   }
 
@@ -428,21 +400,6 @@
     OPEN = false;
     UI.root.style.display = "none";
     document.documentElement.classList.remove("cw-open");
-
-    if (CFG.resetOnClose) {
-      resetConversation(true); // keep persona for session
-    }
-  }
-
-  function resetConversation(preservePersona = true) {
-    if (UI.pane) UI.pane.innerHTML = "";
-    HISTORY = [];
-    clearStoredHistory();
-    greetingShown = false;
-    if (!preservePersona) {
-      activePersona = null;
-      sessionStorage.removeItem("cwPersonaActive");
-    }
   }
 
   function bindEvents() {
@@ -471,15 +428,14 @@
   /* ===================== Boot ===================== */
   async function init() {
     try {
-      const r = await fetch("/chat-widget/assets/chat/config.json?ts=" + Date.now(), { cache: "no-store" });
+      const r = await fetch("/chat-widget/assets/chat/config.json?ts="+Date.now(), { cache: "no-store" });
       const cfg = r.ok ? await r.json() : {};
       CFG = Object.assign({}, DEFAULTS, cfg || {});
     } catch {
       CFG = Object.assign({}, DEFAULTS);
     }
-
-    if (CFG.brand && CFG.brand.accent) setVar("--cw-accent", CFG.brand.accent);
-    if (CFG.brand && CFG.brand.radius) setVar("--cw-radius", CFG.brand.radius);
+    if (CFG.brand?.accent) setVar("--cw-accent", CFG.brand.accent);
+    if (CFG.brand?.radius) setVar("--cw-radius", CFG.brand.radius);
 
     loadHistory();
     buildLauncher();
