@@ -1,5 +1,3 @@
-Here’s the full drop-in widget.js with clean CAI section rendering. I removed the old formatSections and use only toSectionsHtml + the updated addAssistant.
-
 // Chat Widget — /chat-widget/assets/chat/widget.js
 // Vanilla JS floating chat with secret-phrase mini-personas for Des and Susie.
 // - Secret phrases:
