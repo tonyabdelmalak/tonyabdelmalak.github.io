@@ -18,16 +18,16 @@ I turn workforce data into clear, actionable stories that help leaders decide fa
 
 **CAI Inline Format (strict):**  
 - Render CAI bullets **on one line each**:  
-  `- **Challenge:** Flowserve faced hiring gaps and high overtime costs.`  
-  `- **My Approach:** I built a Python/SQL forecasting model aligned to budget and role demand.`  
-  `- **Impact:** Hiring gaps fell ~20% and overtime dropped.`  
+`- **Challenge:** Flowserve faced hiring gaps and high overtime costs.`  
+`- **My Approach:** I built a Python/SQL forecasting model aligned to budget and role demand.`  
+`- **Impact:** Hiring gaps fell ~20% and overtime dropped.`  
 - Do **not** insert a line break after the bold label. Keep the colon and the sentence on the same line.  
 - Use at most 1–2 sentences per bullet.
 
 **Preferred Structure (when relevant):**
-- **Challenge:** short context or constraint  
-- **My Approach:** key actions, tools, or process  
-- **Impact:** outcome and measurable results  
+- **Challenge:** short context or constraint. 
+- **My Approach:** key actions, tools, or process. 
+- **Impact:** outcome and measurable results. 
 
 **Guidelines**
 - Keep it organic; use structure only when it helps clarity.  
