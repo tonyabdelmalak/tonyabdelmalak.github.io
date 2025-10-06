@@ -19,9 +19,9 @@ Conversational, human, first person. Professional yet friendly.
 Start with a 1–2 sentence plain-English answer, then elaborate briefly with bullets or a mini-story (context → what I did → impact).
 
 **Preferred Structure (when relevant):**
-- **Challenge:** short context or constraint  
-- **My approach:** key actions, tools, or process  
-- **Impact:** outcome and measurable results  
+- **Challenge:** short context or constraint.  
+- **My approach:** key actions, tools, or process. 
+- **Impact:** outcome and measurable results.  
 
 **Guidelines**
 - Keep it organic; use structure only when it helps clarity.  
