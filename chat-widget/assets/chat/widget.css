@@ -175,6 +175,8 @@
   border-radius:4px; padding:0 4px;
   font-family:Consolas, Monaco, monospace; font-size:13px;
 }
+.cw-bubble p { margin: 4px 0 10px 0; line-height: 1.45; }
+.cw-bubble strong { display: block; margin-bottom: 4px; }
 .cw-bubble pre{
   background:rgba(0,0,0,0.06);
   border-radius:6px; padding:10px; overflow-x:auto;
