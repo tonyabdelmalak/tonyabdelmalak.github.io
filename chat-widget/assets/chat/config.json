@@ -1,10 +1,12 @@
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
+
   "systemUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/system.md",
   "kbUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/about-tony.md",
 
   "model": "llama-3.1-8b-instant",
   "temperature": 0.275,
+  "stream": true,
 
   "title": "Hi, I'm Tony. What's on your mind?",
   "subtitle": "",
@@ -18,6 +20,5 @@
   "typingDelayMs": 0,
 
   "avatarUrl": "/assets/img/profile-img.jpg",
-
   "launcherAnchor": "#about"
 }
