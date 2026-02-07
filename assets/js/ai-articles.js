@@ -158,7 +158,7 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
            style="background-color: var(--accent-color); color:#fff;"
            target="_blank"
            rel="noopener noreferrer">
-          Read More
+          <i class="fas fa-external-link-alt"></i> Read Article
         </a>
       </div>
     `).join('');
@@ -210,8 +210,27 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
 
   // Expose refresh function globally for manual refresh
   window.refreshAIArticles = async function() {
+    const btn = document.getElementById('refresh-articles');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i><span>Refreshing...</span>';
+    }
+    
     localStorage.removeItem(STORAGE_KEY);
     await init();
+    
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh Articles</span>';
+    }
   };
+  
+  // Wire up refresh button
+  document.addEventListener('DOMContentLoaded', () => {
+    const refreshBtn = document.getElementById('refresh-articles');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', window.refreshAIArticles);
+    }
+  });
 
 })();

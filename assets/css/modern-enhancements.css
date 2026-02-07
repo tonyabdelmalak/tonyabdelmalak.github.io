@@ -286,6 +286,7 @@ html {
 /* Section Fade-In Animation */
 section {
   animation: fadeInUp 0.6s ease-out;
+  padding: 40px 0 !important; /* Reduced padding for less scrolling */
 }
 
 @keyframes fadeInUp {
