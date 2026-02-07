@@ -221,7 +221,7 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
     
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh Articles</span>';
+      btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
     }
   };
   
