@@ -1,55 +1,169 @@
 :root{
-  --rail-bg:#0f172a; --rail-fg:#e5e7eb; --rail-accent:#6366f1;
-  --rail-width-collapsed:56px; --rail-width-expanded:200px;
-  --rail-radius:16px; --rail-gap:8px; --rail-item-h:44px;
+  --rail-bg:#0f172a; 
+  --rail-fg:#e5e7eb; 
+  --rail-accent:#06b6d4;
+  --rail-width-collapsed:56px; 
+  --rail-width-expanded:220px;
+  --rail-radius:16px; 
+  --rail-gap:8px; 
+  --rail-item-h:44px;
   --rail-z:2147482000;
 }
 
 .side-rail{
-  position:fixed; left:16px; top:50%; transform:translateY(-50%);
+  position:fixed; 
+  left:16px; 
+  top:50%; 
+  transform:translateY(-50%);
   width:var(--rail-width-collapsed);
   max-height:calc(100vh - 32px);
-  background:var(--rail-bg); color:var(--rail-fg);
-  border-radius:var(--rail-radius); padding:12px 8px;
+  background:var(--rail-bg); 
+  color:var(--rail-fg);
+  border-radius:var(--rail-radius); 
+  padding:12px 8px;
   box-shadow:0 10px 30px rgba(0,0,0,.32);
-  transition:width .24s ease; overflow:hidden; z-index:var(--rail-z);
+  transition:width .24s ease; 
+  overflow:hidden; 
+  z-index:var(--rail-z);
 }
-.side-rail:hover, .side-rail.is-pinned{ width:var(--rail-width-expanded); }
 
-.side-rail ul{ list-style:none; margin:0; padding:0; display:grid; gap:var(--rail-gap);}
-.side-rail a{
-  display:grid; grid-template-columns:28px 1fr; align-items:center; gap:12px;
-  height:var(--rail-item-h); padding:0 10px; border-radius:12px; color:inherit;
-  text-decoration:none; position:relative; outline:none;
+.side-rail:hover, 
+.side-rail.is-pinned{ 
+  width:var(--rail-width-expanded); 
 }
-.side-rail a svg{ width:24px; height:24px; }
-.side-rail a span{ white-space:nowrap; opacity:0; transform:translateX(-4px);
-  transition:opacity .18s ease, transform .18s ease; }
-.side-rail:hover a span, .side-rail.is-pinned a span{ opacity:1; transform:translateX(0); }
-.side-rail a:hover, .side-rail a:focus{ background:rgba(255,255,255,.07); }
+
+.side-rail ul{ 
+  list-style:none; 
+  margin:0; 
+  padding:0; 
+  display:grid; 
+  gap:var(--rail-gap);
+}
+
+.side-rail a{
+  display:grid; 
+  grid-template-columns:28px 1fr; 
+  align-items:center; 
+  gap:12px;
+  height:var(--rail-item-h); 
+  padding:0 10px; 
+  border-radius:12px; 
+  color:inherit;
+  text-decoration:none; 
+  position:relative; 
+  outline:none;
+  font-size:14px;
+  font-weight:500;
+  transition:all .2s ease;
+}
+
+.side-rail a svg{ 
+  width:24px; 
+  height:24px; 
+  flex-shrink:0;
+}
+
+.side-rail a span{ 
+  white-space:nowrap; 
+  opacity:0; 
+  transform:translateX(-4px);
+  transition:opacity .18s ease, transform .18s ease; 
+}
+
+.side-rail:hover a span, 
+.side-rail.is-pinned a span{ 
+  opacity:1; 
+  transform:translateX(0); 
+}
+
+.side-rail a:hover, 
+.side-rail a:focus{ 
+  background:rgba(255,255,255,.07); 
+}
+
 .side-rail a.active{
-  background:rgba(99,102,241,.18); color:#fff; box-shadow:inset 0 0 0 1px rgba(99,102,241,.45);
+  background:rgba(6,182,212,.18); 
+  color:#fff; 
+  box-shadow:inset 0 0 0 1px rgba(6,182,212,.45);
 }
 
 /* Tooltip when collapsed */
 .side-rail:not(:hover):not(.is-pinned) a:focus::after,
 .side-rail:not(:hover):not(.is-pinned) a:hover::after{
   content:attr(data-label);
-  position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%);
-  background:#111827; color:#f9fafb; padding:6px 8px; border-radius:8px; font-size:12px;
-  white-space:nowrap; box-shadow:0 6px 18px rgba(0,0,0,.2);
+  position:absolute; 
+  left:calc(100% + 10px); 
+  top:50%; 
+  transform:translateY(-50%);
+  background:#111827; 
+  color:#f9fafb; 
+  padding:6px 10px; 
+  border-radius:8px; 
+  font-size:13px;
+  white-space:nowrap; 
+  box-shadow:0 6px 18px rgba(0,0,0,.2);
+  pointer-events:none;
+  z-index:1;
 }
 
 /* Pin button */
 .rail-pin{
-  margin-top:10px; width:36px; height:36px; border:none; border-radius:50%;
-  background:rgba(255,255,255,.06); color:var(--rail-fg);
-  display:grid; place-items:center; cursor:pointer;
+  margin-top:10px; 
+  width:36px; 
+  height:36px; 
+  border:none; 
+  border-radius:50%;
+  background:rgba(255,255,255,.06); 
+  color:var(--rail-fg);
+  display:grid; 
+  place-items:center; 
+  cursor:pointer;
+  transition:all .2s ease;
 }
-.rail-pin:hover{ background:rgba(255,255,255,.12); }
-.rail-pin svg{ width:18px; height:18px; }
 
-/* Small screens: dock lower-left */
+.rail-pin:hover{ 
+  background:rgba(255,255,255,.12); 
+  transform:scale(1.05);
+}
+
+.rail-pin[aria-pressed="true"]{
+  background:rgba(6,182,212,.2);
+  color:var(--rail-accent);
+}
+
+.rail-pin svg{ 
+  width:18px; 
+  height:18px; 
+}
+
+/* Small screens: dock lower-left, auto-expand on hover */
 @media (max-width: 820px){
-  .side-rail{ top:auto; bottom:16px; left:16px; transform:none; border-radius:14px; }
+  .side-rail{ 
+    top:auto; 
+    bottom:16px; 
+    left:16px; 
+    transform:none; 
+    border-radius:14px;
+    max-height:calc(100vh - 100px);
+  }
+  
+  /* Make it easier to tap on mobile */
+  .side-rail a{
+    height:48px;
+  }
+  
+  .rail-pin{
+    width:40px;
+    height:40px;
+  }
+}
+
+/* Very small screens: reduce size */
+@media (max-width: 480px){
+  .side-rail{
+    left:8px;
+    bottom:8px;
+    --rail-width-collapsed:48px;
+    --rail-width-expanded:200px;
+  }
 }

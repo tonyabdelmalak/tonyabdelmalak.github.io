@@ -5,14 +5,16 @@
       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M9 22V12h6v10"/></svg>` },
     { href: "/hr_attrition_dashboard_lite.html", label: "Attrition Dashboard",
       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 20h16M6 10v8M10 4v14M14 7v11M18 13v5"/></svg>` },
-    { href: "/predictive_attrition_case_study.html", label: "Predictive Case Study",
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 10a2 2 0 114 0h2a2 2 0 114 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 114 0v-2z"/></svg>` },
-    { href: "/recruitment_case_study.html", label: "Recruitment Case Study",
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-3-3.87M9 21v-2a4 4 0 0 1 3-3.87M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM16 11c1.5 0 3 1 3 3v2"/></svg>` },
-    { href: "/recruitment-funnel.html", label: "Recruitment Funnel",
+    { href: "/predictive_attrition_case_study.html", label: "Predictive Attrition",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>` },
+    { href: "/recruitment_case_study.html", label: "Recruitment",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
+    { href: "/attrition_case_study.html", label: "90-Day Attrition",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>` },
+    { href: "/interactive_cases_refined/recruitment_funnel_case.html", label: "Recruitment Funnel",
       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4h18L14 12v7l-4 2v-9L3 4z"/></svg>` },
-    { href: "/sentiment.html", label: "Sentiment Analysis",
-      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>` }
+    { href: "/interactive_cases_refined/ai_attrition_model_case.html", label: "AI Attrition Model",
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>` }
   ];
 
   const ul = LINKS.map(({href,label,icon}) =>
@@ -33,11 +35,21 @@
   document.addEventListener("DOMContentLoaded", () => {
     document.body.appendChild(rail);
 
-    // Active state
-    const here = location.pathname.replace(/\/+$/,'');
+    // Active state - handle both root and subdirectory paths
+    const currentPath = location.pathname;
+    const currentFile = currentPath.split('/').pop() || 'index.html';
+    
     rail.querySelectorAll("a[href]").forEach(a => {
-      const href = a.getAttribute("href").replace(/\/+$/,'');
-      if (href && (here.endsWith(href) || (href === "/index.html" && (!here || here === "/")))) {
+      const href = a.getAttribute("href");
+      const hrefFile = href.split('/').pop();
+      
+      // Match if:
+      // 1. Exact path match
+      // 2. Filename matches (for subdirectory pages)
+      // 3. Home page special case
+      if (currentPath === href || 
+          currentFile === hrefFile ||
+          (href === "/index.html" && (currentPath === "/" || currentPath === "" || currentFile === "index.html"))) {
         a.classList.add("active");
       }
     });
