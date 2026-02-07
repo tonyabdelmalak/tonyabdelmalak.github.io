@@ -22,7 +22,7 @@
     greeting:
       "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
     maxHistory: 16,
-    avatarUrl: "/assets/img/tony-chat-avatar.jpg",
+    avatarUrl: "/assets/img/tony-chat-avatar-new.jpg",
     persistHistory: false,
     storageKey: "tony-cw-history",
     typingDelayMs: 0,
@@ -157,7 +157,6 @@
     hdr.className = "cw-header";
     hdr.innerHTML =
       `<div class="cw-head" style="display: flex; align-items: center; gap: 12px;">
-         <img src="${CFG.avatarUrl}" alt="Tony" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cw-accent, #2f3a4f);" />
          <div>
            <div class="cw-title">${esc(CFG.title)}</div>
            ${CFG.subtitle ? `<div class="cw-subtitle">${esc(CFG.subtitle)}</div>` : ""}

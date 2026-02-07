@@ -18,6 +18,20 @@
     about: 'https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/knowledge/about-tony.md'
   };
 
+  // Additional article sources for variety
+  const ARTICLE_TOPICS = [
+    'predictive analytics in workforce planning',
+    'AI-driven talent optimization',
+    'employee retention strategies using data',
+    'diversity and inclusion metrics',
+    'people analytics best practices',
+    'HR dashboard design and visualization',
+    'machine learning for recruitment',
+    'employee engagement measurement',
+    'workforce forecasting techniques',
+    'data storytelling in HR'
+  ];
+
   // Default fallback articles
   const DEFAULT_ARTICLES = [
     {
@@ -128,11 +142,20 @@ ${kb.caseStudies}
 ${kb.about}
 `;
 
+      // Generate random seed for variety
+      const timestamp = Date.now();
+      const randomTopic = ARTICLE_TOPICS[Math.floor(Math.random() * ARTICLE_TOPICS.length)];
+      const randomYear = 2024 + Math.floor(Math.random() * 3); // 2024-2026
+
       const prompt = `You are an AI assistant helping curate relevant articles for Tony Abdelmalak's portfolio insights section.
 
 ${contextPrompt}
 
-Based on Tony's expertise and the projects/case studies above, recommend 3 recent, high-quality articles (from 2024-2026) that would be valuable to his audience. Focus on:
+Based on Tony's expertise and the projects/case studies above, recommend 3 DIFFERENT recent, high-quality articles (from ${randomYear}-2026) that would be valuable to his audience.
+
+FOCUS THIS TIME ON: ${randomTopic}
+
+Also consider these areas:
 - Predictive analytics and workforce planning
 - AI in HR and talent optimization
 - Data visualization and storytelling
@@ -143,7 +166,13 @@ Based on Tony's expertise and the projects/case studies above, recommend 3 recen
 For each article, provide:
 1. Title (concise, professional)
 2. Brief description (1-2 sentences, focus on practical value and how it relates to Tony's work)
-3. URL (real, accessible article from reputable sources like Harvard Business Review, McKinsey, Gartner, SHRM, LinkedIn, Forbes, MIT Sloan, etc.)
+3. URL (real, accessible article from reputable sources like Harvard Business Review, McKinsey, Gartner, SHRM, LinkedIn, Forbes, MIT Sloan, Deloitte, PwC, BCG, etc.)
+
+IMPORTANT: 
+- Each refresh should return DIFFERENT articles (use timestamp seed: ${timestamp})
+- Vary the sources and topics
+- Focus on practical, actionable insights
+- Ensure URLs are real and accessible
 
 Format your response as a JSON array with this structure:
 [
@@ -168,7 +197,7 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
           messages: [
             { role: 'user', content: prompt }
           ],
-          temperature: 0.7,
+          temperature: 0.9, // Higher temperature for more variety
           model: 'llama-3.1-8b-instant',
           stream: false
         })
