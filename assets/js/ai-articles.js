@@ -1,6 +1,6 @@
 /**
  * AI-Powered Rotating Articles
- * Fetches fresh article recommendations weekly using Groq AI
+ * Fetches fresh article recommendations using Groq AI with knowledge base context
  * Tony Abdelmalak Portfolio - 2026
  */
 
@@ -10,6 +10,13 @@
   const CHAT_API_URL = 'https://my-chat-agent.tonyabdelmalak.workers.dev/chat';
   const STORAGE_KEY = 'ai_articles_cache';
   const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+
+  // Knowledge base sources for context
+  const KNOWLEDGE_SOURCES = {
+    projects: 'https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/knowledge/projects.md',
+    caseStudies: 'https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/knowledge/case-studies.md',
+    about: 'https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/knowledge/about-tony.md'
+  };
 
   // Default fallback articles
   const DEFAULT_ARTICLES = [
@@ -29,6 +36,28 @@
       url: 'https://x0pa.com/blog/2025-guide-to-predictive-analytics-in-recruitment/'
     }
   ];
+
+  /**
+   * Fetch knowledge base content for context
+   */
+  async function fetchKnowledgeBase() {
+    try {
+      const [projects, caseStudies, about] = await Promise.all([
+        fetch(KNOWLEDGE_SOURCES.projects).then(r => r.ok ? r.text() : ''),
+        fetch(KNOWLEDGE_SOURCES.caseStudies).then(r => r.ok ? r.text() : ''),
+        fetch(KNOWLEDGE_SOURCES.about).then(r => r.ok ? r.text() : '')
+      ]);
+
+      return {
+        projects: projects.slice(0, 3000), // Limit size
+        caseStudies: caseStudies.slice(0, 3000),
+        about: about.slice(0, 2000)
+      };
+    } catch (error) {
+      console.error('Error fetching knowledge base:', error);
+      return { projects: '', caseStudies: '', about: '' };
+    }
+  }
 
   /**
    * Check if cached articles are still valid
@@ -79,35 +108,55 @@
   }
 
   /**
-   * Fetch fresh articles from AI
+   * Fetch fresh articles from AI with knowledge base context
    */
   async function fetchAIArticles() {
     try {
-      const prompt = `You are an AI assistant helping curate relevant articles for Tony Abdelmalak's portfolio. 
+      console.log('Fetching knowledge base for context...');
+      const kb = await fetchKnowledgeBase();
 
-Tony is an AI-Driven People & Business Insights Analyst specializing in:
+      const contextPrompt = `
+RELEVANT CONTEXT FROM TONY'S PORTFOLIO:
+
+## Projects:
+${kb.projects}
+
+## Case Studies:
+${kb.caseStudies}
+
+## About Tony:
+${kb.about}
+`;
+
+      const prompt = `You are an AI assistant helping curate relevant articles for Tony Abdelmalak's portfolio insights section.
+
+${contextPrompt}
+
+Based on Tony's expertise and the projects/case studies above, recommend 3 recent, high-quality articles (from 2024-2026) that would be valuable to his audience. Focus on:
 - Predictive analytics and workforce planning
 - AI in HR and talent optimization
 - Data visualization and storytelling
 - Employee engagement and retention
 - Diversity, equity, and inclusion
+- People analytics best practices
 
-Please recommend 3 recent, high-quality articles (from 2024-2026) related to these topics. For each article, provide:
+For each article, provide:
 1. Title (concise, professional)
-2. Brief description (1-2 sentences, focus on practical value)
-3. URL (real, accessible article from reputable sources like Harvard Business Review, McKinsey, Gartner, LinkedIn, Forbes, etc.)
+2. Brief description (1-2 sentences, focus on practical value and how it relates to Tony's work)
+3. URL (real, accessible article from reputable sources like Harvard Business Review, McKinsey, Gartner, SHRM, LinkedIn, Forbes, MIT Sloan, etc.)
 
 Format your response as a JSON array with this structure:
 [
   {
     "title": "Article Title",
-    "description": "Brief description",
+    "description": "Brief description relating to Tony's expertise",
     "url": "https://..."
   }
 ]
 
 IMPORTANT: Return ONLY the JSON array, no additional text.`;
 
+      console.log('Requesting AI article recommendations...');
       const response = await fetch(CHAT_API_URL, {
         method: 'POST',
         headers: {
@@ -115,7 +164,9 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
         },
         body: JSON.stringify({
           message: prompt,
-          conversationHistory: []
+          conversationHistory: [],
+          temperature: 0.7,
+          model: 'llama-3.1-8b-instant'
         })
       });
 
@@ -124,13 +175,15 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
       }
 
       const data = await response.json();
-      const content = data.response || data.message || '';
+      const content = data.content || data.response || data.message || '';
+      console.log('AI response received:', content.slice(0, 200));
 
       // Try to parse JSON from the response
       const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
       if (jsonMatch) {
         const articles = JSON.parse(jsonMatch[0]);
         if (Array.isArray(articles) && articles.length > 0) {
+          console.log('Successfully parsed', articles.length, 'articles');
           return articles.slice(0, 3); // Ensure max 3 articles
         }
       }
@@ -180,9 +233,9 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
   /**
    * Initialize AI articles
    */
-  async function init() {
-    // Check if cache is valid
-    if (isCacheValid()) {
+  async function init(forceRefresh = false) {
+    // Check if cache is valid (unless forcing refresh)
+    if (!forceRefresh && isCacheValid()) {
       const cached = getCachedArticles();
       if (cached) {
         console.log('Using cached articles');
@@ -207,9 +260,9 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
 
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => init(false));
   } else {
-    init();
+    init(false);
   }
 
   // Expose refresh function globally for manual refresh
@@ -221,8 +274,9 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
       btn.style.opacity = '0.7';
     }
     
+    console.log('Manual refresh triggered - clearing cache and fetching new articles');
     localStorage.removeItem(STORAGE_KEY);
-    await init();
+    await init(true); // Force refresh
     
     if (btn) {
       btn.innerHTML = '<i class="fas fa-check"></i><span>Refreshed!</span>';
@@ -239,7 +293,10 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
   document.addEventListener('DOMContentLoaded', () => {
     const refreshBtn = document.getElementById('refresh-articles');
     if (refreshBtn) {
+      console.log('Refresh button found, attaching click handler');
       refreshBtn.addEventListener('click', window.refreshAIArticles);
+    } else {
+      console.warn('Refresh button not found in DOM');
     }
   });
 
