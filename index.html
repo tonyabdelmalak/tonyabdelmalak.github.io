@@ -68,6 +68,19 @@ case-study
       background-color: #fff;
       color: var(--primary-color);
     }
+    .navbar-logo {
+      height: 40px;
+      width: auto;
+      transition: transform 0.3s ease;
+    }
+    .navbar-logo:hover {
+      transform: scale(1.05);
+    }
+    @media (max-width: 768px) {
+      .navbar-logo {
+        height: 32px;
+      }
+    }
 
     /* Hero */
     #hero {
@@ -388,7 +401,9 @@ font-weight: 600;
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
     <div class="container">
-      <a class="navbar-brand" href="#hero">Tony Abdelmalak</a>
+      <a class="navbar-brand" href="#hero">
+        <img src="assets/img/logo.png" alt="Tony Abdelmalak" class="navbar-logo">
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
               data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
               aria-expanded="false" aria-label="Toggle navigation">
