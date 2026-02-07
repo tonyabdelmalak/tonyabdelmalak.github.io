@@ -809,13 +809,22 @@ font-weight: 600;
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.umd.js"></script>
   <script>
     AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
-    const typedStrings = document.querySelector('.typed').getAttribute('data-typed-items').split(';');
-    const typed = new Typed('.typed', {
-      strings: typedStrings,
-      typeSpeed: 40,
-      backSpeed: 30,
-      backDelay: 2000,
-      loop: true
+    
+    // Wait for Typed.js to load before initializing
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Typed !== 'undefined') {
+        const typedElement = document.querySelector('.typed');
+        if (typedElement) {
+          const typedStrings = typedElement.getAttribute('data-typed-items').split(';');
+          const typed = new Typed('.typed', {
+            strings: typedStrings,
+            typeSpeed: 40,
+            backSpeed: 30,
+            backDelay: 2000,
+            loop: true
+          });
+        }
+      }
     });
   </script>
 
