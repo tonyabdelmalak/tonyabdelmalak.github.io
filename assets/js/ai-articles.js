@@ -165,10 +165,12 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: prompt,
-          conversationHistory: [],
+          messages: [
+            { role: 'user', content: prompt }
+          ],
           temperature: 0.7,
-          model: 'llama-3.1-8b-instant'
+          model: 'llama-3.1-8b-instant',
+          stream: false
         })
       });
 
