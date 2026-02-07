@@ -214,14 +214,20 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i><span>Refreshing...</span>';
+      btn.style.opacity = '0.7';
     }
     
     localStorage.removeItem(STORAGE_KEY);
     await init();
     
     if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh</span>';
+      btn.innerHTML = '<i class="fas fa-check"></i><span>Refreshed!</span>';
+      btn.style.opacity = '1';
+      
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh Articles</span>';
+      }, 2000);
     }
   };
   
