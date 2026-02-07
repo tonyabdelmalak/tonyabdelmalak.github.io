@@ -4,6 +4,83 @@
    Premium, Modern, Innovative
    ============================================ */
 
+/* Global Font Override - Poppins */
+* {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
+/* ============================================
+   TOP NAVBAR - NAVY BACKGROUND WITH WHITE TEXT
+   ============================================ */
+.navbar {
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 0;
+}
+
+.navbar-brand {
+  color: white !important;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.navbar-brand:hover {
+  color: var(--accent-light) !important;
+}
+
+.navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500;
+  padding: 0.5rem 1rem !important;
+  transition: all var(--transition-base);
+  position: relative;
+}
+
+.navbar .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--accent-primary);
+  transition: width var(--transition-base);
+}
+
+.navbar .nav-link:hover {
+  color: white !important;
+}
+
+.navbar .nav-link:hover::after {
+  width: 80%;
+}
+
+.navbar .btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-light));
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.navbar .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+}
+
+.navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
 /* ============================================
    1. DESIGN TOKENS & VARIABLES
    ============================================ */
@@ -498,16 +575,16 @@
 
 .certifications-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--space-xl);
-  margin-top: var(--space-2xl);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
 }
 
 .certification-card {
   background: white;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2xl);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-xl);
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
@@ -539,14 +616,14 @@
 }
 
 .certification-icon {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-light));
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
   transition: all var(--transition-base);
 }
@@ -557,43 +634,45 @@
 }
 
 .certification-icon i {
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: white;
 }
 
 .certification-card h3 {
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 1.125rem;
+  font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  line-height: 1.4;
 }
 
 .certification-issuer {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: var(--accent-primary);
   font-weight: 600;
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-xs);
 }
 
 .certification-date {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--text-tertiary);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .certification-skills {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 .skill-badge {
-  padding: var(--space-xs) var(--space-md);
+  padding: 0.25rem 0.625rem;
   background: rgba(6, 182, 212, 0.1);
   color: var(--accent-hover);
   border-radius: var(--radius-full);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
   border: 1px solid rgba(6, 182, 212, 0.2);
   transition: all var(--transition-fast);
@@ -608,12 +687,12 @@
 .certification-link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
   color: var(--accent-primary);
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   text-decoration: none;
-  margin-top: var(--space-lg);
+  margin-top: var(--space-sm);
   transition: all var(--transition-base);
 }
 
