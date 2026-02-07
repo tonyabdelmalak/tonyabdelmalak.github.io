@@ -31,5 +31,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          wrangler deploy --config wrangler.toml
-          wrangler secret put GROQ_API_KEY --config wrangler.toml <<< "${{ secrets.GROQ_API_KEY }}"
+          cd chat-widget
+          wrangler deploy
+
+      - name: Set GROQ_API_KEY secret
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          cd chat-widget
+          echo "${{ secrets.GROQ_API_KEY }}" | wrangler secret put GROQ_API_KEY

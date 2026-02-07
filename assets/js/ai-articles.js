@@ -147,8 +147,12 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
    */
   function renderArticles(articles) {
     const track = document.getElementById('insights-track');
-    if (!track) return;
+    if (!track) {
+      console.error('insights-track element not found');
+      return;
+    }
 
+    console.log('Rendering articles:', articles);
     track.innerHTML = articles.map(article => `
       <div class="carousel-card">
         <h4>${escapeHtml(article.title)}</h4>
