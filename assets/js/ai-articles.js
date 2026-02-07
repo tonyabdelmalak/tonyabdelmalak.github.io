@@ -156,7 +156,9 @@ Format your response as a JSON array with this structure:
 
 IMPORTANT: Return ONLY the JSON array, no additional text.`;
 
-      console.log('Requesting AI article recommendations...');
+      console.log('Requesting AI article recommendations from:', CHAT_API_URL);
+      console.log('Prompt length:', prompt.length, 'characters');
+      
       const response = await fetch(CHAT_API_URL, {
         method: 'POST',
         headers: {
@@ -170,13 +172,18 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
         })
       });
 
+      console.log('Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API error response:', errorText);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Full API response:', data);
       const content = data.content || data.response || data.message || '';
-      console.log('AI response received:', content.slice(0, 200));
+      console.log('AI response content (first 500 chars):', content.slice(0, 500));
 
       // Try to parse JSON from the response
       const jsonMatch = content.match(/\[\s*\{[\s\S]*\}\s*\]/);
@@ -234,26 +241,32 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
    * Initialize AI articles
    */
   async function init(forceRefresh = false) {
+    console.log(`Init called with forceRefresh=${forceRefresh}`);
+    
     // Check if cache is valid (unless forcing refresh)
     if (!forceRefresh && isCacheValid()) {
       const cached = getCachedArticles();
       if (cached) {
-        console.log('Using cached articles');
+        console.log('Using cached articles:', cached.length, 'articles');
         renderArticles(cached);
         return;
       }
+    }
+
+    if (forceRefresh) {
+      console.log('Force refresh enabled - bypassing cache');
     }
 
     // Try to fetch fresh articles
     console.log('Fetching fresh articles from AI...');
     const aiArticles = await fetchAIArticles();
 
-    if (aiArticles) {
-      console.log('Successfully fetched AI articles');
+    if (aiArticles && aiArticles.length > 0) {
+      console.log('Successfully fetched', aiArticles.length, 'AI articles:', aiArticles);
       cacheArticles(aiArticles);
       renderArticles(aiArticles);
     } else {
-      console.log('Using default fallback articles');
+      console.warn('AI fetch failed or returned no articles. Using default fallback articles');
       renderArticles(DEFAULT_ARTICLES);
     }
   }
@@ -267,26 +280,40 @@ IMPORTANT: Return ONLY the JSON array, no additional text.`;
 
   // Expose refresh function globally for manual refresh
   window.refreshAIArticles = async function() {
+    console.log('=== REFRESH BUTTON CLICKED ===');
     const btn = document.getElementById('refresh-articles');
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i><span>Refreshing...</span>';
       btn.style.opacity = '0.7';
+      console.log('Button UI updated to loading state');
+    } else {
+      console.error('Refresh button not found!');
     }
     
-    console.log('Manual refresh triggered - clearing cache and fetching new articles');
+    console.log('Clearing cache...');
     localStorage.removeItem(STORAGE_KEY);
-    await init(true); // Force refresh
+    console.log('Cache cleared. Fetching new articles...');
+    
+    try {
+      await init(true); // Force refresh
+      console.log('Init completed successfully');
+    } catch (error) {
+      console.error('Error during init:', error);
+    }
     
     if (btn) {
       btn.innerHTML = '<i class="fas fa-check"></i><span>Refreshed!</span>';
       btn.style.opacity = '1';
+      console.log('Button UI updated to success state');
       
       setTimeout(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-sync-alt"></i><span>Refresh Articles</span>';
+        console.log('Button UI reset to initial state');
       }, 2000);
     }
+    console.log('=== REFRESH COMPLETE ===');
   };
   
   // Wire up refresh button
