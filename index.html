@@ -222,11 +222,25 @@
       .skill-item { flex: 0 1 60px !important; }
       .skills-grid { gap: 15px !important; }
     }
-    /* Extra small mobile */
+    /* Extra small mobile - UPDATED FEB 8 2026 */
     @media (max-width: 480px) {
       .skill-icon { font-size: 20px !important; }
       .skill-item { flex: 0 1 50px !important; }
       .skills-grid { gap: 12px !important; }
+    }
+    /* Debug indicator - remove after verification */
+    @media (max-width: 480px) {
+      .skills-grid::before {
+        content: "Mobile CSS Active (20px icons)";
+        display: block;
+        background: #10b981;
+        color: white;
+        padding: 8px;
+        text-align: center;
+        font-size: 12px;
+        border-radius: 4px;
+        margin-bottom: 16px;
+      }
     }
 
     /* Certifications */
