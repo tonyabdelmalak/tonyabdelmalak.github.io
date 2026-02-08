@@ -37,7 +37,7 @@
     {
       title: 'Ethical AI in HR: Challenges, Risks, and Best Practices',
       description: 'Explore ethical considerations when using AI for workforce decisions and learn strategies to promote fairness and transparency.',
-      url: 'https://www.tmi.org/blogs/ethical-ai-in-hr-challenges-risks-and-best-practices'
+      url: 'https://www.shrm.org/topics-tools/news/technology/how-ai-transforming-hr'
     },
     {
       title: 'Employee Engagement Trends Report 2025',

@@ -8,14 +8,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tony Abdelmalak | AI‑Driven People & Business Insights Analyst</title>
 
-case-study
   <!-- External CSS and fonts -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6.5.1 - Multiple CDN fallbacks for reliability -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- Fallback: jsDelivr CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
+  <!-- Fallback: unpkg CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
+  <!-- Bootstrap Icons as ultimate fallback -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+  <!-- Modern Design Enhancements -->
+  <link rel="stylesheet" href="assets/css/modern-enhancements.css">
+  
+  <!-- Enterprise-Grade Design System -->
+  <link rel="stylesheet" href="assets/css/enterprise-design.css?v=2026-02-07">
 
   <!-- Custom styles -->
   <style>
@@ -34,20 +46,21 @@ case-study
     }
 
     /* Navbar */
-    /* Updated navbar to use a dark gradient similar to the reference site */
+    /* Navy blue navbar matching key results section */
     .navbar {
-      background: linear-gradient(90deg, #001e42, #003974);
+      background: #001e42;
       
     }
     .navbar-brand {
       color: #fff;
-      font-weight: 500; /* unbold the name */
-      font-size: 1.4rem; /* reduce brand size further for cleaner look */
+      font-weight: 600;
+      font-size: 1.35rem; /* 21.6px - 20% larger for better visibility */
     }
     .navbar-nav .nav-link {
       color: #fff;
-      font-weight: 500;
-      margin: 0 1.75rem; /* spread out midsection links for better spacing without overly wide gaps */
+      font-weight: 400;
+      font-size: 0.9375rem; /* 15px - clean and professional */
+      margin: 0 1rem;
     }
     .navbar-nav .nav-link:hover { color: var(--accent-color); }
     .navbar .btn-primary {
@@ -55,7 +68,10 @@ case-study
       border-color: var(--accent-color);
       color: #fff;
       margin-left: 0.5rem;
-      white-space: nowrap; /* keep "Download Resume" on one line */
+      white-space: nowrap;
+      font-size: 0.875rem; /* 14px - less prominent */
+      padding: 0.375rem 0.875rem; /* smaller padding */
+      font-weight: 500;
     }
     .navbar .btn-outline-light {
       border-color: #fff;
@@ -194,19 +210,57 @@ case-study
     }
     .project-card .btn:hover { background-color: #0e9880; }
 
-    /* Skills icons */
+    /* Skills icons with animations */
     .skills-grid {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
     }
-    .skill-item { text-align: center; flex: 0 1 120px; }
-    .skill-icon {
-      font-size: 36px;
-      color: var(--primary-color);
-      margin-bottom: 10px;
+    .skill-item {
+      text-align: center;
+      flex: 0 1 120px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
     }
+    .skill-item:hover {
+      transform: translateY(-8px);
+    }
+    .skill-icon {
+      font-size: 40px;
+      color: #06b6d4;
+      margin-bottom: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-block;
+    }
+    .skill-item:hover .skill-icon {
+      color: #0891b2;
+      transform: scale(1.15) rotate(5deg);
+      filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.4));
+    }
+    .skill-item > div:last-child {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+      transition: color 0.3s ease;
+    }
+    .skill-item:hover > div:last-child {
+      color: #06b6d4;
+      font-weight: 600;
+    }
+    /* Mobile: Significantly reduce icon size */
+    @media (max-width: 768px) {
+      .skill-icon { font-size: 24px !important; }
+      .skill-item { flex: 0 1 60px !important; }
+      .skills-grid { gap: 15px !important; }
+    }
+    /* Extra small mobile - UPDATED FEB 8 2026 */
+    @media (max-width: 480px) {
+      .skill-icon { font-size: 20px !important; }
+      .skill-item { flex: 0 1 50px !important; }
+      .skills-grid { gap: 12px !important; }
+    }
+    /* Debug indicator removed - CSS verified working */
 
     /* Certifications */
     .cert-list { list-style: none; padding: 0; }
@@ -378,6 +432,37 @@ font-weight: 600;
       right: 0;
     }
 
+    /* Collapse functionality for cards */
+    .card-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .card-details.show {
+      max-height: 500px;
+      transition: max-height 0.4s ease-in;
+    }
+    .expand-btn {
+      cursor: pointer;
+      color: var(--accent-color);
+      font-weight: 600;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      transition: all 0.2s;
+    }
+    .expand-btn:hover {
+      color: var(--primary-color);
+    }
+    .expand-btn i {
+      transition: transform 0.3s;
+    }
+    .expand-btn.expanded i {
+      transform: rotate(180deg);
+    }
+
   </style>
 </head>
 <body>
@@ -398,6 +483,7 @@ font-weight: 600;
           <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
           <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
           <li class="nav-item"><a class="nav-link" href="#certifications">Certifications</a></li>
+          <li class="nav-item"><a class="nav-link" href="http://linkedin.com/in/tony-abdelmalak" target="_blank">LinkedIn</a></li>
         </ul>
         <div class="d-flex">
           <a href="assets/img/portfolio/TONY_ABDELMALAK_RESUME.pdf" class="btn btn-primary" target="_blank">Download Resume</a>
@@ -411,9 +497,15 @@ font-weight: 600;
     <div class="hero-content">
       <h1 data-aos="fade-up" data-aos-delay="100" class="mb-3">AI‑Driven People & Business Insights Analyst</h1>
       <p data-aos="fade-up" data-aos-delay="200" class="lead">Turning workforce data into executive‑ready strategies through predictive analytics, AI, and storytelling.</p>
-      <div data-aos="fade-up" data-aos-delay="300">
-        <a href="#projects" class="btn btn-cta me-2">Portfolio Projects &amp; Case Study</a>
-        <a href="mailto:tony.abdelmalak@yahoo.com" class="btn btn-outline-light">Contact Me</a>
+      <div class="hero-cta" data-aos="fade-up" data-aos-delay="300">
+        <a href="#projects" class="btn-hero-primary">
+          <span>View Portfolio</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
+        <a href="mailto:tony.abdelmalak@yahoo.com" class="btn-hero-secondary">
+          <i class="fas fa-envelope"></i>
+          <span>Get In Touch</span>
+        </a>
       </div>
       <p data-aos="fade-up" data-aos-delay="400" class="mt-4">
         <span class="typed"
@@ -483,51 +575,98 @@ font-weight: 600;
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Yearly Turnover Rate Analysis</h4>
-            <p><strong>Problem:</strong> Understand long‑term turnover trends and retention challenges.<br><strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br><strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
-            <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Understand long‑term turnover trends and retention challenges.<br><strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br><strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
+              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Workforce Analytics Overview</h4>
-            <p><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into a Tableau dashboard with interactive filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
-            <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into a Tableau dashboard with interactive filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
+              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-3.jpg" alt="Workforce Dynamics Deep Dive" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Workforce Dynamics Deep Dive</h4>
-            <p><strong>Problem:</strong> Identify drivers of attrition and productivity variations across departments.<br><strong>Approach:</strong> Integrated survey, hiring and productivity data to uncover correlations and trends.<br><strong>Impact:</strong> Supported evidence‑based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
-            <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Identify drivers of attrition and productivity variations across departments.<br><strong>Approach:</strong> Integrated survey, hiring and productivity data to uncover correlations and trends.<br><strong>Impact:</strong> Supported evidence‑based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
+              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-4.jpg" alt="Recruitment Funnel Optimization" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            
             <h4>Recruitment Funnel Optimization</h4>
-            <p><strong>Problem:</strong> Inefficient conversion at various stages of the recruitment funnel led to missed hiring targets and candidate drop‑off.<br><strong>Approach:</strong> Mapped the end‑to‑end recruitment pipeline—from applications to offers—tracking conversion rates at each stage by role, source and location.<br><strong>Impact:</strong> Revealed that most candidates dropped off after initial screening, prompting streamlined screening processes and improved candidate engagement.</p>
-            <a href="recruitment-funnel.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Inefficient conversion at various stages of the recruitment funnel led to missed hiring targets and candidate drop‑off.<br><strong>Approach:</strong> Mapped the end‑to‑end recruitment pipeline—from applications to offers—tracking conversion rates at each stage by role, source and location.<br><strong>Impact:</strong> Revealed that most candidates dropped off after initial screening, prompting streamlined screening processes and improved candidate engagement.</p>
+              <a href="recruitment-funnel.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-8%203.jpg" alt="Diversity Metrics Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Diversity Metrics Dashboard</h4>
-            <p><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into an interactive dashboard with filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
-            <a href="diversity-metrics.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into an interactive dashboard with filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
+              <a href="diversity-metrics.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Workforce Forecasting</h4>
-            <p><strong>Problem:</strong> Inaccurate headcount forecasting caused staffing shortages during peak demand and excess labour during slow periods.<br><strong>Approach:</strong> Built a forecasting model using historical headcount, turnover and hiring data, with adjustable assumptions for growth and attrition. Provided scenario‑based projections over 3, 6 and 12 months.<br><strong>Impact:</strong> Delivered more reliable workforce projections that improved budgeting and capacity planning accuracy by 25%.</p>
-            <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Inaccurate headcount forecasting caused staffing shortages during peak demand and excess labour during slow periods.<br><strong>Approach:</strong> Built a forecasting model using historical headcount, turnover and hiring data, with adjustable assumptions for growth and attrition. Provided scenario‑based projections over 3, 6 and 12 months.<br><strong>Impact:</strong> Delivered more reliable workforce projections that improved budgeting and capacity planning accuracy by 25%.</p>
+              <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-7.jpg" alt="Workforce Forecast Preview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>Workforce Forecast Preview</h4>
-            <p><strong>Problem:</strong> Stakeholders needed an at‑a‑glance summary of future workforce trends without diving into detailed modelling dashboards.<br><strong>Approach:</strong> Created a simplified preview dashboard that highlights projected headcount, anticipated hiring needs and attrition rates.<br><strong>Impact:</strong> Offered executives a quick, intuitive snapshot of workforce projections.</p>
-            <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Stakeholders needed an at‑a‑glance summary of future workforce trends without diving into detailed modelling dashboards.<br><strong>Approach:</strong> Created a simplified preview dashboard that highlights projected headcount, anticipated hiring needs and attrition rates.<br><strong>Impact:</strong> Offered executives a quick, intuitive snapshot of workforce projections.</p>
+              <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <img src="assets/img/portfolio/dashboard-9.jpg" alt="HR Attrition Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
             <h4>HR Attrition Dashboard</h4>
-            <p><strong>Problem:</strong> High employee turnover was impacting team stability and increasing training costs.<br><strong>Approach:</strong> Analyzed HR data to uncover attrition drivers and create interactive visualizations.<br><strong>Impact:</strong> Provided actionable insights to reduce attrition and improve employee engagement.</p>
-            <a href="hr_attrition_dashboard_lite.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> High employee turnover was impacting team stability and increasing training costs.<br><strong>Approach:</strong> Analyzed HR data to uncover attrition drivers and create interactive visualizations.<br><strong>Impact:</strong> Provided actionable insights to reduce attrition and improve employee engagement.</p>
+              <a href="hr_attrition_dashboard_lite.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
+            </div>
           </div>
         </div>
       </div>
@@ -535,29 +674,29 @@ font-weight: 600;
     </div>
   </section>
 
-  <!-- Insights & Articles Section -->
+  <!-- Insights & Articles Section - AI-Powered -->
   <section id="insights" class="py-5">
     <div class="container">
-      <h2 class="section-title">Insights &amp; Articles</h2>
-      <p>Thought leadership and practical tips on AI analytics, HR and more.</p>
+      <div class="d-flex align-items-center mb-3" style="gap: 1rem;">
+        <h2 class="section-title mb-0">Insights &amp; Articles</h2>
+        <button id="refresh-articles" class="btn btn-sm d-flex align-items-center gap-2" style="white-space: nowrap; background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; border: none; border-radius: 50px; padding: 0.5rem 1.25rem; font-weight: 600; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); transition: all 0.25s ease;">
+          <i class="fas fa-sync-alt"></i>
+          <span>Refresh Articles</span>
+        </button>
+      </div>
+      <p class="mb-3">AI-curated thought leadership on analytics, HR, and workforce strategy.</p>
       <div class="carousel-container">
         <button class="carousel-arrow left" id="insights-prev" aria-label="Scroll left">&#8249;</button>
         <button class="carousel-arrow right" id="insights-next" aria-label="Scroll right">&#8250;</button>
         <div class="carousel-track" id="insights-track">
+          <!-- Articles will be dynamically loaded by AI -->
           <div class="carousel-card">
-            <h4>Ethical AI in HR: Challenges, Risks, and Best Practices</h4>
-            <p>Explore ethical considerations when using AI for workforce decisions and learn strategies to promote fairness and transparency.</p>
-            <a href="https://www.tmi.org/blogs/ethical-ai-in-hr-challenges-risks-and-best-practices" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
-          </div>
-          <div class="carousel-card">
-            <h4>Employee Engagement Trends Report 2025: McLean & Company Publishes New Research on Shifts Shaping the Workplace</h4>
-            <p>Discover how data‑driven insights can help boost engagement, retention and well‑being across your organisation.</p>
-            <a href="https://www.prnewswire.com/news-releases/employee-engagement-trends-report-2025-mclean--company-publishes-new-research-on-shifts-shaping-the-workplace-302411049.html" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
-          </div>
-          <div class="carousel-card">
-            <h4>2025 Guide to Predictive Analytics in Recruitment</h4>
-            <p>Learn how to apply predictive models to optimise hiring funnels, reduce time‑to‑fill and improve candidate quality.</p>
-            <a href="https://x0pa.com/blog/2025-guide-to-predictive-analytics-in-recruitment/" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Read More</a>
+            <div class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading articles...</span>
+              </div>
+              <p class="mt-3 text-muted">Loading fresh insights...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -576,87 +715,136 @@ font-weight: 600;
         <div class="carousel-track" id="ai-track">
           <div class="carousel-card">
             <h4>Intent Distribution</h4>
-            <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.<br><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.<br><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer‑support resources.</p>
-            <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Analyze customer interaction patterns and coverage gaps</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.<br><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.<br><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer‑support resources.</p>
+              <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Resolution Rate</h4>
-            <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.<br><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.<br><strong>Impact:</strong> Highlighted low‑performing intents, enabling targeted improvements to conversational flows and intent models.</p>
-            <a href="interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Track AI system effectiveness across different intents</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.<br><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.<br><strong>Impact:</strong> Highlighted low‑performing intents, enabling targeted improvements to conversational flows and intent models.</p>
+              <a href="interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Customer Satisfaction</h4>
-            <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.<br><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.<br><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
-            <a href="interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Measure satisfaction scores across intent categories</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.<br><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.<br><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
+              <a href="interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Model Performance</h4>
-            <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.<br><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.<br><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
-            <a href="interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Monitor precision, recall, and F1 scores over time</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.<br><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.<br><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
+              <a href="interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Predict Employee Attrition</h4>
-            <p>Explore an improved dashboard that visualises attrition risk by department, overtime status and key drivers. Filter by department and discover the top factors influencing turnover.</p>
-            <a href="interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Visualize attrition risk by department and key drivers</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;">Explore an improved dashboard that visualises attrition risk by department, overtime status and key drivers. Filter by department and discover the top factors influencing turnover.</p>
+              <a href="interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Optimize Workforce Planning</h4>
-            <p>Interact with enhanced simulations to see how different attrition and hiring strategies impact headcount over time. Compare scenarios and review a polished workforce summary.</p>
-            <a href="interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Simulate attrition and hiring strategies impact</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;">Interact with enhanced simulations to see how different attrition and hiring strategies impact headcount over time. Compare scenarios and review a polished workforce summary.</p>
+              <a href="interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
           <div class="carousel-card">
             <h4>Engagement Impact</h4>
-            <p>Discover how engagement correlates with productivity and turnover across more departments. Filter and analyse trends, and uncover insights about your workforce.</p>
-            <a href="interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Correlate engagement with productivity and turnover</p>
+            <div class="expand-btn" onclick="toggleDetails(this)">
+              <span>Expand for Details</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="card-details">
+              <p style="margin-top: 0.75rem;">Discover how engagement correlates with productivity and turnover across more departments. Filter and analyse trends, and uncover insights about your workforce.</p>
+              <a href="interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </secction>
+  </section>
 
 <!-- Featured Case Studies Section -->
 <section id="featured-case-studies" class="py-5">
   <div class="container">
     <h2 class="section-title">Featured Case Studies</h2>
     <div class="row g-4">
+      
       <!-- Recruitment Funnel card -->
       <div class="col-md-4">
         <div class="case-study-card">
           <h3>Recruitment Funnel Analytics</h3>
-          <p>Discover how data‑driven funnel analytics cut time‑to‑hire by 24 % and boosted offer acceptance by 8 %.</p>
+          <p>Discover how data-driven funnel analytics cut time-to-hire by 24% and boosted offer acceptance by 8%.</p>
           <div class="cta-buttons">
-              <a href="interactive_cases_refined/recruitment_funnel_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
+            <a href="interactive_cases_refined/recruitment_funnel_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
             <a href="recruitment_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
+          </div>
+        </div>
       </div>
-      </div>
-  </div>
- 
-          <!-- AI‑Powered Attrition card -->
+
+      <!-- AI-Powered Attrition card -->
       <div class="col-md-4">
         <div class="case-study-card">
-          <h3>AI‑Powered Attrition Model</h3>
-          <p>Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28 %.</p>
+          <h3>AI-Powered Attrition Model</h3>
+          <p>Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28%.</p>
           <div class="cta-buttons">
             <a href="interactive_cases_refined/ai_attrition_model_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-                <a href="predictive_attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
+            <a href="predictive_attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
           </div>
         </div>
       </div>
-      <!-- 90‑Day Attrition card -->
+
+      <!-- 90-Day Attrition card -->
       <div class="col-md-4">
         <div class="case-study-card">
-          <h3>Reducing 90‑Day Attrition</h3>
+          <h3>Reducing 90-Day Attrition</h3>
           <p>See how predictive and prescriptive analytics can cut early attrition through targeted interventions.</p>
           <div class="cta-buttons">
-            <a <a href="interactive_cases_refined/ninety_day_attrition_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-                <a href="attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-            
+            <a href="interactive_cases_refined/ninety_day_attrition_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
+            <a href="attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
           </div>
         </div>
       </div>
-    </div
+
+    </div>
   </div>
 </section>
 
@@ -699,35 +887,35 @@ font-weight: 600;
       </div>
       <div class="skills-grid">
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-bar"></i></div>
+          <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
           <div>Tableau</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-table"></i></div>
+          <div class="skill-icon"><i class="bi bi-table"></i></div>
           <div>Power BI</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-database"></i></div>
+          <div class="skill-icon"><i class="bi bi-database-fill"></i></div>
           <div>SQL</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fab fa-python"></i></div>
+          <div class="skill-icon"><i class="bi bi-code-slash"></i></div>
           <div>Python</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-robot"></i></div>
+          <div class="skill-icon"><i class="bi bi-robot"></i></div>
           <div>AI Tools</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-users"></i></div>
+          <div class="skill-icon"><i class="bi bi-people-fill"></i></div>
           <div>HRIS (Workday)</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="skill-icon"><i class="bi bi-graph-up"></i></div>
           <div>Analytics</div>
         </div>
         <div class="skill-item">
-          <div class="skill-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="skill-icon"><i class="bi bi-pie-chart-fill"></i></div>
           <div>Data Visualization</div>
         </div>
       </div>
@@ -738,60 +926,178 @@ font-weight: 600;
   <section id="certifications">
     <div class="container" data-aos="fade-up">
       <div class="section-title">
-        <h2>Certifications</h2>
+        <h2>Professional Certifications</h2>
+        <p>Continuously advancing expertise in AI, analytics, and workforce strategy through industry-leading certifications.</p>
       </div>
-      <div class="row justify-content-center">
-        <div class="col-lg-12">
-          <div class="cert-category">AI & Analytics</div>
-          <ul class="cert-list">
-            <li><a href="assets/img/portfolio/certifications/applied-ai-for-human-resources.pdf" target="_blank">Applied AI for Human Resources (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/certifications/creating-interactive-tableau-dashboards.pdf" target="_blank">Creating Interactive Tableau Dashboards (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/certifications/using-generative-ai-ethically-at-work.pdf" target="_blank">Using Generative AI Ethically at Work (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/certifications/generative-ai-in-hr.pdf" target="_blank">Generative AI in HR (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/certifications/actionable-insights-business-data-in-practice.pdf" target="_blank">Actionable Insights and Business Data in Practice (LinkedIn Learning, 2025)</a></li>
-            <li><a href="assets/img/portfolio/RAG Certification.pdf" target="_blank">RAG Course for Beginners (Simplilearn SkillUp, 2025)</a></li>
-            <li><span>AI for HR: Workforce Planning & Talent Optimization (In Progress)</span></li>
-          </ul>
-          <div class="cert-category">HR & Leadership</div>
-          <ul class="cert-list">
-            <li><a href="assets/img/portfolio/certifications/effectively-leading-digital-transformation.pdf" target="_blank">Effectively Leading Digital Transformation (LinkedIn Learning, 2025)</a></li>
-            <li><span>Workday Reporting & HR Analytics (LinkedIn, 2021)</span></li>
-          </ul>
+      
+      <div class="certifications-grid">
+        <!-- Applied AI for HR -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="certification-icon">
+            <i class="bi bi-cpu"></i>
+          </div>
+          <h3>Applied AI for Human Resources</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">AI Strategy</span>
+            <span class="skill-badge">HR Tech</span>
+            <span class="skill-badge">Automation</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/applied-ai-for-human-resources.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- Tableau Dashboards -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="certification-icon">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <h3>Creating Interactive Tableau Dashboards</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Tableau</span>
+            <span class="skill-badge">Data Viz</span>
+            <span class="skill-badge">Analytics</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/creating-interactive-tableau-dashboards.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- Generative AI Ethics -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="certification-icon">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <h3>Using Generative AI Ethically at Work</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">AI Ethics</span>
+            <span class="skill-badge">Governance</span>
+            <span class="skill-badge">Compliance</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/using-generative-ai-ethically-at-work.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- Generative AI in HR -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="certification-icon">
+            <i class="bi bi-robot"></i>
+          </div>
+          <h3>Generative AI in HR</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Gen AI</span>
+            <span class="skill-badge">HR Innovation</span>
+            <span class="skill-badge">Transformation</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/generative-ai-in-hr.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- Business Data Insights -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="certification-icon">
+            <i class="bi bi-lightbulb"></i>
+          </div>
+          <h3>Actionable Insights & Business Data in Practice</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Data Analysis</span>
+            <span class="skill-badge">Insights</span>
+            <span class="skill-badge">Strategy</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/actionable-insights-business-data-in-practice.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- RAG Course -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="certification-icon">
+            <i class="bi bi-database-fill-gear"></i>
+          </div>
+          <h3>RAG Course for Beginners</h3>
+          <div class="certification-issuer">Simplilearn SkillUp</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">RAG</span>
+            <span class="skill-badge">LLMs</span>
+            <span class="skill-badge">AI Systems</span>
+          </div>
+          <a href="assets/img/portfolio/RAG Certification.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- Digital Transformation -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="certification-icon">
+            <i class="bi bi-rocket-takeoff"></i>
+          </div>
+          <h3>Effectively Leading Digital Transformation</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2025</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Leadership</span>
+            <span class="skill-badge">Change Mgmt</span>
+            <span class="skill-badge">Innovation</span>
+          </div>
+          <a href="assets/img/portfolio/certifications/effectively-leading-digital-transformation.pdf" target="_blank" class="certification-link">
+            <span>View Certificate</span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+
+        <!-- In Progress -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="200" style="border: 2px dashed var(--accent-primary); opacity: 0.9;">
+          <div class="certification-icon" style="background: linear-gradient(135deg, var(--navy-700), var(--navy-600));">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <h3>AI for HR: Workforce Planning & Talent Optimization</h3>
+          <div class="certification-issuer">In Progress</div>
+          <div class="certification-date">Expected 2026</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Workforce Planning</span>
+            <span class="skill-badge">Talent Strategy</span>
+            <span class="skill-badge">AI Optimization</span>
+          </div>
+        </div>
+
+        <!-- Workday Analytics -->
+        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="certification-icon">
+            <i class="fas fa-users-cog"></i>
+          </div>
+          <h3>Workday Reporting & HR Analytics</h3>
+          <div class="certification-issuer">LinkedIn Learning</div>
+          <div class="certification-date">2021</div>
+          <div class="certification-skills">
+            <span class="skill-badge">Workday</span>
+            <span class="skill-badge">HR Analytics</span>
+            <span class="skill-badge">Reporting</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Resume Section -->
-  <section id="resume-section">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Professional Resume</h2>
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-lg-8 text-center">
-          <p>For a detailed overview of my work experience and accomplishments, please download my resume.</p>
-          <a href="assets/img/portfolio/TONY_ABDELMALAK_RESUME.pdf" target="_blank" class="btn btn-primary">Download Resume</a>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- Contact Section -->
-  <section id="contact">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Contact</h2>
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-lg-6 text-center">
-          <p>If you'd like to discuss how I can bring AI‑driven workforce insights to your organization, please get in touch.</p>
-          <p>Email: <a href="mailto:tony.abdelmalak@yahoo.com">tony.abdelmalak@yahoo.com</a></p>
-          <p>LinkedIn: <a href="http://linkedin.com/in/tony-abdelmalak" target="_blank">View my profile</a></p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Footer -->
   <footer>
@@ -804,15 +1110,27 @@ font-weight: 600;
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.umd.js"></script>
+  
+  <!-- AI-Powered Articles -->
+  <script src="assets/js/ai-articles.js"></script>
   <script>
     AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
-    const typedStrings = document.querySelector('.typed').getAttribute('data-typed-items').split(';');
-    const typed = new Typed('.typed', {
-      strings: typedStrings,
-      typeSpeed: 40,
-      backSpeed: 30,
-      backDelay: 2000,
-      loop: true
+    
+    // Wait for Typed.js to load before initializing
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Typed !== 'undefined') {
+        const typedElement = document.querySelector('.typed');
+        if (typedElement) {
+          const typedStrings = typedElement.getAttribute('data-typed-items').split(';');
+          const typed = new Typed('.typed', {
+            strings: typedStrings,
+            typeSpeed: 40,
+            backSpeed: 30,
+            backDelay: 2000,
+            loop: true
+          });
+        }
+      }
     });
   </script>
 
@@ -832,65 +1150,56 @@ font-weight: 600;
       setupCarousel('ai-track', 'ai-prev', 'ai-next');
       setupCarousel('insights-track', 'insights-prev', 'insights-next');
     });
+
+    // Toggle card details
+    function toggleDetails(btn) {
+      const details = btn.nextElementSibling;
+      const isExpanded = details.classList.contains('show');
+      
+      if (isExpanded) {
+        details.classList.remove('show');
+        btn.classList.remove('expanded');
+        btn.querySelector('span').textContent = 'Expand for Details';
+      } else {
+        details.classList.add('show');
+        btn.classList.add('expanded');
+        btn.querySelector('span').textContent = 'Collapse Details';
+      }
+    }
   </script>
 
-  <!-- === Copilot widget (single source of truth) === -->
-<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=2" />
 
-<style>
-  /* Keep the launcher/panel above all site content */
-  .copilot-container,
-  .copilot-launch,
-  .copilot-panel {
-    z-index: 2147483647 !important; /* max-safe */
-  }
-</style>
-
-<script defer src="/chat-widget/assets/chat/widget.js?v=2"></script>
+<!-- === Icon Loading Verification === -->
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const commonOpts = {
-      // UI basics
-      mode: 'floating',
-      position: 'bottom-right',
-      avatar: '/assets/img/profile-img.jpg',
-      title: 'Copilot',
-      greeting: 'How can I help you explore Tony’s journey, dashboards, or career?',
-
-      // File-based config (your persona + styling live here)
-      configPath: '/chat-widget/assets/chat/config.json?v=2',
-      systemPath: '/chat-widget/assets/chat/system.md?v=2',
-
-      // Inline guardrailed persona (used as a fallback if file fetches fail)
-      systemPrompt: `You are Tony’s Copilot — a personable, professional, and concise HR & AI Analytics guide that speaks as Tony would.
-- Keep replies ≤60 words unless returning code. Lead with the answer; then up to 3 bullets.
-- Pivot: HR leadership → AI analytics (Tableau, SQL, Python, Workday, AI agents).
-- Avoid private/sensitive info; steer to public resources.
-- Tone: warm, expert, brief; use bullets when helpful.
-- If you don’t know, say so; ask at most one smart follow-up.`
-    };
-
-    // Proxy to your Worker
-    const proxyUrl = 'https://my-chat-agent.tonyabdelmalak.workers.dev/chat';
-
-    try {
-      if (window.CopilotWidget) {
-        // New API
-        const widget = new CopilotWidget({ proxyUrl, ...commonOpts });
-        widget.init();
-      } else if (window.TonyChatWidget?.init) {
-        // Back-compat API
-        window.TonyChatWidget.init({ proxyUrl, ...commonOpts });
-      } else {
-        console.error('[Copilot] No widget API found.');
+  // Check if Font Awesome loaded successfully
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      const testIcon = document.querySelector('.fas, .fab');
+      if (testIcon) {
+        const computedStyle = window.getComputedStyle(testIcon, ':before');
+        const content = computedStyle.getPropertyValue('content');
+        
+        // If content is 'none' or empty, Font Awesome didn't load
+        if (!content || content === 'none' || content === '""') {
+          console.error('❌ Font Awesome icons failed to load!');
+          
+          // Add a visual indicator
+          const skillsSection = document.querySelector('#skills');
+          if (skillsSection) {
+            const alert = document.createElement('div');
+            alert.style.cssText = 'background: #ef4444; color: white; padding: 12px; text-align: center; font-size: 14px; border-radius: 8px; margin: 16px 0;';
+            alert.innerHTML = '⚠️ Icons not loading from CDN. Please check your internet connection or try a different browser.';
+            skillsSection.insertBefore(alert, skillsSection.firstChild);
+          }
+        } else {
+          console.log('✅ Font Awesome icons loaded successfully!');
+        }
       }
-    } catch (err) {
-      console.error('[Copilot] init error:', err);
-    }
+    }, 1000);
   });
 </script>
 
-<!-- === /Copilot widget === -->
+<!-- === Chat Widget (Single Instance) === -->
 <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
 <script defer src="/chat-widget/assets/chat/widget.js" data-autostart></script>
    
