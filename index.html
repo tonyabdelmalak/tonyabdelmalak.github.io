@@ -210,18 +210,43 @@
     }
     .project-card .btn:hover { background-color: #0e9880; }
 
-    /* Skills icons */
+    /* Skills icons with animations */
     .skills-grid {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 20px;
     }
-    .skill-item { text-align: center; flex: 0 1 120px; }
+    .skill-item {
+      text-align: center;
+      flex: 0 1 120px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .skill-item:hover {
+      transform: translateY(-8px);
+    }
     .skill-icon {
       font-size: 40px;
-      color: var(--primary-color);
+      color: #06b6d4;
       margin-bottom: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-block;
+    }
+    .skill-item:hover .skill-icon {
+      color: #0891b2;
+      transform: scale(1.15) rotate(5deg);
+      filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.4));
+    }
+    .skill-item > div:last-child {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1e293b;
+      transition: color 0.3s ease;
+    }
+    .skill-item:hover > div:last-child {
+      color: #06b6d4;
+      font-weight: 600;
     }
     /* Mobile: Significantly reduce icon size */
     @media (max-width: 768px) {
