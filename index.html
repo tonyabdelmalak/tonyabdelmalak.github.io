@@ -216,10 +216,17 @@
       color: var(--primary-color);
       margin-bottom: 10px;
     }
-    /* Mobile: Reduce icon size */
+    /* Mobile: Significantly reduce icon size */
     @media (max-width: 768px) {
-      .skill-icon { font-size: 32px; }
-      .skill-item { flex: 0 1 80px; }
+      .skill-icon { font-size: 24px !important; }
+      .skill-item { flex: 0 1 60px !important; }
+      .skills-grid { gap: 15px !important; }
+    }
+    /* Extra small mobile */
+    @media (max-width: 480px) {
+      .skill-icon { font-size: 20px !important; }
+      .skill-item { flex: 0 1 50px !important; }
+      .skills-grid { gap: 12px !important; }
     }
 
     /* Certifications */
