@@ -1144,6 +1144,36 @@ font-weight: 600;
   </script>
 
 
+<!-- === Icon Loading Verification === -->
+<script>
+  // Check if Font Awesome loaded successfully
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      const testIcon = document.querySelector('.fas, .fab');
+      if (testIcon) {
+        const computedStyle = window.getComputedStyle(testIcon, ':before');
+        const content = computedStyle.getPropertyValue('content');
+        
+        // If content is 'none' or empty, Font Awesome didn't load
+        if (!content || content === 'none' || content === '""') {
+          console.error('❌ Font Awesome icons failed to load!');
+          
+          // Add a visual indicator
+          const skillsSection = document.querySelector('#skills');
+          if (skillsSection) {
+            const alert = document.createElement('div');
+            alert.style.cssText = 'background: #ef4444; color: white; padding: 12px; text-align: center; font-size: 14px; border-radius: 8px; margin: 16px 0;';
+            alert.innerHTML = '⚠️ Icons not loading from CDN. Please check your internet connection or try a different browser.';
+            skillsSection.insertBefore(alert, skillsSection.firstChild);
+          }
+        } else {
+          console.log('✅ Font Awesome icons loaded successfully!');
+        }
+      }
+    }, 1000);
+  });
+</script>
+
 <!-- === Chat Widget (Single Instance) === -->
 <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
 <script defer src="/chat-widget/assets/chat/widget.js" data-autostart></script>
