@@ -935,34 +935,34 @@ font-weight: 600;
     </div>
   </section>
 
-  <!-- AI Interview Practice Demo -->
+  <!-- AI Interview Practice Demo - ENTERPRISE LAYOUT -->
   <section id="interview-demo" class="interview-demo-section">
     <div class="container" data-aos="fade-up">
       <div class="section-title">
         <h2>AI Interview Practice Demo</h2>
-        <p>Experience AI-powered interview coaching. Choose a scenario from your background or answer the default question.</p>
+        <p>Enterprise-grade AI coaching with real-world feedback. Select from 23 behavioral questions or create your own.</p>
       </div>
 
-      <!-- Question Library - Redesigned -->
-      <div class="question-library">
-        <div class="library-header">
-          <i class="bi bi-collection"></i>
-          <span>Question Library</span>
-          <button class="refresh-question-btn" onclick="refreshRandomQuestion()" title="Get Random Question">
-            <i class="bi bi-arrow-clockwise"></i>
-          </button>
-        </div>
-        
-        <div class="library-content">
-          <!-- Dropdown Selectors -->
-          <div class="question-selectors">
-            <div class="selector-group">
+      <div class="interview-row">
+        <!-- LEFT: Question Library Carousel (60%) -->
+        <div class="question-library-panel">
+          <div class="panel-header">
+            <i class="bi bi-collection"></i>
+            <span>Question Library</span>
+            <button class="refresh-btn" onclick="refreshRandomQuestion()" title="Random Question">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+
+          <div class="panel-content">
+            <!-- Category Selector -->
+            <div class="input-group">
               <label for="categorySelect">
                 <i class="bi bi-folder"></i>
-                <span>Select Category</span>
+                <span>Category</span>
               </label>
-              <select id="categorySelect" class="category-select" onchange="loadQuestionsForCategory()">
-                <option value="">-- Choose a category --</option>
+              <select id="categorySelect" class="form-select" onchange="loadQuestionsForCategory()">
+                <option value="">-- Choose category --</option>
                 <option value="data-analysis">Data Analysis & Insights</option>
                 <option value="stakeholder">Stakeholder Management</option>
                 <option value="leadership">Project Leadership</option>
@@ -974,178 +974,256 @@ font-weight: 600;
               </select>
             </div>
 
-            <div class="selector-group" id="questionSelectorGroup" style="display: none;">
+            <!-- Question Selector -->
+            <div class="input-group" id="questionSelectorGroup" style="display: none;">
               <label for="questionSelect">
-                <i class="bi bi-chat-left-quote"></i>
-                <span>Select Question</span>
+                <i class="bi bi-chat-quote"></i>
+                <span>Question</span>
               </label>
-              <select id="questionSelect" class="question-select" onchange="useSelectedQuestion()">
-                <option value="">-- Choose a question --</option>
+              <select id="questionSelect" class="form-select" onchange="useSelectedQuestion()">
+                <option value="">-- Choose question --</option>
               </select>
             </div>
-          </div>
 
-          <!-- Custom Question Builder -->
-          <div class="custom-question-section">
-            <div class="custom-header">
-              <i class="bi bi-pencil-square"></i>
-              <span>Or Create Your Own Question</span>
-            </div>
-            <textarea 
-              id="customQuestionInput" 
-              class="custom-question-input" 
-              placeholder="Write your own interview question or scenario here...\n\nExample: Tell me about a time when you had to present conflicting data insights to senior leadership. How did you approach the situation?"
-              rows="4"
-            ></textarea>
-            <button class="use-custom-btn" onclick="useCustomQuestion()">
-              <i class="bi bi-check-circle"></i>
-              Use This Question
+            <!-- Populate Button -->
+            <button class="populate-btn" id="populateBtn" onclick="useSelectedQuestion()" style="display: none;">
+              <i class="bi bi-arrow-right-circle"></i>
+              Populate Question
             </button>
-          </div>
-        </div>
-      </div>
 
-      <div class="interview-demo-card">
-        <div class="question-header">
-          <i class="bi bi-chat-left-quote"></i>
-          <span>Today's Practice Question</span>
-        </div>
-        
-        <div class="interview-question" id="interviewQuestion">
-          Tell me about a time when you had to analyze data to solve a business problem. What was your approach and what was the outcome?
-        </div>
-
-        <div class="answer-section">
-          <label for="userAnswer" class="answer-label">
-            <i class="bi bi-pencil-square"></i>
-            Your Answer
-          </label>
-          <textarea 
-            id="userAnswer" 
-            class="answer-textarea" 
-            placeholder="Type your answer here... Be specific about the situation, your actions, and the results. No minimum word count required!"
-            rows="8"
-          ></textarea>
-          <div class="answer-helper">
-            <span class="char-count" id="charCount">0 characters</span>
-            <span class="helper-text">Tip: Focus on situation, action, and result</span>
+            <!-- Custom Question Builder -->
+            <div class="custom-section">
+              <div class="custom-header">
+                <i class="bi bi-pencil-square"></i>
+                <span>Create Your Own</span>
+              </div>
+              <textarea 
+                id="customQuestionInput" 
+                class="custom-textarea" 
+                placeholder="Write your own scenario...\n\nExample: Describe a time when you had to present conflicting insights to executives."
+                rows="3"
+              ></textarea>
+              <button class="use-custom-btn" onclick="useCustomQuestion()">
+                <i class="bi bi-check-circle"></i>
+                Use Custom Question
+              </button>
+            </div>
           </div>
         </div>
 
-        <button class="get-feedback-btn" id="getFeedbackBtn" onclick="getInterviewFeedback()">
-          <i class="bi bi-stars"></i>
-          <span>Get AI Feedback</span>
-        </button>
-
-        <div class="feedback-section" id="feedbackSection" style="display: none;">
-          <div class="feedback-header">
-            <i class="bi bi-lightbulb-fill"></i>
-            <span>AI Coaching Feedback</span>
+        <!-- RIGHT: AI Coaching Panel (40%) -->
+        <div class="coaching-panel">
+          <div class="panel-header">
+            <i class="bi bi-robot"></i>
+            <span>AI Coach</span>
           </div>
-          <div class="feedback-content" id="feedbackContent">
-            <!-- AI feedback will appear here -->
-          </div>
-        </div>
 
-        <div class="loading-indicator" id="loadingIndicator" style="display: none;">
-          <div class="spinner"></div>
-          <span>Analyzing your answer...</span>
+          <div class="panel-content">
+            <!-- Selected Question Display -->
+            <div class="question-display">
+              <div class="question-label">
+                <i class="bi bi-chat-left-quote"></i>
+                <span>Practice Question</span>
+              </div>
+              <div class="question-text" id="interviewQuestion">
+                Tell me about a time when you had to analyze data to solve a business problem. What was your approach and what was the outcome?
+              </div>
+            </div>
+
+            <!-- Answer Textarea -->
+            <div class="answer-group">
+              <label for="userAnswer">
+                <i class="bi bi-pencil"></i>
+                <span>Your Answer</span>
+              </label>
+              <textarea 
+                id="userAnswer" 
+                class="answer-textarea" 
+                placeholder="Type your STAR response here...\n\nSituation: Context\nTask: Challenge\nAction: What you did\nResult: Measurable outcome"
+                rows="6"
+              ></textarea>
+              <div class="char-counter">
+                <span id="charCount">0 characters</span>
+              </div>
+            </div>
+
+            <!-- Get Feedback Button -->
+            <button class="feedback-btn" id="getFeedbackBtn" onclick="getInterviewFeedback()">
+              <i class="bi bi-stars"></i>
+              Get AI Feedback
+            </button>
+
+            <!-- Loading Indicator -->
+            <div class="loading-indicator" id="loadingIndicator" style="display: none;">
+              <div class="spinner"></div>
+              <span>Analyzing your answer...</span>
+            </div>
+
+            <!-- Feedback Results -->
+            <div class="feedback-results" id="feedbackSection" style="display: none;">
+              <div class="results-header">
+                <i class="bi bi-lightbulb-fill"></i>
+                <span>Robust Real-World Feedback</span>
+              </div>
+              <div class="results-content" id="feedbackContent">
+                <!-- AI feedback appears here -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="demo-footer">
-        <p><i class="bi bi-info-circle"></i> This is a demo of AI-powered interview coaching. Full platform coming soon with session tracking, multiple question types, and detailed analytics.</p>
+        <p><i class="bi bi-info-circle"></i> Enterprise-grade AI coaching demo. Full platform coming soon with session tracking and advanced analytics.</p>
       </div>
     </div>
   </section>
 
-  <!-- Resume Optimizer Section -->
+  <!-- Resume Optimizer - ENTERPRISE LAYOUT -->
   <section id="resume-optimizer" class="resume-optimizer-section">
     <div class="container" data-aos="fade-up">
       <div class="section-title">
         <h2>Resume Optimizer</h2>
-        <p>AI-powered resume analysis to align your experience with job requirements and maximize ATS compatibility.</p>
+        <p>Enterprise-grade ATS analysis with robust optimization recommendations. Upload or paste your resume and target job description.</p>
       </div>
 
-      <div class="optimizer-card">
-        <div class="optimizer-header">
-          <i class="bi bi-file-earmark-text"></i>
-          <span>Resume & Job Description Analysis</span>
-        </div>
-
-        <div class="optimizer-content">
-          <!-- Resume Input -->
-          <div class="input-group">
-            <label for="resumeInput">
-              <i class="bi bi-person-badge"></i>
-              <span>Your Resume</span>
-            </label>
-            <textarea 
-              id="resumeInput" 
-              class="optimizer-textarea" 
-              placeholder="Paste your resume text here...
-
-Example:
-Senior HR Analytics Manager
-Flowserve Corporation | 2022-2024
-
-• Led predictive attrition modeling using survival analysis and SHAP values, reducing 90-day turnover by 23%
-• Built executive dashboards in Tableau tracking 15+ workforce KPIs across 8,000+ employees
-• Implemented data governance framework ensuring GDPR compliance for sensitive employee data"
-              rows="8"></textarea>
+      <div class="optimizer-row">
+        <!-- LEFT: Input Panel (50%) -->
+        <div class="input-panel">
+          <div class="panel-header">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Resume & Job Description</span>
           </div>
 
-          <!-- Job Description Input -->
-          <div class="input-group">
-            <label for="jobDescInput">
-              <i class="bi bi-briefcase"></i>
-              <span>Target Job Description</span>
-            </label>
-            <textarea 
-              id="jobDescInput" 
-              class="optimizer-textarea" 
-              placeholder="Paste the job description here...
-
-Example:
-Senior People Analytics Manager
-
-Required Skills:
-• 5+ years in HR analytics or workforce planning
-• Advanced proficiency in SQL, Python, and Tableau
-• Experience with predictive modeling and machine learning
-• Strong stakeholder management and executive communication
-• Knowledge of HRIS systems (Workday, SAP SuccessFactors)"
-              rows="8"></textarea>
-          </div>
-
-          <!-- Analyze Button -->
-          <button class="analyze-btn" onclick="analyzeResume()">
-            <i class="bi bi-search"></i>
-            <span>Analyze Resume</span>
-          </button>
-
-          <!-- Loading Indicator -->
-          <div class="loading-indicator" id="optimizerLoading" style="display: none;">
-            <div class="spinner"></div>
-            <span>Analyzing resume against job requirements...</span>
-          </div>
-
-          <!-- Results Container -->
-          <div id="optimizerResults" style="display: none;">
-            <div class="results-header">
-              <i class="bi bi-check-circle"></i>
-              <span>Analysis Complete</span>
+          <div class="panel-content">
+            <!-- Resume Input -->
+            <div class="input-group">
+              <label for="resumeInput">
+                <i class="bi bi-person-badge"></i>
+                <span>Your Resume</span>
+                <button class="modal-btn" onclick="openResumeModal()" title="Open in full window">
+                  <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+              </label>
+              <textarea 
+                id="resumeInput" 
+                class="input-textarea" 
+                placeholder="Paste your resume text here or click expand icon for full window...\n\nExample:\nSenior HR Analytics Manager\nFlowserve | 2022-2024\n\n• Led predictive attrition modeling\n• Built executive dashboards in Tableau\n• Implemented data governance framework"
+                rows="8"
+              ></textarea>
             </div>
-            <div id="optimizerResultsContent"></div>
+
+            <!-- Job Description Input -->
+            <div class="input-group">
+              <label for="jobDescInput">
+                <i class="bi bi-briefcase"></i>
+                <span>Target Job Description</span>
+                <button class="modal-btn" onclick="openJobDescModal()" title="Open in full window">
+                  <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+              </label>
+              <textarea 
+                id="jobDescInput" 
+                class="input-textarea" 
+                placeholder="Paste job description here or click expand icon for full window...\n\nExample:\nSenior People Analytics Manager\n\nRequired:\n• 5+ years HR analytics\n• SQL, Python, Tableau\n• Predictive modeling\n• Stakeholder management"
+                rows="8"
+              ></textarea>
+            </div>
+
+            <!-- Analyze Button -->
+            <button class="analyze-btn" onclick="analyzeResume()">
+              <i class="bi bi-search"></i>
+              Analyze Resume
+            </button>
+
+            <!-- Loading Indicator -->
+            <div class="loading-indicator" id="optimizerLoading" style="display: none;">
+              <div class="spinner"></div>
+              <span>Running enterprise-grade analysis...</span>
+            </div>
           </div>
         </div>
 
-        <div class="optimizer-footer">
-          <p><i class="bi bi-shield-check"></i> Your data is processed securely and never stored. Analysis is performed in real-time using AI.</p>
+        <!-- RIGHT: Analysis Panel (50%) -->
+        <div class="analysis-panel">
+          <div class="panel-header">
+            <i class="bi bi-graph-up-arrow"></i>
+            <span>Analysis Results</span>
+          </div>
+
+          <div class="panel-content">
+            <div id="optimizerResults" style="display: none;">
+              <div class="results-header">
+                <i class="bi bi-check-circle"></i>
+                <span>Enterprise-Grade Analysis Complete</span>
+              </div>
+              <div class="results-content" id="optimizerResultsContent">
+                <!-- AI analysis appears here -->
+              </div>
+            </div>
+
+            <!-- Placeholder when no results -->
+            <div class="results-placeholder" id="resultsPlaceholder">
+              <i class="bi bi-clipboard-data"></i>
+              <h3>Awaiting Analysis</h3>
+              <p>Paste your resume and job description, then click "Analyze Resume" to receive:</p>
+              <ul>
+                <li><strong>Overall Match Score</strong> - Alignment with job requirements</li>
+                <li><strong>ATS Compatibility</strong> - Format and keyword optimization</li>
+                <li><strong>Missing Keywords</strong> - Critical terms to add</li>
+                <li><strong>Action Verb Recommendations</strong> - Strengthen your impact</li>
+                <li><strong>Metrics Identification</strong> - Quantify achievements</li>
+                <li><strong>Skills Alignment</strong> - Hard and soft skills analysis</li>
+                <li><strong>Top Recommendations</strong> - Prioritized improvements</li>
+              </ul>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div class="demo-footer">
+        <p><i class="bi bi-shield-check"></i> Your data is processed securely and never stored. Enterprise-grade analysis performed in real-time.</p>
       </div>
     </div>
   </section>
+
+  <!-- Modal for Full-Screen Resume Input -->
+  <div id="resumeModal" class="text-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="bi bi-person-badge"></i> Your Resume</h3>
+        <button class="modal-close" onclick="closeResumeModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <textarea id="resumeModalText" class="modal-textarea" rows="20"></textarea>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveResumeModal()">
+          <i class="bi bi-check-circle"></i>
+          Save & Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Full-Screen Job Description Input -->
+  <div id="jobDescModal" class="text-modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="bi bi-briefcase"></i> Target Job Description</h3>
+        <button class="modal-close" onclick="closeJobDescModal()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <textarea id="jobDescModalText" class="modal-textarea" rows="20"></textarea>
+      <div class="modal-footer">
+        <button class="modal-save-btn" onclick="saveJobDescModal()">
+          <i class="bi bi-check-circle"></i>
+          Save & Close
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Certifications Section -->
   <section id="certifications">
@@ -1840,6 +1918,7 @@ Please provide detailed coaching feedback.`
     const loadingIndicator = document.getElementById('optimizerLoading');
     const resultsContainer = document.getElementById('optimizerResults');
     const resultsContent = document.getElementById('optimizerResultsContent');
+    const resultsPlaceholder = document.getElementById('resultsPlaceholder');
     const analyzeBtn = document.querySelector('.analyze-btn');
 
     // Validation
@@ -1848,9 +1927,10 @@ Please provide detailed coaching feedback.`
       return;
     }
 
-    // Show loading, hide results
+    // Show loading, hide results and placeholder
     loadingIndicator.style.display = 'flex';
     resultsContainer.style.display = 'none';
+    if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
     analyzeBtn.disabled = true;
 
     try {
@@ -1912,6 +1992,7 @@ Format with clear headings and bullet points.`
       // Format and display results
       resultsContent.innerHTML = formatAnalysisResults(analysis);
       resultsContainer.style.display = 'block';
+      if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
 
       // Smooth scroll to results
       setTimeout(() => {
@@ -1955,6 +2036,62 @@ Format with clear headings and bullet points.`
 
     return formatted;
   }
+
+  // ============================================
+  // MODAL FUNCTIONS FOR RESUME OPTIMIZER
+  // ============================================
+
+  function openResumeModal() {
+    const modal = document.getElementById('resumeModal');
+    const modalText = document.getElementById('resumeModalText');
+    const resumeInput = document.getElementById('resumeInput');
+    
+    modalText.value = resumeInput.value;
+    modal.style.display = 'flex';
+    modalText.focus();
+  }
+
+  function closeResumeModal() {
+    document.getElementById('resumeModal').style.display = 'none';
+  }
+
+  function saveResumeModal() {
+    const modalText = document.getElementById('resumeModalText');
+    const resumeInput = document.getElementById('resumeInput');
+    
+    resumeInput.value = modalText.value;
+    closeResumeModal();
+  }
+
+  function openJobDescModal() {
+    const modal = document.getElementById('jobDescModal');
+    const modalText = document.getElementById('jobDescModalText');
+    const jobDescInput = document.getElementById('jobDescInput');
+    
+    modalText.value = jobDescInput.value;
+    modal.style.display = 'flex';
+    modalText.focus();
+  }
+
+  function closeJobDescModal() {
+    document.getElementById('jobDescModal').style.display = 'none';
+  }
+
+  function saveJobDescModal() {
+    const modalText = document.getElementById('jobDescModalText');
+    const jobDescInput = document.getElementById('jobDescInput');
+    
+    jobDescInput.value = modalText.value;
+    closeJobDescModal();
+  }
+
+  // Close modals on ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeResumeModal();
+      closeJobDescModal();
+    }
+  });
 </script>
 
 <!-- === Chat Widget (Single Instance) === -->
