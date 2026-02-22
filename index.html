@@ -963,10 +963,14 @@ font-weight: 600;
               </label>
               <select id="categorySelect" class="category-select" onchange="loadQuestionsForCategory()">
                 <option value="">-- Choose a category --</option>
-                <option value="data-analysis">📊 Data Analysis & Insights</option>
-                <option value="stakeholder">👥 Stakeholder Management</option>
-                <option value="leadership">💼 Project Leadership</option>
-                <option value="technical">💻 Technical Skills</option>
+                <option value="data-analysis">Data Analysis & Insights</option>
+                <option value="stakeholder">Stakeholder Management</option>
+                <option value="leadership">Project Leadership</option>
+                <option value="technical">Technical Skills</option>
+                <option value="ethics-governance">Ethics & Governance</option>
+                <option value="change-management">Change Management</option>
+                <option value="business-impact">Business Impact & ROI</option>
+                <option value="innovation">Innovation & Best Practices</option>
               </select>
             </div>
 
@@ -1505,6 +1509,26 @@ font-weight: 600;
       'Walk me through a time when you built a dashboard that significantly improved decision-making. What metrics did you include, why, and how did you measure its impact?',
       'Describe a situation where you had to clean and transform messy HR data from multiple systems. What tools did you use and what challenges did you encounter?',
       'Tell me about a time when you automated a manual HR process using analytics or scripting. What was the business impact?'
+    ],
+    'ethics-governance': [
+      'Describe a situation where you had to balance data transparency with employee privacy concerns. How did you navigate this ethical dilemma and what policies did you implement?',
+      'Tell me about a time when you discovered data quality issues that could have led to biased decisions. How did you address it and what governance practices did you put in place?',
+      'Share an example of how you ensured fairness and compliance in your HR analytics work, particularly around sensitive topics like compensation or performance evaluations.'
+    ],
+    'change-management': [
+      'Walk me through a time when you introduced a new analytics tool or process that faced resistance from HR teams. How did you drive adoption and measure success?',
+      'Describe a situation where your analytics revealed the need for significant organizational change. How did you present the findings and support the transition?',
+      'Tell me about a time when you had to shift from reactive reporting to proactive analytics. What challenges did you face and how did you change the culture?'
+    ],
+    'business-impact': [
+      'Share a specific example where your HR analytics work directly influenced a major business decision. What was the ROI and how did you measure long-term impact?',
+      'Describe a time when you identified a workforce trend that saved the company significant costs or improved efficiency. How did you quantify the business value?',
+      'Tell me about your most impactful analytics project. What made it successful and how did it change the way leadership viewed HR data?'
+    ],
+    'innovation': [
+      'Describe a time when you experimented with a new analytical technique or technology in HR. What was the outcome and what did you learn from the experience?',
+      'Tell me about a situation where you had to solve an HR problem with limited tools or data. How did you get creative and what innovative approach did you take?',
+      'Share an example of how you stayed ahead of industry trends in people analytics. How did you apply emerging best practices to your organization?'
     ]
   };
 
@@ -1528,7 +1552,9 @@ font-weight: 600;
     questions.forEach((question, index) => {
       const option = document.createElement('option');
       option.value = question;
-      option.textContent = `Question ${index + 1}`;
+      // Show first 65 characters of question with ellipsis
+      const preview = question.length > 65 ? question.substring(0, 65) + '...' : question;
+      option.textContent = preview;
       questionSelect.appendChild(option);
     });
     
