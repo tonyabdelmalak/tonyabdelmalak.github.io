@@ -940,7 +940,97 @@ font-weight: 600;
     <div class="container" data-aos="fade-up">
       <div class="section-title">
         <h2>AI Interview Practice Demo</h2>
-        <p>Experience AI-powered interview coaching. Answer the question below and get instant feedback.</p>
+        <p>Experience AI-powered interview coaching. Choose a scenario from your background or answer the default question.</p>
+      </div>
+
+      <!-- Question Library -->
+      <div class="question-library">
+        <div class="library-header">
+          <i class="bi bi-collection"></i>
+          <span>Interview Question Library</span>
+          <button class="library-toggle" onclick="toggleLibrary()" id="libraryToggleBtn">
+            <i class="bi bi-chevron-down"></i>
+            <span>Show Questions</span>
+          </button>
+        </div>
+        
+        <div class="library-content" id="libraryContent" style="display: none;">
+          <div class="library-categories">
+            
+            <!-- Data Analysis & Insights -->
+            <div class="category-section">
+              <div class="category-header">
+                <i class="bi bi-graph-up-arrow"></i>
+                <h4>Data Analysis & Insights</h4>
+              </div>
+              <div class="question-cards">
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Describe a time when you used predictive modeling to solve a workforce challenge. What was your approach, what data did you analyze, and what were the measurable results?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Tell me about a situation where you had to analyze turnover data and present actionable recommendations to leadership. How did you identify the root causes and what was the outcome?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stakeholder Management -->
+            <div class="category-section">
+              <div class="category-header">
+                <i class="bi bi-people"></i>
+                <h4>Stakeholder Management</h4>
+              </div>
+              <div class="question-cards">
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">How did you handle a situation where your data-driven recommendations conflicted with a senior leader's intuition or assumptions? What was your approach to influencing the decision?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Describe a time when you had to explain complex HR analytics to non-technical stakeholders. How did you make the data accessible and what was the impact?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Project Leadership -->
+            <div class="category-section">
+              <div class="category-header">
+                <i class="bi bi-briefcase"></i>
+                <h4>Project Leadership</h4>
+              </div>
+              <div class="question-cards">
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Tell me about the most challenging HR analytics project you've led. What obstacles did you face, how did you overcome them, and what did you learn?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Describe how you prioritized multiple analytics requests from different departments with competing deadlines. What framework did you use and how did you manage expectations?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Technical Skills -->
+            <div class="category-section">
+              <div class="category-header">
+                <i class="bi bi-code-square"></i>
+                <h4>Technical Skills</h4>
+              </div>
+              <div class="question-cards">
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Walk me through a time when you built a dashboard that significantly improved decision-making. What metrics did you include, why, and how did you measure its impact?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+                <div class="question-card" onclick="useQuestion(this)">
+                  <div class="question-text">Describe a situation where you had to clean and transform messy HR data from multiple systems. What tools did you use and what challenges did you encounter?</div>
+                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
 
       <div class="interview-demo-card">
@@ -1426,6 +1516,46 @@ font-weight: 600;
 
 <!-- === Interview Demo JavaScript === -->
 <script>
+  // Toggle Question Library
+  function toggleLibrary() {
+    const content = document.getElementById('libraryContent');
+    const btn = document.getElementById('libraryToggleBtn');
+    const btnText = btn.querySelector('span');
+    
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      btn.classList.add('active');
+      btnText.textContent = 'Hide Questions';
+    } else {
+      content.style.display = 'none';
+      btn.classList.remove('active');
+      btnText.textContent = 'Show Questions';
+    }
+  }
+
+  // Use Question from Library
+  function useQuestion(card) {
+    const questionText = card.querySelector('.question-text').textContent;
+    const questionDisplay = document.getElementById('interviewQuestion');
+    const textarea = document.getElementById('userAnswer');
+    
+    // Update the displayed question
+    questionDisplay.textContent = questionText;
+    
+    // Clear any previous answer
+    textarea.value = '';
+    textarea.focus();
+    
+    // Scroll to the answer section
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Visual feedback
+    card.style.background = '#dcfce7';
+    setTimeout(() => {
+      card.style.background = 'white';
+    }, 500);
+  }
+
   // Character counter
   const textarea = document.getElementById('userAnswer');
   const charCount = document.getElementById('charCount');
@@ -1467,14 +1597,18 @@ font-weight: 600;
           messages: [
             {
               role: 'system',
-              content: `You are an expert interview coach providing constructive feedback on behavioral interview answers. Analyze the answer and provide:
+              content: `You are an expert interview coach providing constructive feedback on behavioral interview answers. 
 
-1. **Overall Assessment** (2-3 sentences)
-2. **Strengths** (2-3 bullet points)
-3. **Areas for Improvement** (2-3 bullet points)
-4. **Actionable Tips** (2-3 specific suggestions)
+START your response with a score: "I would rate this answer X/10" where X is 1-10.
 
-Be encouraging but honest. Focus on the STAR method (Situation, Task, Action, Result). Format your response with clear sections using **bold** for headers.`
+Then provide:
+
+1. **Overall Assessment** (2-3 sentences explaining the score)
+2. **Strengths** (2-3 bullet points with specific examples)
+3. **Areas for Improvement** (2-3 bullet points with specific gaps)
+4. **Actionable Tips** (2-3 concrete suggestions to improve)
+
+Be encouraging but honest. Focus on the STAR method (Situation, Task, Action, Result). Use bullet points with dashes (-) for lists.`
             },
             {
               role: 'user',
@@ -1497,8 +1631,37 @@ Please provide detailed coaching feedback.`
       // Worker returns { role: 'assistant', content: '...', provider: 'groq' }
       const feedback = data.content || data.response || 'Unable to generate feedback. Please try again.';
       
+      // Extract score if present (look for patterns like "7/10", "7 out of 10", "rate: 7")
+      let score = null;
+      const scoreMatch = feedback.match(/(\d+)\s*\/\s*10|rate.*?(\d+)|score.*?(\d+)/i);
+      if (scoreMatch) {
+        score = parseInt(scoreMatch[1] || scoreMatch[2] || scoreMatch[3]);
+      }
+      
+      // Format feedback with enhanced display
+      let formattedFeedback = feedback
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^- /gm, '• ');
+      
+      // Add score visualization if score detected
+      if (score && score >= 1 && score <= 10) {
+        const scoreColor = score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
+        const scoreLabel = score >= 8 ? 'Excellent' : score >= 6 ? 'Good' : 'Needs Work';
+        formattedFeedback = `
+          <div class="score-display">
+            <div class="score-number" style="color: ${scoreColor};">${score}/10</div>
+            <div class="score-label">${scoreLabel}</div>
+            <div class="score-bar">
+              <div class="score-fill" style="width: ${score * 10}%; background: ${scoreColor};"></div>
+            </div>
+          </div>
+          <div class="feedback-text">${formattedFeedback}</div>
+        `;
+      }
+      
       // Display feedback
-      feedbackContent.innerHTML = feedback.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      feedbackContent.innerHTML = formattedFeedback;
       feedbackSection.style.display = 'block';
       
       // Scroll to feedback

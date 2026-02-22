@@ -13,6 +13,169 @@
   color: white;
 }
 
+/* Question Library */
+.question-library {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #001e42;
+}
+
+.library-header > i {
+  font-size: 24px;
+  color: #06b6d4;
+}
+
+.library-header > span {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.library-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.library-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.library-toggle i {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.library-toggle.active i {
+  transform: rotate(180deg);
+}
+
+.library-content {
+  margin-top: 24px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.library-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.category-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #06b6d4;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: #001e42;
+}
+
+.category-header i {
+  font-size: 24px;
+  color: #06b6d4;
+}
+
+.category-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.question-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.question-card {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.question-card:hover {
+  border-color: #06b6d4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+.question-card:active {
+  transform: translateY(0);
+}
+
+.question-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+.use-question-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.use-question-btn:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+}
+
+.use-question-btn i {
+  font-size: 16px;
+}
+
 .interview-demo-card {
   background: white;
   border-radius: 16px;
@@ -183,6 +346,51 @@
   margin: 8px 0;
 }
 
+.score-display {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 2px solid #e2e8f0;
+}
+
+.score-number {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.score-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-bar {
+  width: 100%;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.8s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-text {
+  margin-top: 16px;
+}
+
 .loading-indicator {
   display: flex;
   align-items: center;
@@ -231,6 +439,28 @@
 }
 
 @media (max-width: 768px) {
+  .question-library {
+    padding: 16px;
+  }
+  
+  .library-header {
+    flex-wrap: wrap;
+  }
+  
+  .library-toggle {
+    width: 100%;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  
+  .question-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-section {
+    padding: 16px;
+  }
+  
   .interview-demo-card {
     padding: 24px;
   }
@@ -249,6 +479,10 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+  
+  .score-number {
+    font-size: 2.5rem;
   }
 }
 
