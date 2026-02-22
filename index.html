@@ -1457,7 +1457,7 @@ font-weight: 600;
     getFeedbackBtn.disabled = true;
     
     try {
-      // Call your existing Cloudflare Worker
+      // Call your existing Cloudflare Worker (non-streaming mode)
       const response = await fetch('https://tonyabdelmalak-chat.tonyabdelmalak.workers.dev/chat', {
         method: 'POST',
         headers: {
@@ -1494,7 +1494,8 @@ Please provide detailed coaching feedback.`
       }
       
       const data = await response.json();
-      const feedback = data.choices?.[0]?.message?.content || data.response || 'Unable to generate feedback. Please try again.';
+      // Worker returns { role: 'assistant', content: '...', provider: 'groq' }
+      const feedback = data.content || data.response || 'Unable to generate feedback. Please try again.';
       
       // Display feedback
       feedbackContent.innerHTML = feedback.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
