@@ -1059,6 +1059,94 @@ font-weight: 600;
     </div>
   </section>
 
+  <!-- Resume Optimizer Section -->
+  <section id="resume-optimizer" class="resume-optimizer-section">
+    <div class="container" data-aos="fade-up">
+      <div class="section-title">
+        <h2>Resume Optimizer</h2>
+        <p>AI-powered resume analysis to align your experience with job requirements and maximize ATS compatibility.</p>
+      </div>
+
+      <div class="optimizer-card">
+        <div class="optimizer-header">
+          <i class="bi bi-file-earmark-text"></i>
+          <span>Resume & Job Description Analysis</span>
+        </div>
+
+        <div class="optimizer-content">
+          <!-- Resume Input -->
+          <div class="input-group">
+            <label for="resumeInput">
+              <i class="bi bi-person-badge"></i>
+              <span>Your Resume</span>
+            </label>
+            <textarea 
+              id="resumeInput" 
+              class="optimizer-textarea" 
+              placeholder="Paste your resume text here...
+
+Example:
+Senior HR Analytics Manager
+Flowserve Corporation | 2022-2024
+
+• Led predictive attrition modeling using survival analysis and SHAP values, reducing 90-day turnover by 23%
+• Built executive dashboards in Tableau tracking 15+ workforce KPIs across 8,000+ employees
+• Implemented data governance framework ensuring GDPR compliance for sensitive employee data"
+              rows="8"></textarea>
+          </div>
+
+          <!-- Job Description Input -->
+          <div class="input-group">
+            <label for="jobDescInput">
+              <i class="bi bi-briefcase"></i>
+              <span>Target Job Description</span>
+            </label>
+            <textarea 
+              id="jobDescInput" 
+              class="optimizer-textarea" 
+              placeholder="Paste the job description here...
+
+Example:
+Senior People Analytics Manager
+
+Required Skills:
+• 5+ years in HR analytics or workforce planning
+• Advanced proficiency in SQL, Python, and Tableau
+• Experience with predictive modeling and machine learning
+• Strong stakeholder management and executive communication
+• Knowledge of HRIS systems (Workday, SAP SuccessFactors)"
+              rows="8"></textarea>
+          </div>
+
+          <!-- Analyze Button -->
+          <button class="analyze-btn" onclick="analyzeResume()">
+            <i class="bi bi-search"></i>
+            <span>Analyze Resume</span>
+          </button>
+
+          <!-- Loading Indicator -->
+          <div class="loading-indicator" id="optimizerLoading" style="display: none;">
+            <div class="spinner"></div>
+            <span>Analyzing resume against job requirements...</span>
+          </div>
+
+          <!-- Results Container -->
+          <div id="optimizerResults" style="display: none;">
+            <div class="results-header">
+              <i class="bi bi-check-circle"></i>
+              <span>Analysis Complete</span>
+            </div>
+            <div id="optimizerResultsContent"></div>
+          </div>
+        </div>
+
+        <div class="optimizer-footer">
+          <p><i class="bi bi-shield-check"></i> Your data is processed securely and never stored. Analysis is performed in real-time using AI.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Certifications Section -->
   <section id="certifications">
     <div class="container" data-aos="fade-up">
@@ -1740,6 +1828,132 @@ Please provide detailed coaching feedback.`
       loadingIndicator.style.display = 'none';
       getFeedbackBtn.disabled = false;
     }
+  }
+
+  // ============================================
+  // RESUME OPTIMIZER FUNCTIONALITY
+  // ============================================
+
+  async function analyzeResume() {
+    const resumeText = document.getElementById('resumeInput').value.trim();
+    const jobDescText = document.getElementById('jobDescInput').value.trim();
+    const loadingIndicator = document.getElementById('optimizerLoading');
+    const resultsContainer = document.getElementById('optimizerResults');
+    const resultsContent = document.getElementById('optimizerResultsContent');
+    const analyzeBtn = document.querySelector('.analyze-btn');
+
+    // Validation
+    if (!resumeText || !jobDescText) {
+      alert('Please paste both your resume and the job description.');
+      return;
+    }
+
+    // Show loading, hide results
+    loadingIndicator.style.display = 'flex';
+    resultsContainer.style.display = 'none';
+    analyzeBtn.disabled = true;
+
+    try {
+      // Call Cloudflare Worker
+      const response = await fetch('https://my-chat-agent.tonyabdelmalak.workers.dev/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert resume optimization AI with deep knowledge of ATS systems, HR best practices, and industry standards. Analyze resumes against job descriptions and provide actionable recommendations.
+
+Your analysis should cover:
+1. **Overall Match Score** (0-100): How well the resume aligns with the job requirements
+2. **ATS Compatibility** (0-100): Format, keywords, structure for Applicant Tracking Systems
+3. **Keyword Analysis**: Missing keywords from job description, keyword density issues
+4. **Content Quality**: Action verbs, quantification, impact statements
+5. **Skills Alignment**: Hard skills match, soft skills presence, certifications
+6. **Formatting**: Structure, consistency, readability
+7. **Top Recommendations**: 5-7 specific, actionable improvements
+
+Provide scores, specific examples, and clear recommendations. Be direct and constructive.`
+            },
+            {
+              role: 'user',
+              content: `Analyze this resume against the job description and provide a detailed optimization report.
+
+**RESUME:**
+${resumeText}
+
+**JOB DESCRIPTION:**
+${jobDescText}
+
+Provide:
+1. Overall Match Score (0-100)
+2. ATS Compatibility Score (0-100)
+3. Missing Keywords (list 5-8 critical ones)
+4. Weak Action Verbs to Replace (3-5 examples)
+5. Achievements Lacking Metrics (2-3 examples)
+6. Skills Alignment Analysis
+7. Top 5-7 Actionable Recommendations
+
+Format with clear headings and bullet points.`
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const analysis = data.content || data.message || 'Analysis completed.';
+
+      // Format and display results
+      resultsContent.innerHTML = formatAnalysisResults(analysis);
+      resultsContainer.style.display = 'block';
+
+      // Smooth scroll to results
+      setTimeout(() => {
+        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+
+    } catch (error) {
+      console.error('Resume analysis error:', error);
+      resultsContent.innerHTML = `
+        <div style="color: #dc2626; padding: 20px; background: #fee2e2; border-radius: 8px;">
+          <strong>Analysis Error</strong><br>
+          Unable to analyze resume. Please try again or check your internet connection.
+        </div>
+      `;
+      resultsContainer.style.display = 'block';
+    } finally {
+      loadingIndicator.style.display = 'none';
+      analyzeBtn.disabled = false;
+    }
+  }
+
+  function formatAnalysisResults(text) {
+    // Convert markdown-style formatting to HTML
+    let formatted = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>') // H3 headings
+      .replace(/^## (.+)$/gm, '<h3>$1</h3>') // H2 as H3
+      .replace(/^# (.+)$/gm, '<h3>$1</h3>') // H1 as H3
+      .replace(/^- (.+)$/gm, '<li>$1</li>') // List items
+      .replace(/^\* (.+)$/gm, '<li>$1</li>') // List items
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>'); // Numbered lists
+
+    // Wrap consecutive list items in <ul>
+    formatted = formatted.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
+      return '<ul>' + match + '</ul>';
+    });
+
+    // Add line breaks for paragraphs
+    formatted = formatted.replace(/\n\n/g, '<br><br>');
+
+    return formatted;
   }
 </script>
 
