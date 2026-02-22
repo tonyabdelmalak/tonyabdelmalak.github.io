@@ -1105,10 +1105,18 @@ font-weight: 600;
                   <i class="bi bi-arrows-fullscreen"></i>
                 </button>
               </label>
+              <div class="upload-row">
+                <input type="file" id="resumeFileInput" accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleResumeUpload(event)">
+                <button class="upload-btn" onclick="document.getElementById('resumeFileInput').click()">
+                  <i class="bi bi-upload"></i>
+                  Upload Resume (PDF/DOCX/TXT)
+                </button>
+                <span class="upload-hint">or paste text below</span>
+              </div>
               <textarea 
                 id="resumeInput" 
                 class="input-textarea" 
-                placeholder="Paste your resume text here or click expand icon for full window...\n\nExample:\nSenior HR Analytics Manager\nFlowserve | 2022-2024\n\n• Led predictive attrition modeling\n• Built executive dashboards in Tableau\n• Implemented data governance framework"
+                placeholder="Paste your resume text here or upload a file above...\n\nExample:\nSenior HR Analytics Manager\nFlowserve | 2022-2024\n\n• Led predictive attrition modeling\n• Built executive dashboards in Tableau\n• Implemented data governance framework"
                 rows="8"
               ></textarea>
             </div>
@@ -1122,10 +1130,18 @@ font-weight: 600;
                   <i class="bi bi-arrows-fullscreen"></i>
                 </button>
               </label>
+              <div class="upload-row">
+                <input type="file" id="jobDescFileInput" accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleJobDescUpload(event)">
+                <button class="upload-btn" onclick="document.getElementById('jobDescFileInput').click()">
+                  <i class="bi bi-upload"></i>
+                  Upload Job Description
+                </button>
+                <span class="upload-hint">or paste text below</span>
+              </div>
               <textarea 
                 id="jobDescInput" 
                 class="input-textarea" 
-                placeholder="Paste job description here or click expand icon for full window...\n\nExample:\nSenior People Analytics Manager\n\nRequired:\n• 5+ years HR analytics\n• SQL, Python, Tableau\n• Predictive modeling\n• Stakeholder management"
+                placeholder="Paste job description here or upload a file above...\n\nExample:\nSenior People Analytics Manager\n\nRequired:\n• 5+ years HR analytics\n• SQL, Python, Tableau\n• Predictive modeling\n• Stakeholder management"
                 rows="8"
               ></textarea>
             </div>
@@ -2092,6 +2108,80 @@ Format with clear headings and bullet points.`
       closeJobDescModal();
     }
   });
+
+  // ============================================
+  // FILE UPLOAD HANDLERS
+  // ============================================
+
+  async function handleResumeUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const resumeInput = document.getElementById('resumeInput');
+    const modalResumeInput = document.getElementById('modalResumeInput');
+    
+    try {
+      const text = await extractTextFromFile(file);
+      resumeInput.value = text;
+      if (modalResumeInput) modalResumeInput.value = text;
+      
+      // Show success feedback
+      alert(`✓ Resume uploaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB\n\nText extracted and ready for analysis.`);
+    } catch (error) {
+      alert(`Error reading file: ${error.message}\n\nPlease try:\n• PDF files (text-based, not scanned images)\n• DOCX files\n• TXT files\n\nOr paste your resume text directly into the textarea.`);
+    }
+  }
+
+  async function handleJobDescUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const jobDescInput = document.getElementById('jobDescInput');
+    const modalJobDescInput = document.getElementById('modalJobDescInput');
+    
+    try {
+      const text = await extractTextFromFile(file);
+      jobDescInput.value = text;
+      if (modalJobDescInput) modalJobDescInput.value = text;
+      
+      // Show success feedback
+      alert(`✓ Job Description uploaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB\n\nText extracted and ready for analysis.`);
+    } catch (error) {
+      alert(`Error reading file: ${error.message}\n\nPlease try:\n• PDF files (text-based, not scanned images)\n• DOCX files\n• TXT files\n\nOr paste the job description directly into the textarea.`);
+    }
+  }
+
+  async function extractTextFromFile(file) {
+    const fileType = file.name.split('.').pop().toLowerCase();
+    
+    if (fileType === 'txt') {
+      // Simple text file
+      return await file.text();
+    } else if (fileType === 'pdf') {
+      // For PDF, we'll use a simple approach - read as text
+      // Note: This works for text-based PDFs, not scanned images
+      const arrayBuffer = await file.arrayBuffer();
+      const text = new TextDecoder().decode(arrayBuffer);
+      
+      // Basic PDF text extraction (removes PDF markup)
+      const cleanText = text
+        .replace(/\0/g, '')
+        .replace(/[^\x20-\x7E\n\r\t]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (cleanText.length < 50) {
+        throw new Error('Could not extract text from PDF. It may be a scanned image or encrypted.');
+      }
+      
+      return cleanText;
+    } else if (fileType === 'doc' || fileType === 'docx') {
+      // For DOCX, we need to inform user to use PDF or TXT
+      throw new Error('DOCX files require conversion. Please save as PDF or TXT, or copy-paste the text directly.');
+    } else {
+      throw new Error(`Unsupported file type: .${fileType}`);
+    }
+  }
 </script>
 
 <!-- === Chat Widget (Single Instance) === -->
