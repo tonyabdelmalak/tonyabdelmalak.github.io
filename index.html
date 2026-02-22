@@ -943,92 +943,60 @@ font-weight: 600;
         <p>Experience AI-powered interview coaching. Choose a scenario from your background or answer the default question.</p>
       </div>
 
-      <!-- Question Library -->
+      <!-- Question Library - Redesigned -->
       <div class="question-library">
         <div class="library-header">
           <i class="bi bi-collection"></i>
-          <span>Interview Question Library</span>
-          <button class="library-toggle" onclick="toggleLibrary()" id="libraryToggleBtn">
-            <i class="bi bi-chevron-down"></i>
-            <span>Show Questions</span>
+          <span>Question Library</span>
+          <button class="refresh-question-btn" onclick="refreshRandomQuestion()" title="Get Random Question">
+            <i class="bi bi-arrow-clockwise"></i>
           </button>
         </div>
         
-        <div class="library-content" id="libraryContent" style="display: none;">
-          <div class="library-categories">
-            
-            <!-- Data Analysis & Insights -->
-            <div class="category-section">
-              <div class="category-header">
-                <i class="bi bi-graph-up-arrow"></i>
-                <h4>Data Analysis & Insights</h4>
-              </div>
-              <div class="question-cards">
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Describe a time when you used predictive modeling to solve a workforce challenge. What was your approach, what data did you analyze, and what were the measurable results?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Tell me about a situation where you had to analyze turnover data and present actionable recommendations to leadership. How did you identify the root causes and what was the outcome?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-              </div>
+        <div class="library-content">
+          <!-- Dropdown Selectors -->
+          <div class="question-selectors">
+            <div class="selector-group">
+              <label for="categorySelect">
+                <i class="bi bi-folder"></i>
+                <span>Select Category</span>
+              </label>
+              <select id="categorySelect" class="category-select" onchange="loadQuestionsForCategory()">
+                <option value="">-- Choose a category --</option>
+                <option value="data-analysis">📊 Data Analysis & Insights</option>
+                <option value="stakeholder">👥 Stakeholder Management</option>
+                <option value="leadership">💼 Project Leadership</option>
+                <option value="technical">💻 Technical Skills</option>
+              </select>
             </div>
 
-            <!-- Stakeholder Management -->
-            <div class="category-section">
-              <div class="category-header">
-                <i class="bi bi-people"></i>
-                <h4>Stakeholder Management</h4>
-              </div>
-              <div class="question-cards">
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">How did you handle a situation where your data-driven recommendations conflicted with a senior leader's intuition or assumptions? What was your approach to influencing the decision?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Describe a time when you had to explain complex HR analytics to non-technical stakeholders. How did you make the data accessible and what was the impact?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-              </div>
+            <div class="selector-group" id="questionSelectorGroup" style="display: none;">
+              <label for="questionSelect">
+                <i class="bi bi-chat-left-quote"></i>
+                <span>Select Question</span>
+              </label>
+              <select id="questionSelect" class="question-select" onchange="useSelectedQuestion()">
+                <option value="">-- Choose a question --</option>
+              </select>
             </div>
+          </div>
 
-            <!-- Project Leadership -->
-            <div class="category-section">
-              <div class="category-header">
-                <i class="bi bi-briefcase"></i>
-                <h4>Project Leadership</h4>
-              </div>
-              <div class="question-cards">
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Tell me about the most challenging HR analytics project you've led. What obstacles did you face, how did you overcome them, and what did you learn?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Describe how you prioritized multiple analytics requests from different departments with competing deadlines. What framework did you use and how did you manage expectations?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-              </div>
+          <!-- Custom Question Builder -->
+          <div class="custom-question-section">
+            <div class="custom-header">
+              <i class="bi bi-pencil-square"></i>
+              <span>Or Create Your Own Question</span>
             </div>
-
-            <!-- Technical Skills -->
-            <div class="category-section">
-              <div class="category-header">
-                <i class="bi bi-code-square"></i>
-                <h4>Technical Skills</h4>
-              </div>
-              <div class="question-cards">
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Walk me through a time when you built a dashboard that significantly improved decision-making. What metrics did you include, why, and how did you measure its impact?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-                <div class="question-card" onclick="useQuestion(this)">
-                  <div class="question-text">Describe a situation where you had to clean and transform messy HR data from multiple systems. What tools did you use and what challenges did you encounter?</div>
-                  <button class="use-question-btn"><i class="bi bi-arrow-right-circle"></i> Use This Question</button>
-                </div>
-              </div>
-            </div>
-
+            <textarea 
+              id="customQuestionInput" 
+              class="custom-question-input" 
+              placeholder="Write your own interview question or scenario here...\n\nExample: Tell me about a time when you had to present conflicting data insights to senior leadership. How did you approach the situation?"
+              rows="4"
+            ></textarea>
+            <button class="use-custom-btn" onclick="useCustomQuestion()">
+              <i class="bi bi-check-circle"></i>
+              Use This Question
+            </button>
           </div>
         </div>
       </div>
@@ -1516,31 +1484,108 @@ font-weight: 600;
 
 <!-- === Interview Demo JavaScript === -->
 <script>
-  // Toggle Question Library
-  function toggleLibrary() {
-    const content = document.getElementById('libraryContent');
-    const btn = document.getElementById('libraryToggleBtn');
-    const btnText = btn.querySelector('span');
+  // Question Library Data
+  const questionLibrary = {
+    'data-analysis': [
+      'Describe a time when you used predictive modeling to solve a workforce challenge. What was your approach, what data did you analyze, and what were the measurable results?',
+      'Tell me about a situation where you had to analyze turnover data and present actionable recommendations to leadership. How did you identify the root causes and what was the outcome?',
+      'Walk me through a complex data analysis project where you had to combine data from multiple HR systems. What challenges did you face and how did you ensure data quality?'
+    ],
+    'stakeholder': [
+      'How did you handle a situation where your data-driven recommendations conflicted with a senior leader\'s intuition or assumptions? What was your approach to influencing the decision?',
+      'Describe a time when you had to explain complex HR analytics to non-technical stakeholders. How did you make the data accessible and what was the impact?',
+      'Tell me about a time when you had to gain buy-in from multiple stakeholders for an analytics initiative. What was your strategy?'
+    ],
+    'leadership': [
+      'Tell me about the most challenging HR analytics project you\'ve led. What obstacles did you face, how did you overcome them, and what did you learn?',
+      'Describe how you prioritized multiple analytics requests from different departments with competing deadlines. What framework did you use and how did you manage expectations?',
+      'Share an example of when you had to make a difficult decision on an analytics project with incomplete data. How did you approach it?'
+    ],
+    'technical': [
+      'Walk me through a time when you built a dashboard that significantly improved decision-making. What metrics did you include, why, and how did you measure its impact?',
+      'Describe a situation where you had to clean and transform messy HR data from multiple systems. What tools did you use and what challenges did you encounter?',
+      'Tell me about a time when you automated a manual HR process using analytics or scripting. What was the business impact?'
+    ]
+  };
+
+  // Load questions for selected category
+  function loadQuestionsForCategory() {
+    const categorySelect = document.getElementById('categorySelect');
+    const questionSelect = document.getElementById('questionSelect');
+    const questionGroup = document.getElementById('questionSelectorGroup');
+    const category = categorySelect.value;
     
-    if (content.style.display === 'none') {
-      content.style.display = 'block';
-      btn.classList.add('active');
-      btnText.textContent = 'Hide Questions';
-    } else {
-      content.style.display = 'none';
-      btn.classList.remove('active');
-      btnText.textContent = 'Show Questions';
+    if (!category) {
+      questionGroup.style.display = 'none';
+      return;
+    }
+    
+    // Clear previous questions
+    questionSelect.innerHTML = '<option value="">-- Choose a question --</option>';
+    
+    // Add questions for this category
+    const questions = questionLibrary[category] || [];
+    questions.forEach((question, index) => {
+      const option = document.createElement('option');
+      option.value = question;
+      option.textContent = `Question ${index + 1}`;
+      questionSelect.appendChild(option);
+    });
+    
+    // Show question selector
+    questionGroup.style.display = 'flex';
+  }
+
+  // Use selected question from dropdown
+  function useSelectedQuestion() {
+    const questionSelect = document.getElementById('questionSelect');
+    const question = questionSelect.value;
+    
+    if (question) {
+      updateInterviewQuestion(question);
     }
   }
 
-  // Use Question from Library
-  function useQuestion(card) {
-    const questionText = card.querySelector('.question-text').textContent;
+  // Use custom question
+  function useCustomQuestion() {
+    const customInput = document.getElementById('customQuestionInput');
+    const question = customInput.value.trim();
+    
+    if (!question) {
+      alert('Please enter a custom question first.');
+      return;
+    }
+    
+    updateInterviewQuestion(question);
+    customInput.value = ''; // Clear after use
+  }
+
+  // Refresh with random question
+  function refreshRandomQuestion() {
+    // Get all questions from all categories
+    const allQuestions = Object.values(questionLibrary).flat();
+    
+    // Pick random question
+    const randomQuestion = allQuestions[Math.floor(Math.random() * allQuestions.length)];
+    
+    // Update display
+    updateInterviewQuestion(randomQuestion);
+    
+    // Visual feedback on refresh button
+    const refreshBtn = document.querySelector('.refresh-question-btn');
+    refreshBtn.style.transform = 'rotate(360deg) scale(1.1)';
+    setTimeout(() => {
+      refreshBtn.style.transform = '';
+    }, 300);
+  }
+
+  // Helper function to update interview question
+  function updateInterviewQuestion(question) {
     const questionDisplay = document.getElementById('interviewQuestion');
     const textarea = document.getElementById('userAnswer');
     
     // Update the displayed question
-    questionDisplay.textContent = questionText;
+    questionDisplay.textContent = question;
     
     // Clear any previous answer
     textarea.value = '';
@@ -1548,12 +1593,6 @@ font-weight: 600;
     
     // Scroll to the answer section
     textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // Visual feedback
-    card.style.background = '#dcfce7';
-    setTimeout(() => {
-      card.style.background = 'white';
-    }, 500);
   }
 
   // Character counter
