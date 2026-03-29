@@ -7,20 +7,20 @@ This guide describes how to add the Copilot widget to your site and test it.
 1. Ensure your site has a `<script>` and `<link>` snippet referencing the widget:
    ```html
    <!-- Tony’s Copilot widget -->
-   <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
-   <script src="/chat-widget/assets/chat/widget.js" defer></script>
+   <link rel="stylesheet" href="/assets/chat/widget.css">
+   <script src="/assets/chat/widget.js" defer></script>
    <script>
      window.TonyChatWidget?.init({
        mode: "floating",
        position: "bottom-right",
        avatar: "/assets/img/profile-img.jpg",
-       configPath: "/chat-widget/assets/chat/config.json",
-       systemPath: "/chat-widget/assets/chat/system.md"
+       configPath: "/assets/chat/config.json",
+       systemPath: "/assets/chat/system.md"
      });
    </script>
    ```
 
-2. Add the `chat-widget` folder (including `assets`, `docs`, and `worker.js`) to your repository root.
+2. Add the `assets/chat` and `cloudflare-worker` folders to your repository root.
 
 ## Testing
 

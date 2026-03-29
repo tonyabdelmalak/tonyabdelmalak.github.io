@@ -563,37 +563,37 @@
           <div class="carousel-card">
             <h4>Intent Distribution</h4>
             <p><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.<br><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.<br><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer‑support resources.</p>
-            <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
+            <a href="projects/interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
           </div>
           <div class="carousel-card">
             <h4>Resolution Rate</h4>
             <p><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.<br><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.<br><strong>Impact:</strong> Highlighted low‑performing intents, enabling targeted improvements to conversational flows and intent models.</p>
-            <a href="interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
+            <a href="projects/interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
           </div>
           <div class="carousel-card">
             <h4>Customer Satisfaction</h4>
             <p><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.<br><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.<br><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
-            <a href="interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
+            <a href="projects/interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
           </div>
           <div class="carousel-card">
             <h4>Model Performance</h4>
             <p><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.<br><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.<br><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
-            <a href="interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
+            <a href="projects/interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Interactive</a>
           </div>
           <div class="carousel-card">
             <h4>Predict Employee Attrition</h4>
             <p>Explore an improved dashboard that visualises attrition risk by department, overtime status and key drivers. Filter by department and discover the top factors influencing turnover.</p>
-            <a href="interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Play case</a>
+            <a href="projects/interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Play case</a>
           </div>
           <div class="carousel-card">
             <h4>Optimize Workforce Planning</h4>
             <p>Interact with enhanced simulations to see how different attrition and hiring strategies impact headcount over time. Compare scenarios and review a polished workforce summary.</p>
-            <a href="interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Try simulation</a>
+            <a href="projects/interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Try simulation</a>
           </div>
           <div class="carousel-card">
             <h4>Engagement Impact</h4>
             <p>Discover how engagement correlates with productivity and turnover across more departments. Filter and analyse trends, and uncover insights about your workforce.</p>
-            <a href="interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View insights</a>
+            <a href="projects/interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View insights</a>
           </div>
         </div>
       </div>
@@ -755,7 +755,6 @@
   </div><!-- end of chat container -->
 
   <!-- Chat widget script -->
-<script src="/assets/js/chat-widget.js" defer></script>
 
   <!-- Carousel logic -->
   <script>
@@ -790,12 +789,12 @@
 </div>
 
 <!-- Load after DOM -->
-<script src="assets/js/chat-widget.js" defer></script>
 
   
 <script async src="https://cdn.jsdelivr.net/gh/langflow-ai/langflow-embedded-chat@v1.0.7/dist/build/static/js/bundle.min.js"></script>
-<script defer src="/assets/chat/widget-loader.js"></script>
   
+<link rel="stylesheet" href="/assets/chat/widget.css">
+<script src="/assets/chat/widget.js" data-chat="enabled" defer></script>
 </body>
 </html>
 
