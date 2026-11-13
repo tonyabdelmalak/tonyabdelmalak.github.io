@@ -148,6 +148,68 @@
   box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
 }
 
+
+.iq-controls {
+  margin-bottom: 22px;
+  padding: 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+}
+
+.iq-controls .form-control {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.iq-controls .form-control:focus {
+  outline: none;
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.question-pills {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.question-pill {
+  border: 1px solid #7dd3fc;
+  color: #075985;
+  background: #f0f9ff;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.question-pill:hover {
+  background: #06b6d4;
+  color: #fff;
+  border-color: #06b6d4;
+}
+
+.coach-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.feedback-btn.secondary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+}
+
+.feedback-btn.secondary:hover {
+  box-shadow: 0 6px 16px rgba(3, 105, 161, 0.3);
+}
+
 .custom-section {
   margin-top: 24px;
   padding-top: 24px;
