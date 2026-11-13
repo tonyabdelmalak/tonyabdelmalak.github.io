@@ -1,8 +1,9 @@
 name: Deploy Cloudflare Worker
 
+# Manual only (2026-11-12). The worker config moved to .github/worker/wrangler.toml so
+# the public site no longer serves it, and the old CLOUDFLARE_API_TOKEN secret was a
+# revoked token: every push failed this job. Add a new token secret before running it.
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -32,12 +33,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          cd chat-widget
-          wrangler deploy
+          wrangler deploy --config .github/worker/wrangler.toml
 
       - name: Set GROQ_API_KEY secret
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          cd chat-widget
-          echo "${{ secrets.GROQ_API_KEY }}" | wrangler secret put GROQ_API_KEY
+          echo "${{ secrets.GROQ_API_KEY }}" | wrangler secret put GROQ_API_KEY --config .github/worker/wrangler.toml
