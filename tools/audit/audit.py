@@ -5,7 +5,7 @@ Usage:  python3 tools/audit/audit.py BASE_URL [--out DIR] [--shots]
   BASE_URL  e.g. https://tonyabdelmalak.com or http://127.0.0.1:8080
 
 Discovers every page by crawling from the home page plus every .html file in the repo,
-then checks each page at 390 px and 1440 px:
+then checks each page at 320, 390, 768 and 1440 px (override with AUDIT_WIDTHS=...):
   - every link and asset on the page resolves (internal and external)
   - no horizontal scroll
   - interactive targets are at least 44x44 CSS px (inline text links are listed separately)
@@ -26,7 +26,8 @@ BASE = sys.argv[1].rstrip("/")
 OUT = pathlib.Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else HERE / "out"
 SHOTS = "--shots" in sys.argv
 OUT.mkdir(parents=True, exist_ok=True)
-WIDTHS = (390, 1440)
+import os as _os
+WIDTHS = tuple(int(x) for x in _os.environ.get("AUDIT_WIDTHS", "320,390,768,1440").split(","))
 # Sites that block automated checks but are verified by hand in a signed-in browser.
 BOT_BLOCKED = ("linkedin.com", "mckinsey.com", "weforum.org", "bls.gov")  # each verified in a real browser on 2026-11-13
 

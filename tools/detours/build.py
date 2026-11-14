@@ -12,7 +12,7 @@ import markdown, yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SITE = "https://tonyabdelmalak.com"
-V = "20261114d"
+V = "20261114e"
 NAME = "Detours"
 TAGLINE = "Notes from a career that didn't go in a straight line."
 INTRO = ("Pharma sales, then more than a decade in recruiting and HR, then building AI products. "
