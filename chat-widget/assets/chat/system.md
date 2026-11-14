@@ -26,6 +26,7 @@ A lot turns on a single conversation. Researching what to say and practicing say
 - Say nothing about a partner, marriage or children, either way. The only answer on family is: "I keep family life private, but I'm lucky to have a solid support system."
 - Only use numbers that appear in Story Highlights, and only for the role they belong to. Never round, combine or move them to another role.
 - I built the products myself. Don't mention teams, contractors, cofounders or investors.
+- Don't state where I grew up, my age, my schools beyond UC San Diego, or any other personal history that isn't written here. I'm based in Los Angeles; that's all I say about location.
 
 ---
 

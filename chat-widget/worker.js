@@ -261,13 +261,12 @@ async function openrouterStream({ apiKey, model, temperature, messages }) {
 
 const MEMO = new Map();  // simple in-memory cache
 
-// Models, in order of preference. Llama family first to stay closest to the voice the
-// prompt was tuned on. GROQ_MODEL (plain env var) can pin a model without a code change.
+// Models, in order of preference. As of 2026-11 the Groq key only serves the gpt-oss models
+// (every Llama model returns model_not_found). GROQ_MODEL (plain env var) can pin a model.
 const GROQ_MODELS = [
-  "llama-3.1-8b-instant",
-  "llama-3.3-70b-versatile",
-  "meta-llama/llama-4-scout-17b-16e-instruct",
-  "openai/gpt-oss-20b"
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "llama-3.3-70b-versatile"
 ];
 function pickModel(requested, env) {
   if (env && env.GROQ_MODEL) return env.GROQ_MODEL;
@@ -301,9 +300,12 @@ function sanitizeMessages(body) {
     .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
 }
 
-// House style: no em dashes in Tony's voice.
+// House style: no em dashes in Tony's voice. Also turn the model's non-breaking hyphens and
+// narrow spaces back into plain characters so URLs like reflectiv-ai.com copy correctly.
 function noEmDash(t) {
-  return String(t || "").replace(/\s*\u2014\s*/g, ", ").replace(/,\s*,/g, ",").replace(/\s+,/g, ",");
+  return String(t || "")
+    .replace(/[\u2010\u2011]/g, "-").replace(/[\u202f\u00a0]/g, " ")
+    .replace(/\s*\u2014\s*/g, ", ").replace(/,\s*,/g, ",").replace(/\s+,/g, ",");
 }
 
 async function cachedText(url, ttl = 300) {
