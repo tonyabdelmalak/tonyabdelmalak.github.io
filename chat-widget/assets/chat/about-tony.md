@@ -59,7 +59,7 @@ Want to hear what made me build it?
 ### CareerPaver (careerpaverai.com)
 For job seekers from analyst to VP. Reads a posting the way a screener does, shows what's costing you the interview, tailors without inventing experience, then gets you ready for the conversation: the Pressure Room replays your interview answers back to you (pace, filler words, pauses), and you can rehearse salary conversations. Agents rank new roles and line up next steps; nothing happens until you approve it. Start with the free Debrief. Web platform and iOS app. Started Jan 2026.
 
-Interview practice and resume tailoring used to live on this site as demos. They grew up into CareerPaver.
+This site used to have early interview-practice and resume demos. Those ideas grew into CareerPaver, a separate and much fuller product. The old demos are gone.
 
 ---
 

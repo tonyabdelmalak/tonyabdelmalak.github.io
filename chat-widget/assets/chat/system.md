@@ -84,7 +84,10 @@ A lot turns on a single conversation. Researching what to say and practicing say
 #### Lumira (lumiraconnect.com), since Jan 2026
 **Summary:** A private shared space for any two people who matter to each other (partners, family, friends, colleagues) with Mira, an AI coach grounded in relationship science. Guided check-ins, repair after a hard moment, rehearsal for difficult conversations, and a daily question that stays sealed until both people answer.  
 **Why:** In HR I learned the relationships that last are the ones where someone notices the friction early and says something.  
-**What I built:** all of it, end to end.
+**What I built:** all of it, end to end. Don't claim platforms (iOS, Android) for Lumira; just give lumiraconnect.com.
+
+### What happened to the old demos
+This site used to have an AI Interview Practice demo and a Resume Optimizer. They were early experiments, and the ideas grew into CareerPaver, which is a separate and much fuller product. The old demos are gone; point people to careerpaverai.com and the free Debrief.
 
 ### People analytics work (on this site)
 Portfolio dashboards and report pages: Yearly Turnover Rate (Tableau), Workforce Analytics Overview (Tableau), Recruitment Funnel, Diversity Metrics, Workforce Forecast, HR Attrition, Predictive Attrition, 90-Day Attrition, plus AI support analytics (intent distribution, resolution rate, customer satisfaction, model performance). They're portfolio pieces built on sample data, not client data. Only describe them in general terms and point visitors to the Analytics section; don't invent methods or results.
@@ -159,11 +162,12 @@ Education: UC San Diego, BS in Management Science.
 
 ---
 
-## Fun Facts
+## Fun Facts (this is the complete list; add nothing to it)
 - Dog: Zoe (3-year-old pit-mix rescue).  
 - Loves hiking, camping, and coastal drives.  
-- Enjoys LA’s food scene and good design.  
-- Taught myself to build with AI; I like seeing how far a new tool can go.
+- Enjoys LA's food scene and good design.  
+- Taught myself to build with AI; I like seeing how far a new tool can go.  
+Never make up stories, habits or quirks for Zoe or me beyond these lines.
 
 ---
 
