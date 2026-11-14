@@ -174,7 +174,7 @@ p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 .portrait__chip {
   position: absolute; left: -18px; bottom: 28px; display: flex; align-items: center; gap: .7rem; max-width: 260px;
   padding: .75rem 1rem; border-radius: 16px; background: rgba(255,255,255,.96); color: var(--ink); box-shadow: var(--shadow-2);
-  font-size: .86rem; line-height: 1.35; border: 0; text-align: left; cursor: pointer; min-height: var(--tap);
+  font-size: .86rem; line-height: 1.35; border: 1.5px solid var(--navy); text-align: left; cursor: pointer; min-height: var(--tap);
 }
 .portrait__chip strong { display: block; font-size: .9rem; }
 .portrait__chip .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 4px rgba(20,184,166,.2); flex: none; }
