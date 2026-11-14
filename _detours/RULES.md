@@ -55,3 +55,5 @@ Never repeat an angle already published; read the existing posts first.
 
 Publish with `python3 tools/detours/publish.py <post-file>`, then deploy as one merge with the
 tested revert, and run `python3 tools/audit/audit.py https://tonyabdelmalak.com` after it is live.
+
+Commit messages: plain and short. No Co-Authored-By, Claude-Session or any other mention of Claude, AI or a tool, in commits, pull requests or anywhere in the repo.
