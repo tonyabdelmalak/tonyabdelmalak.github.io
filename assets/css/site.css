@@ -165,7 +165,7 @@ p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-6); }
 .hero__proof { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; margin: 0; list-style: none; }
 .hero__proof li { font-size: .85rem; color: var(--on-navy-muted); padding: .35rem .75rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; }
-.portrait { position: relative; justify-self: center; width: min(420px, 100%); }
+.portrait { position: relative; justify-self: center; width: min(340px, 100%); }
 .portrait__frame {
   position: relative; border-radius: var(--radius-l); overflow: hidden; aspect-ratio: 1 / 1; background: #f4f6f8;
   box-shadow: var(--shadow-3); border: 1px solid rgba(255,255,255,.12);
@@ -183,9 +183,12 @@ p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 @media (max-width: 900px) {
   .hero { padding-top: calc(var(--nav-h) + var(--space-6)); }
   .hero__grid { grid-template-columns: 1fr; gap: var(--space-7); }
-  .portrait { order: -1; width: min(300px, 82%); }
-  .portrait__chip { left: 50%; transform: translateX(-50%); bottom: -22px; white-space: nowrap; max-width: none; }
-  .portrait__chip:hover { transform: translateX(-50%) translateY(-1px); }
+  .hero__grid { gap: var(--space-5); }
+  /* Mobile: a small round photo beside the chat card, so the headline stays on the first screen */
+  .portrait { order: -1; width: 100%; justify-self: start; display: flex; align-items: center; gap: var(--space-4); }
+  .portrait__frame { width: 88px; height: 88px; flex: none; border-radius: 50%; border: 2px solid rgba(255,255,255,.85); box-shadow: var(--shadow-2); }
+  .portrait__chip { position: static; transform: none; max-width: none; }
+  .portrait__chip:hover { transform: translateY(-1px); }
   .hero h1 { max-width: none; }
 }
 
