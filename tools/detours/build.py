@@ -293,6 +293,21 @@ def kit_page():
 EMAIL_P = 'style="margin-top:0;margin-bottom:16px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:26px;color:#1e293b"'
 
 
+def reading_for(p):
+    """Worth-reading picks from the newest research brief dated on or before the post."""
+    best = None
+    for f in sorted((ROOT / "_detours/research").glob("20*.md")):
+        m = re.match(r"^---\n(.*?)\n---", f.read_text(), re.S)
+        if not m:
+            continue
+        fm = yaml.safe_load(m.group(1)) or {}
+        d = fm.get("date")
+        d = d if isinstance(d, dt.date) else (dt.date.fromisoformat(str(d)) if d else None)
+        if d and d <= p["date"] and fm.get("reading"):
+            best = fm["reading"][:3]
+    return [r for r in (best or []) if str(r.get("url", "")).startswith("https://")]
+
+
 def email_html(p):
     h = p["html"]
     h = re.sub(r'<h2 class="article__h2">', '<h2 style="margin-top:28px;margin-bottom:10px;font-family:Georgia,\'Times New Roman\',serif;font-size:21px;line-height:28px;color:#001e42;font-weight:normal">', h)
@@ -307,14 +322,26 @@ def email_html(p):
             f'<p style="margin-top:0;margin-bottom:22px;font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:26px;color:#475569">{e(p["dek"])}</p>'
             + h +
             f'<p {EMAIL_P}><a style="color:#0f766e;text-decoration:underline;font-weight:bold" href="{url}">Read it on the site</a> or reply and tell me your answer. I read every reply.</p>'
+            + reading_html(p) +
             f'<p style="margin-top:24px;margin-bottom:6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:16px;letter-spacing:1px;text-transform:uppercase;color:#64748b">Sources</p>'
             f'<ul style="margin-top:0;margin-bottom:0;padding-left:18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#475569">{srcs}</ul>')
+
+
+def reading_html(p):
+    items = reading_for(p)
+    if not items:
+        return ""
+    lis = "".join(f'<li style="margin-bottom:10px"><a style="color:#0f766e;text-decoration:underline;font-weight:bold" href="{e(r["url"])}">{e(r["title"])}</a> <span style="color:#64748b">({e(r.get("source", ""))})</span><br>{e(r.get("take", ""))}</li>' for r in items)
+    return (f'<p style="margin-top:28px;margin-bottom:8px;font-family:Georgia,\'Times New Roman\',serif;font-size:19px;line-height:26px;color:#001e42">Worth reading this week</p>'
+            f'<ul style="margin-top:0;margin-bottom:8px;padding-left:20px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:23px;color:#1e293b">{lis}</ul>')
 
 
 def email_text(p):
     body = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", p["body_md"]).replace("## ", "")
     srcs = "\n".join(f"- {s['label']}: {s['url']}" for s in p["sources"])
-    return f"{NAME} No. {p['no']}\n{p['title']}\n{p['dek']}\n\n{body}\n\nRead it on the site: {SITE}{p['url']}\n\nSources\n{srcs}"
+    reading = "".join(f"\n- {r['title']} ({r.get('source', '')}): {r['url']}\n  {r.get('take', '')}" for r in reading_for(p))
+    reading = f"\n\nWorth reading this week{reading}" if reading else ""
+    return f"{NAME} No. {p['no']}\n{p['title']}\n{p['dek']}\n\n{body}\n\nRead it on the site: {SITE}{p['url']}{reading}\n\nSources\n{srcs}"
 
 
 def refresh_home(posts):
