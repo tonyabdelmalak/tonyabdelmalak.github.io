@@ -418,3 +418,63 @@ table.data th { font-weight: 650; color: var(--slate); background: #f8fafc; }
 table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .report-next { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
 @media (max-width: 900px) { .report { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); } .report__toc { position: static; } .report__toc ol { display: flex; flex-wrap: wrap; border: 0; gap: .25rem; } .report__toc a { border: 1px solid var(--line); border-radius: 999px; padding: 0 .9rem; margin: 0; background: #fff; } }
+
+/* ===== Detours (weekly column) =====
+   Reading measure stays at 50 to 75 characters (Baymard); body text a step larger for long-form reading. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.article__wrap { max-width: calc(var(--measure) + 2 * var(--space-5)); }
+.article__hero h1 { max-width: 22ch; }
+.article__dek { font-size: var(--step-1); }
+.report-hero .article__meta { font-size: .92rem; color: var(--on-navy-muted); margin-top: var(--space-4); }
+.article { background: #fff; }
+.article__body { padding-block: var(--space-7) var(--space-9); }
+.article__body > p, .article__body > ol li, .article__body > ul li { font-size: 1.125rem; line-height: 1.75; color: var(--slate); max-width: var(--measure); }
+.article__body > p { margin: 0 0 1.25em; }
+.article__body > ol, .article__body > ul { padding-left: 1.4rem; margin: 0 0 1.5em; }
+.article__body > ol li { margin-bottom: .5rem; }
+.article__h2 { font-size: var(--step-2); margin: 2.2em 0 .6em; }
+.article__body > p:last-of-type { color: var(--ink); font-weight: 600; }
+.article__sources { border-top: 1px solid var(--line); margin-top: var(--space-7); padding-top: var(--space-5); font-size: .9rem; color: var(--muted); }
+.article__sources h2 { font-family: var(--font-sans); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-3); }
+.article__sources ul { padding-left: 1.1rem; margin: 0; }
+.article__sources li { margin-bottom: .4rem; overflow-wrap: anywhere; }
+.article__more { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); margin-top: var(--space-6); }
+.author { display: flex; gap: var(--space-5); align-items: flex-start; margin-top: var(--space-7); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); }
+.author img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; flex: none; }
+.author p { margin: 0 0 var(--space-3); color: var(--slate); font-size: .98rem; }
+.author .author__name { font-weight: 700; color: var(--ink); margin-bottom: var(--space-1); }
+.author__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+@media (max-width: 560px) { .author { flex-direction: column; } .author img { width: 72px; height: 72px; } }
+.detours-hero__tag { font-family: var(--font-display); font-style: italic; color: #fff !important; font-size: var(--step-2) !important; margin-bottom: var(--space-4); }
+.detours-hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
+.detours-list { max-width: 880px; }
+.entries { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+.entries li { border-bottom: 1px solid var(--line); }
+.entry { display: flex; gap: var(--space-5); align-items: center; padding: var(--space-5) var(--space-2); text-decoration: none; color: inherit; border-radius: var(--radius-s); transition: background var(--dur) var(--ease); }
+.entry:hover { background: var(--bg); }
+.entry__no { font-family: var(--font-display); color: var(--teal-ink); font-size: 1.05rem; min-width: 4.2ch; }
+.entry__main { flex: 1; display: grid; gap: .3rem; }
+.entry__title { font-family: var(--font-display); font-size: var(--step-2); color: var(--navy); line-height: 1.2; }
+.entry__dek { color: var(--slate); }
+.entry__meta { font-size: .86rem; color: var(--muted); }
+.entry > svg, .entry > i { color: var(--teal-ink); flex: none; }
+@media (max-width: 560px) { .entry { flex-direction: column; align-items: flex-start; gap: var(--space-2); } .entry > svg, .entry > i { display: none; } }
+
+/* ===== Career map (home) ===== */
+.careermap { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); counter-reset: step; }
+.careermap li { position: relative; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: var(--space-5); box-shadow: var(--shadow-1); display: flex; flex-direction: column; gap: var(--space-2); }
+.careermap li:not(:last-child)::after { content: ""; position: absolute; top: 50%; right: calc(-1 * var(--space-4)); width: var(--space-4); height: 2px; background: var(--teal); }
+.careermap__when { font-size: .8rem; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--teal-ink); }
+.careermap h3 { font-size: var(--step-1); margin: 0; }
+.careermap__org { font-size: .88rem; color: var(--muted); margin: 0; }
+.careermap__carry { margin: var(--space-2) 0 0; color: var(--slate); font-size: .95rem; }
+.careermap__led { margin-top: auto; padding-top: var(--space-3); border-top: 1px dashed var(--line); font-size: .88rem; color: var(--ink); }
+.careermap__led strong { color: var(--teal-ink); }
+.careermap li.is-now { background: var(--navy); border-color: var(--navy); }
+.careermap li.is-now h3, .careermap li.is-now .careermap__led { color: #fff; }
+.careermap li.is-now .careermap__when { color: #5eead4; }
+.careermap li.is-now .careermap__org, .careermap li.is-now .careermap__carry { color: var(--on-navy); }
+.careermap li.is-now .careermap__led { border-top-color: rgba(255,255,255,.2); }
+.careermap__foot { margin-top: var(--space-5); color: var(--slate); }
+@media (max-width: 960px) { .careermap { grid-template-columns: repeat(2, minmax(0, 1fr)); } .careermap li::after { display: none; } }
+@media (max-width: 560px) { .careermap { grid-template-columns: minmax(0, 1fr); } }
