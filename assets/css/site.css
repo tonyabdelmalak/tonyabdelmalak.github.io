@@ -330,10 +330,17 @@ a.post:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); color: 
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease), border-color var(--dur);
 }
 .skill:hover { transform: translateY(-3px); box-shadow: var(--shadow-2); border-color: #d6dde6; }
-.skill__icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, var(--blue), var(--navy)); box-shadow: 0 8px 18px -10px rgba(0,30,66,.6); }
-.skill__icon svg { width: 26px; height: 26px; stroke-width: 1.8; }
-.skill:nth-child(3n+2) .skill__icon { background: linear-gradient(140deg, #0f766e, #134e4a); }
-.skill span { font-weight: 600; font-size: .92rem; color: var(--ink); line-height: 1.3; }
+.skill .skill__icon { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: var(--ic, #4338ca); background: var(--ib, #eef2ff); box-shadow: inset 0 0 0 1px rgba(15,23,42,.05); transition: transform var(--dur) var(--ease); }
+.skill .skill__icon svg { width: 26px; height: 26px; stroke-width: 1.9; }
+.skill:hover .skill__icon { transform: scale(1.06); }
+/* Six soft hues so the grid reads light and varied; every icon is 4.5:1 or better on its tile (WCAG 1.4.11 needs 3:1). */
+.skill:nth-child(6n+1) { --ib: #eef2ff; --ic: #4338ca; }
+.skill:nth-child(6n+2) { --ib: #ecfdf5; --ic: #047857; }
+.skill:nth-child(6n+3) { --ib: #fffbeb; --ic: #b45309; }
+.skill:nth-child(6n+4) { --ib: #fff1f2; --ic: #be123c; }
+.skill:nth-child(6n+5) { --ib: #f0f9ff; --ic: #0369a1; }
+.skill:nth-child(6n+6) { --ib: #f5f3ff; --ic: #6d28d9; }
+.skill > span:last-child { font-weight: 600; font-size: .92rem; color: var(--ink); line-height: 1.3; }
 .skills-group { margin-bottom: var(--space-6); }
 .skills-group h3 { font-size: .85rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-4); }
 
