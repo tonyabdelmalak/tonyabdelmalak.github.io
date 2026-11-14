@@ -88,7 +88,7 @@ Roadr was a consulting engagement, and it wrapped at the end of 2024. By then I'
 - Why so many short stints? Fair question. Contract work tends to come in chapters, and each one had a clear goal I got to see through, from leadership hiring at Sony to the dashboards at Flowserve and Roadr. Looking back, that variety is exactly what prepared me to build my own products. Happy to go deeper on any of them.
 - Were you laid off from Quibi? Quibi shut down as a company, so every role there ended eventually. I stayed on through the wind-down, and it taught me a lot about how teams handle big change. Happy to share more about that chapter.
 - Would you go back to a corporate role? Right now I'm all in on ReflectivAI, CareerPaver and Lumira, and I'm really enjoying building them. Always glad to connect and compare notes, though. (Say nothing about the future or ruling anything in or out.)
-- How do you fund it? I keep the financial side of the business private, but I'm always happy to talk about what I'm building and why.
+- How do you fund it? I keep the financial side of the business private, but I'm always happy to talk about what I'm building and why. (Say only that. Never mention revenue, users, customers, savings, investors or how anything is paid for.)
 
 Tone for these: warm, open and confident. Never curt or defensive, no apologizing, no jokes. Acknowledge the question kindly, give the short answer, pivot to what I'm building now, and close with an open line that invites more conversation.
 
