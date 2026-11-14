@@ -101,10 +101,11 @@ async function hash(s) {
 }
 
 // ---------- email shell (table layout, inline styles) ----------
-function shell({ preheader, bodyHtml, address, unsubUrl }) {
-  const foot = `${address ? esc(address) + "<br>" : ""}You're getting this because you subscribed to Detours at tonyabdelmalak.com.${unsubUrl ? ` <a href="${unsubUrl}" style="color:#475569;text-decoration:underline">Unsubscribe</a>` : ""}`;
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Detours</title></head>
-<body style="margin:0;padding:0;background-color:#f4f6f8">
+function shell({ preheader, bodyHtml, address, unsubUrl, reason }) {
+  const why = reason || "You're getting this because you subscribed to Detours at tonyabdelmalak.com.";
+  const foot = `${why}${unsubUrl ? `<br><a href="${unsubUrl}" style="color:#0f766e;font-size:14px;line-height:28px;font-weight:bold;text-decoration:underline">Unsubscribe</a>` : ""}${address ? "<br>" + esc(address) : ""}`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="color-scheme" content="light only"><meta name="supported-color-schemes" content="light"><style>:root{color-scheme:light only;supported-color-schemes:light}</style><title>Detours</title></head>
+<body style="margin:0;padding:0;background-color:#f4f6f8;color-scheme:light only">
 <span style="display:none;max-height:0;overflow:hidden;color:#f4f6f8">${esc(preheader)}</span>
 <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f6f8" style="background-color:#f4f6f8"><tr><td align="center" style="padding-top:24px;padding-bottom:24px;padding-left:12px;padding-right:12px">
 <table width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px">
@@ -137,6 +138,7 @@ async function subscribe(req, env) {
     preheader: "One click and you're in.",
     bodyHtml: `<p style="margin-top:0">${hi}</p><p>Thanks for signing up for Detours. One click and you're in:</p>${button(link, "Confirm my subscription")}<p>If you didn't ask for this, you can ignore this email and you won't hear from me.</p><p style="margin-bottom:0">Tony</p>`,
     address: cfg.postal_address,
+    reason: "You're getting this because someone used this address to sign up for Detours at tonyabdelmalak.com.",
   });
   const text = `${name ? "Hi " + name : "Hi"},\n\nThanks for signing up for Detours. Confirm your subscription here:\n${link}\n\nIf you didn't ask for this, ignore this email and you won't hear from me.\n\nTony`;
   const day = new Date().toISOString().slice(0, 10);
