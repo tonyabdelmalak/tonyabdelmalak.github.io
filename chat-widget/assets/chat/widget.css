@@ -108,6 +108,18 @@
 #cw-launcher .cw-launcher-badge i:nth-child(3){ animation-delay:.4s; }
 @keyframes cwBadgeBlink{ 0%,80%,100%{opacity:.35} 40%{opacity:1} }
 
+/* Text label on hover and keyboard focus (icons need a label) */
+#cw-launcher::after{
+  content: attr(data-label);
+  position:absolute; right:76px; top:50%; transform:translateY(-50%) translateX(6px);
+  white-space:nowrap; padding:8px 12px; border-radius:999px;
+  background:#fff; color:#0b1f3a; font:600 14px/1.2 Inter,system-ui,sans-serif;
+  box-shadow:0 6px 18px rgba(0,0,0,.18); opacity:0; pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+}
+#cw-launcher:hover::after, #cw-launcher:focus-visible::after{ opacity:1; transform:translateY(-50%) translateX(0); }
+@media (prefers-reduced-motion: reduce){ #cw-launcher::after{ transition:none; } }
+
 /* Hide launcher when open */
 .cw-open #cw-launcher { opacity: 0; pointer-events: none; }
 
