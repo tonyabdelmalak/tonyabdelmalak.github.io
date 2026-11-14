@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Detours by Tony Abdelmalak</title>
+  <link>https://tonyabdelmalak.com/detours/</link>
+  <atom:link href="https://tonyabdelmalak.com/detours/feed.xml" rel="self" type="application/rss+xml"/>
+  <description>Notes from a career that didn&#x27;t go in a straight line.</description>
+  <language>en-us</language>
+  <item>
+    <title>Follow the work, not the title</title>
+    <link>https://tonyabdelmalak.com/detours/follow-the-work-not-the-title/</link>
+    <guid isPermaLink="true">https://tonyabdelmalak.com/detours/follow-the-work-not-the-title/</guid>
+    <pubDate>Fri, 13 Nov 2026 16:00:00 +0000</pubDate>
+    <description>Why I left full-time roles for consulting, and how each contract pulled me closer to building.</description>
+  </item>
+  <item>
+    <title>The question I used to dread</title>
+    <link>https://tonyabdelmalak.com/detours/the-question-i-used-to-dread/</link>
+    <guid isPermaLink="true">https://tonyabdelmalak.com/detours/the-question-i-used-to-dread/</guid>
+    <pubDate>Fri, 13 Nov 2026 16:00:00 +0000</pubDate>
+    <description>What were you doing between May and December 2021? For years I had no good answer. Here&#x27;s the one I&#x27;d give now.</description>
+  </item>
+  <item>
+    <title>Same conversation, other side of the table</title>
+    <link>https://tonyabdelmalak.com/detours/same-conversation-other-side-of-the-table/</link>
+    <guid isPermaLink="true">https://tonyabdelmalak.com/detours/same-conversation-other-side-of-the-table/</guid>
+    <pubDate>Fri, 13 Nov 2026 16:00:00 +0000</pubDate>
+    <description>I went from selling to physicians to recruiting for NBCUniversal and HBO. It took me years to see it was one job.</description>
+  </item>
+</channel>
+</rss>

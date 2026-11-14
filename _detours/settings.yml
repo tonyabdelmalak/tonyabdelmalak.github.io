@@ -1,0 +1,3 @@
+# approval: Tony approves each post in the weekly session before it publishes.
+# auto: posts publish after passing the audit; Tony gets the link. Switch only when Tony says so.
+mode: approval
