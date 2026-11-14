@@ -497,3 +497,5 @@ table.data td.num, table.data th.num { text-align: right; font-variant-numeric: 
 .detours-latest__list a:hover { color: var(--teal-ink); }
 .detours-latest__list span { font-family: var(--font-display); color: var(--teal-ink); font-weight: 500; min-width: 4.2ch; }
 @media (max-width: 760px) { .detours-latest { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); } }
+/* Long button labels wrap on the narrowest phones instead of pushing the page sideways */
+@media (max-width: 400px) { .btn { white-space: normal; max-width: 100%; text-align: center; height: auto; } }
