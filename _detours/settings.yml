@@ -7,5 +7,5 @@ mode: approval
 newsletter_enabled: false
 weekly_send: false
 kit_live: true
-postal_address: ""
+postal_address: "1550 Wilson Blvd, Ste 700 PMB 829, Arlington, VA 22209"
 signup_endpoint: https://detours-mail.tonyabdelmalak.workers.dev/subscribe
