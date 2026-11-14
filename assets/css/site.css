@@ -478,3 +478,11 @@ table.data td.num, table.data th.num { text-align: right; font-variant-numeric: 
 .careermap__foot { margin-top: var(--space-5); color: var(--slate); }
 @media (max-width: 960px) { .careermap { grid-template-columns: repeat(2, minmax(0, 1fr)); } .careermap li::after { display: none; } }
 @media (max-width: 560px) { .careermap { grid-template-columns: minmax(0, 1fr); } }
+.detours-latest { margin-top: var(--space-6); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-6); align-items: center; padding: var(--space-6); background: #fff; border: 1px solid var(--line); border-radius: var(--radius-l); box-shadow: var(--shadow-1); }
+.detours-latest__lede { font-family: var(--font-display); font-size: var(--step-2); color: var(--navy); line-height: 1.25; margin: 0 0 var(--space-4); }
+.detours-latest__list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+.detours-latest__list li { border-bottom: 1px solid var(--line); }
+.detours-latest__list a { display: flex; gap: var(--space-4); align-items: baseline; min-height: var(--tap); padding: var(--space-3) 0; text-decoration: none; color: var(--ink); font-weight: 600; }
+.detours-latest__list a:hover { color: var(--teal-ink); }
+.detours-latest__list span { font-family: var(--font-display); color: var(--teal-ink); font-weight: 500; min-width: 4.2ch; }
+@media (max-width: 760px) { .detours-latest { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); } }
