@@ -1,7 +1,7 @@
 // =====================================================================
 // Cloudflare Worker — Tony Chat (EXTENDED)
 // - Dynamic fetch of system.md, about-tony.md, persona.json (with small in-memory cache)
-// - Primary provider: GROQ (env.GROQ_API_KEY), fallback: OpenRouter (env.OPENROUTER_API_KEY)
+// - Primary provider: GROQ (env.GROQ_API_KEY) with a model fallback chain, fallback: OpenRouter (env.OPENROUTER_API_KEY)
 // - Optional SSE streaming: include { stream: true } in request body
 // - Per-provider retry with timeout; enforces first-person voice consistency
 // - Provides CORS headers and /health endpoint; returns structured JSON for non-streaming
@@ -24,15 +24,15 @@ export default {
       try {
         const body = await safeJson(request);
 
-        const model       = body.model || "llama-3.1-8b-instant";
+        const model       = pickModel(body.model, env);
         const temperature = (typeof body.temperature === "number") ? body.temperature : 0.275;
         const stream      = !!body.stream;  // default streaming off (widget uses non-streaming)
-        const messagesIn  = Array.isArray(body.messages) ? body.messages : [];
+        const messagesIn  = sanitizeMessages(body);
 
         // Use provided URLs or fall back to Tony's GitHub repository raw URLs
-        const systemUrl  = body.systemUrl  || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/system.md";
-        const kbUrl      = body.kbUrl      || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/about-tony.md";
-        const personaUrl = body.personaUrl || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/persona.json";
+        const systemUrl  = allowUrl(body.systemUrl)  || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/system.md";
+        const kbUrl      = allowUrl(body.kbUrl)      || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/about-tony.md";
+        const personaUrl = allowUrl(body.personaUrl) || "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/refs/heads/main/chat-widget/assets/chat/persona.json";
 
         // Fetch the guidance documents (with caching)
         const [systemMd, kbMd, persona] = await Promise.all([
@@ -59,8 +59,8 @@ export default {
           personaNote
         ].join("\n\n");
 
-        const messages = [{ role: "system", content: unifiedSystem }]
-          .concat(messagesIn.filter(m => m && typeof m.content === "string" && m.role));
+        if (!messagesIn.some(m => m.role === "user")) return json({ error: "No user message" }, 400);
+        const messages = [{ role: "system", content: unifiedSystem }].concat(messagesIn);
 
         // Streaming SSE response (if requested)
         if (stream) {
@@ -76,11 +76,12 @@ export default {
         }
 
         // Enforce first-person answer (post-process guard)
-        const content = enforceFirstPerson(result.text);
+        const content = noEmDash(enforceFirstPerson(result.text));
 
         return json({
           role: "assistant",
           content,
+          reply: content,
           provider: result.provider,
           model_used: result.model_used || model,
           finish_reason: result.finish_reason || "stop"
@@ -101,18 +102,21 @@ export default {
 /* ===================================================================== */
 
 async function completeFromProviders({ env, model, temperature, messages }) {
-  // Try primary provider (Groq)
+  // Primary: Groq. The original tuned model (llama-3.1-8b-instant) was retired by Groq,
+  // so try the requested model first, then the closest available Llama models.
   if (env.GROQ_API_KEY) {
-    const r = await withRetry(() =>
-      groqChat({ apiKey: env.GROQ_API_KEY, model, temperature, messages, stream: false }),
-      { attempts: 2, timeoutMs: 25000 }
-    );
-    if (r && r.text) return { ...r, provider: "groq" };
+    for (const m of groqModelChain(model, env)) {
+      const r = await withRetry(() =>
+        groqChat({ apiKey: env.GROQ_API_KEY, model: m, temperature, messages, stream: false }),
+        { attempts: 1, timeoutMs: 25000 }
+      );
+      if (r && r.text) return { ...r, provider: "groq", model_used: m };
+    }
   }
 
-  // Fallback provider (OpenRouter)
+  // Fallback provider (OpenRouter). OpenRouter needs the vendor-prefixed model id.
   if (env.OPENROUTER_API_KEY) {
-    const fallbackModel = "gpt-4o-mini";
+    const fallbackModel = "openai/gpt-4o-mini";
     const r = await withRetry(() =>
       openrouterChat({ apiKey: env.OPENROUTER_API_KEY, model: fallbackModel, temperature, messages, stream: false }),
       { attempts: 2, timeoutMs: 25000 }
@@ -126,11 +130,13 @@ async function completeFromProviders({ env, model, temperature, messages }) {
 // Optional SSE streaming route (tries providers in order)
 async function streamFromProviders({ env, model, temperature, messages }) {
   if (env.GROQ_API_KEY) {
-    const resp = await groqStream({ apiKey: env.GROQ_API_KEY, model, temperature, messages });
-    if (resp) return resp;
+    for (const m of groqModelChain(model, env)) {
+      const resp = await groqStream({ apiKey: env.GROQ_API_KEY, model: m, temperature, messages });
+      if (resp) return resp;
+    }
   }
   if (env.OPENROUTER_API_KEY) {
-    const fallbackModel = "gpt-4o-mini";
+    const fallbackModel = "openai/gpt-4o-mini";
     const resp = await openrouterStream({ apiKey: env.OPENROUTER_API_KEY, model: fallbackModel, temperature, messages });
     if (resp) return resp;
   }
@@ -254,6 +260,51 @@ async function openrouterStream({ apiKey, model, temperature, messages }) {
 /* ===================================================================== */
 
 const MEMO = new Map();  // simple in-memory cache
+
+// Models, in order of preference. Llama family first to stay closest to the voice the
+// prompt was tuned on. GROQ_MODEL (plain env var) can pin a model without a code change.
+const GROQ_MODELS = [
+  "llama-3.1-8b-instant",
+  "llama-3.3-70b-versatile",
+  "meta-llama/llama-4-scout-17b-16e-instruct",
+  "openai/gpt-oss-20b"
+];
+function pickModel(requested, env) {
+  if (env && env.GROQ_MODEL) return env.GROQ_MODEL;
+  return (typeof requested === "string" && requested) ? requested : GROQ_MODELS[0];
+}
+function groqModelChain(model, env) {
+  const chain = [model].concat(GROQ_MODELS);
+  if (env && env.GROQ_MODEL) chain.unshift(env.GROQ_MODEL);
+  return [...new Set(chain)].slice(0, 5);
+}
+
+// Only fetch guidance docs from this site or this repo. Anything else falls back to defaults.
+function allowUrl(u) {
+  if (typeof u !== "string") return null;
+  return /^https:\/\/(raw\.githubusercontent\.com\/tonyabdelmalak\/tonyabdelmalak\.github\.io\/|tonyabdelmalak\.com\/)/.test(u) ? u : null;
+}
+
+// Accept the widget's { messages } shape or the older { message, history } shape.
+// System messages from the client are dropped except the widget's own two control notes,
+// so the endpoint can't be used as a general-purpose LLM proxy with a custom prompt.
+function sanitizeMessages(body) {
+  let list = Array.isArray(body.messages) ? body.messages : [];
+  if (!list.length && typeof body.message === "string") {
+    list = (Array.isArray(body.history) ? body.history : []).concat([{ role: "user", content: body.message }]);
+  }
+  return list
+    .filter(m => m && typeof m.content === "string" && m.content.trim())
+    .filter(m => m.role === "user" || m.role === "assistant" ||
+      (m.role === "system" && /^(role_active:|UI already displayed a greeting)/.test(m.content)))
+    .slice(-20)
+    .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
+}
+
+// House style: no em dashes in Tony's voice.
+function noEmDash(t) {
+  return String(t || "").replace(/\s*\u2014\s*/g, ", ").replace(/,\s*,/g, ",").replace(/\s+,/g, ",");
+}
 
 async function cachedText(url, ttl = 300) {
   const key = "T:" + url;
