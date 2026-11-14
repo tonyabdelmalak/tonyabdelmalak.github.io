@@ -1,26 +1,26 @@
 {
   "name": "Tony Abdelmalak",
-  "title": "People & Business Insights Analyst",
-  "tagline": "Turning workforce data into executive-ready strategies with Tableau, SQL, Python, and AI.",
+  "title": "Founder & Architect, ReflectivAI, CareerPaver and Lumira",
+  "tagline": "AI practice and coaching for the conversations that matter: sales calls, job interviews and relationships.",
   "links": {
-    "home": "/index.html",
-    "projects": "/projects",
-    "dashboards": "/projects#dashboards",
-    "caseStudies": "/case-studies",
-    "resume": "/resume",
-    "about": "/about",
-    "knowledge": "/knowledge/index"
+    "home": "/",
+    "products": "/#products",
+    "experience": "/#experience",
+    "analytics": "/#analytics",
+    "resume": "/assets/resume/Tony_Abdelmalak_Resume.pdf",
+    "reflectivai": "https://reflectiv-ai.com",
+    "careerpaver": "https://careerpaverai.com",
+    "lumira": "https://lumiraconnect.com"
   },
   "skills": [
-    "Tableau & data storytelling",
-    "SQL pipelines & QA",
-    "Python forecasting/automation",
-    "Explainable ML (attrition, risk)",
-    "HRIS (Workday, SuccessFactors, Greenhouse)",
-    "Lightweight AI copilots"
+    "Designing and building AI products",
+    "Sales enablement and coaching",
+    "Talent acquisition and interviewing",
+    "Tableau and people analytics",
+    "Workday and HRIS"
   ],
   "contact": {
-    "email": "mailto:tony@abdelmalak.ai",
-    "linkedin": "https://www.linkedin.com/in/tonyabdelmalak/"
+    "email": "mailto:tony.abdelmalak@yahoo.com",
+    "linkedin": "https://www.linkedin.com/in/tony-abdelmalak"
   }
 }
