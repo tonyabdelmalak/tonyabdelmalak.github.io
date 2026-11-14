@@ -133,7 +133,8 @@
   function buildLauncher() {
     const btn = document.createElement("button");
     btn.id = "cw-launcher";
-    btn.setAttribute("aria-label","Open chat");
+    btn.setAttribute("aria-label","Chat with me (an AI version of Tony)");
+    btn.setAttribute("data-label","Chat with me");
     btn.innerHTML =
       `<div class="cw-avatar-wrap">
          <img src="${esc(CFG.avatarUrl)}" alt="Tony Avatar">
