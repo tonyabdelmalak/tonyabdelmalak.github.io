@@ -112,4 +112,22 @@
 
     var y = document.querySelector("[data-year]"); if (y) y.textContent = new Date().getFullYear();
   });
+
+  // Detours sign-up: submit without leaving the page; the form still works without JavaScript.
+  document.querySelectorAll("form[data-subscribe]").forEach(function (form) {
+    form.addEventListener("submit", function (ev) {
+      if (!window.fetch) return;
+      ev.preventDefault();
+      var box = form.closest(".subscribe"), msg = form.querySelector(".subscribe__msg"), btn = form.querySelector("button");
+      var data = {}; new FormData(form).forEach(function (v, k) { data[k] = v; });
+      msg.classList.remove("is-error"); msg.textContent = "Sending..."; btn.disabled = true;
+      fetch(form.action, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+        .then(function (r) { return r.json().catch(function () { return { ok: r.ok }; }); })
+        .then(function (res) {
+          if (res && res.ok) { box.classList.add("is-done"); msg.textContent = "Almost done. Check your inbox and click the confirm button."; }
+          else { msg.classList.add("is-error"); msg.textContent = (res && res.error) || "Something went wrong. Please try again."; btn.disabled = false; }
+        })
+        .catch(function () { msg.classList.add("is-error"); msg.textContent = "Something went wrong. Please try again."; btn.disabled = false; });
+    });
+  });
 })();

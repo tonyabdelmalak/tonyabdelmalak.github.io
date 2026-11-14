@@ -78,21 +78,6 @@ def main():
                 s = s.replace(m.group(0), block, 1)
                 page.write_text(s)
 
-    home = ROOT / "index.html"
-    s = home.read_text()
-    start, end = "<!-- detours:latest -->", "<!-- /detours:latest -->"
-    if start not in s:
-        anchor = "        </ol>\n      </div>\n    </section>\n\n    <section class=\"section section--white\" id=\"experience\""
-        if anchor not in s:
-            sys.exit("Could not find the career map to attach the Detours list")
-        s = s.replace(anchor, "        </ol>\n        " + start + end + "\n      </div>\n    </section>\n\n    <section class=\"section section--white\" id=\"experience\"", 1)
-    items = "".join(f'<li><a href="/detours/{p["slug"]}/"><span>No. {p["number"]}</span>{html.escape(p["title"])}</a></li>' for p in posts[:3])
-    inner = ('\n        <div class="detours-latest reveal"><div><p class="eyebrow">Detours, a weekly column</p>'
-             '<p class="detours-latest__lede">The story behind each turn, with the data that says a path like this is normal.</p>'
-             f'<a class="btn btn--outline btn--sm" href="/detours/"><i data-lucide="book-open"></i>Read Detours</a></div>'
-             f'<ol class="detours-latest__list">{items}</ol></div>\n        ')
-    home.write_text(replace_block(s, start, end, inner))
-
     kb = ROOT / "chat-widget/assets/chat/system.md"
     k = kb.read_text()
     ks, ke = "<!-- detours:kb -->", "<!-- /detours:kb -->"
