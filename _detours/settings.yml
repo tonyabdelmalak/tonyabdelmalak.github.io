@@ -6,6 +6,6 @@ mode: approval
 # Weekly emails also need a CAN-SPAM postal address (PO box or virtual mailbox, never a home address).
 newsletter_enabled: false
 weekly_send: false
-kit_live: false
+kit_live: true
 postal_address: ""
 signup_endpoint: https://detours-mail.tonyabdelmalak.workers.dev/subscribe
