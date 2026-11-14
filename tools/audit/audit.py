@@ -28,7 +28,7 @@ SHOTS = "--shots" in sys.argv
 OUT.mkdir(parents=True, exist_ok=True)
 WIDTHS = (390, 1440)
 # Sites that block automated checks but are verified by hand in a signed-in browser.
-BOT_BLOCKED = ("linkedin.com", "mckinsey.com", "weforum.org")  # each verified in a real browser on 2026-11-13
+BOT_BLOCKED = ("linkedin.com", "mckinsey.com", "weforum.org", "bls.gov")  # each verified in a real browser on 2026-11-13
 
 def repo_pages():
     skip = {"docs", "tools", ".git", "node_modules"}
