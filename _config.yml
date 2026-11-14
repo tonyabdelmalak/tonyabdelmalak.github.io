@@ -6,6 +6,7 @@ exclude:
   - chat-widget/docs
   - chat-widget/worker.js
   - knowledge
+  - workers
   - Gemfile
   - Gemfile.lock
   - node_modules

@@ -1,0 +1,57 @@
+import worker from "./worker.js";
+const env = { RESEND_API_KEY: "re_test_key" };
+const calls = []; let cfg = { enabled: true, postal_address: "123 Test St, Los Angeles, CA 90000", weekly_send: true };
+let broadcasts = []; let contactExists = false;
+globalThis.fetch = async (u, init = {}) => {
+  u = String(u); const body = init.body ? JSON.parse(init.body) : null;
+  calls.push({ u, method: init.method || "GET", body, headers: init.headers || {} });
+  if (u.endsWith("/detours/newsletter.json")) return new Response(JSON.stringify(cfg));
+  if (u.endsWith("/detours/email/latest.json")) return new Response(JSON.stringify({ number: 4, subject: "Detours No. 4: Test", dek: "A dek", html: "<p>Body</p>", text: "Body" }));
+  if (u === "https://api.resend.com/emails") return new Response(JSON.stringify({ id: "em_1" }));
+  if (u === "https://api.resend.com/contacts" && init.method === "POST") return contactExists ? new Response(JSON.stringify({ message: "exists" }), { status: 409 }) : new Response(JSON.stringify({ id: "c1" }), { status: 201 });
+  if (u.startsWith("https://api.resend.com/contacts/")) return new Response(JSON.stringify({ ok: true }));
+  if (u === "https://api.resend.com/broadcasts" && (init.method || "GET") === "GET") return new Response(JSON.stringify({ data: broadcasts }));
+  if (u === "https://api.resend.com/broadcasts") { broadcasts.push({ name: body.name }); return new Response(JSON.stringify({ id: "b1" }), { status: 201 }); }
+  return new Response("?", { status: 404 });
+};
+const ok = (n, c) => { console.log((c ? "PASS " : "FAIL ") + n); if (!c) process.exitCode = 1; };
+const W = "https://detours-mail.example.workers.dev";
+const post = (b, ct = "application/json") => new Request(W + "/subscribe", { method: "POST", headers: { "Content-Type": ct, Origin: "https://tonyabdelmalak.com" }, body: ct.includes("json") ? JSON.stringify(b) : new URLSearchParams(b) });
+
+let r = await worker.fetch(post({ email: "bad" }), env); ok("rejects invalid email", r.status === 400);
+r = await worker.fetch(post({ email: "a@b.com", website: "spam" }), env); ok("honeypot silently accepted, no email sent", r.status === 200 && !calls.some(c => c.u.endsWith("/emails")));
+r = await worker.fetch(post({ email: "Reader@Example.com", first_name: "Sam<script>" }), env);
+const sent = calls.filter(c => c.u.endsWith("/emails")).pop();
+ok("sends confirmation", r.status === 200 && sent && sent.body.subject === "Confirm your Detours subscription");
+ok("lowercases email", sent.body.to[0] === "reader@example.com");
+ok("name sanitized", !sent.body.html.includes("<script>") && sent.body.html.includes("Hi Samscript,"));
+ok("idempotency key set", !!sent.headers["Idempotency-Key"]);
+ok("CORS header", r.headers.get("Access-Control-Allow-Origin") === "https://tonyabdelmalak.com");
+ok("no em dash in confirmation", !/—/.test(sent.body.html + sent.body.text));
+const link = sent.body.text.match(/https:\/\/\S+\/confirm\?t=\S+/)[0];
+r = await worker.fetch(new Request(W + "/confirm?t=" + link.split("t=")[1].slice(0, -3) + "xyz"), env);
+ok("tampered token rejected", r.status === 303 && r.headers.get("Location").includes("expired"));
+r = await worker.fetch(new Request(link), env);
+const created = calls.find(c => c.u === "https://api.resend.com/contacts" && c.method === "POST");
+ok("confirm creates contact in segment + Detours topic", r.headers.get("Location") === "https://tonyabdelmalak.com/detours/welcome/" && created.body.topics[0].subscription === "opt_in" && created.body.segments[0].id);
+const welcome = calls.filter(c => c.u.endsWith("/emails")).pop();
+ok("welcome email with kit, address, unsubscribe headers", welcome.body.subject.startsWith("You're in") && welcome.body.html.includes("/detours/kit/") && welcome.body.html.includes("123 Test St") && welcome.body.headers["List-Unsubscribe-Post"]);
+contactExists = true; calls.length = 0;
+r = await worker.fetch(new Request(link), env);
+ok("existing contact updated instead", calls.some(c => c.method === "PATCH" && c.u.endsWith("/topics")));
+const unsub = welcome.body.text.match(/Unsubscribe: (\S+)/)[1];
+calls.length = 0;
+r = await worker.fetch(new Request(unsub, { method: "POST" }), env);
+ok("one-click unsubscribe opts out", r.status === 200 && calls.some(c => c.u.endsWith("/topics") && c.body[0].subscription === "opt_out"));
+r = await worker.fetch(new Request(W + "/unsubscribe?t=" + encodeURIComponent((link.split("t=")[1]))), env);
+ok("confirm token can't unsubscribe", calls.filter(c => c.body && Array.isArray(c.body) && c.body[0].subscription === "opt_out").length === 1);
+// weekly
+const ctx = { waitUntil: (p) => p }; await worker.scheduled({}, env, ctx); await new Promise(s => setTimeout(s, 10));
+ok("weekly sends once", broadcasts.length === 1 && broadcasts[0].name === "Detours No. 4");
+await worker.scheduled({}, env, ctx); await new Promise(s => setTimeout(s, 10));
+ok("weekly does not resend", broadcasts.length === 1);
+cfg = { enabled: true, postal_address: "", weekly_send: true }; broadcasts = [];
+await worker.scheduled({}, env, ctx); await new Promise(s => setTimeout(s, 10));
+ok("weekly blocked without postal address", broadcasts.length === 0);
+cfg = { enabled: false };
+r = await worker.fetch(post({ email: "x@y.com" }), env); ok("signups closed when disabled", r.status === 503);

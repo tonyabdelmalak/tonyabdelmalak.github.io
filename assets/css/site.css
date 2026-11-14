@@ -499,3 +499,22 @@ table.data td.num, table.data th.num { text-align: right; font-variant-numeric: 
 @media (max-width: 760px) { .detours-latest { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); } }
 /* Long button labels wrap on the narrowest phones instead of pushing the page sideways */
 @media (max-width: 400px) { .btn { white-space: normal; max-width: 100%; text-align: center; height: auto; } }
+
+/* ===== Detours sign-up ===== */
+.subscribe { margin-top: var(--space-7); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); padding: var(--space-6); border-radius: var(--radius-l); background: #f0fdfa; border: 1px solid #99f6e4; }
+.subscribe h2 { font-size: var(--step-2); margin: 0 0 var(--space-2); color: var(--navy); }
+.subscribe__copy p { color: var(--slate); margin: 0 0 var(--space-3); }
+.subscribe__gift { display: flex; gap: var(--space-2); align-items: flex-start; font-size: .95rem; }
+.subscribe__gift svg { flex: none; color: var(--teal-ink); width: 20px; height: 20px; margin-top: 2px; }
+.subscribe__form { display: grid; gap: var(--space-3); align-content: start; }
+.subscribe__field { display: grid; gap: 4px; font-size: .88rem; font-weight: 600; color: var(--ink); }
+.subscribe__field input { min-height: var(--tap); padding: 0 14px; border-radius: 12px; border: 1px solid #94a3b8; font: inherit; font-weight: 400; font-size: 1rem; background: #fff; color: var(--ink); }
+.subscribe__field input:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; border-color: var(--teal-ink); }
+.subscribe__form .btn { justify-self: start; }
+.subscribe__hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.subscribe__msg { margin: 0; min-height: 1.2em; font-weight: 600; color: var(--teal-ink); }
+.subscribe__msg.is-error { color: #b91c1c; }
+.subscribe__fine { margin: 0; font-size: .82rem; color: var(--muted); }
+.subscribe.is-done .subscribe__field, .subscribe.is-done .subscribe__form .btn { display: none; }
+@media (max-width: 760px) { .subscribe { grid-template-columns: minmax(0, 1fr); padding: var(--space-5); } }
+.detours-latest__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: 0; }
