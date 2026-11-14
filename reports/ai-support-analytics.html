@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Support Analytics | Tony Abdelmalak</title>
+  <meta name="description" content="What customers ask an AI support assistant, how often it resolves the issue, how they rate it, and how the model improved across versions.">
+  <link rel="canonical" href="https://tonyabdelmalak.com/reports/ai-support-analytics.html">
+  <meta name="theme-color" content="#001e42">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Tony Abdelmalak">
+  <meta property="og:title" content="AI Support Analytics">
+  <meta property="og:description" content="What customers ask an AI support assistant, how often it resolves the issue, how they rate it, and how the model improved across versions.">
+  <meta property="og:url" content="https://tonyabdelmalak.com/reports/ai-support-analytics.html">
+  <meta property="og:image" content="https://tonyabdelmalak.com/assets/img/reports/ai-support-analytics-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI Support Analytics">
+  <meta name="twitter:description" content="What customers ask an AI support assistant, how often it resolves the issue, how they rate it, and how the model improved across versions.">
+  <meta name="twitter:image" content="https://tonyabdelmalak.com/assets/img/reports/ai-support-analytics-og.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add("js")</script>
+  <link rel="stylesheet" href="/assets/css/site.css?v=20261113">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="nav" role="banner">
+    <div class="container nav__inner">
+      <a class="nav__brand" href="/">Tony Abdelmalak</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      <nav aria-label="Primary">
+        <ul class="nav__links" id="nav-links">
+          <li><a class="nav__link" href="/#about">About</a></li>
+          <li><a class="nav__link" href="/#products">Products</a></li>
+          <li><a class="nav__link" href="/#experience">Experience</a></li>
+          <li><a class="nav__link is-active" href="/#analytics">Analytics</a></li>
+          <li><a class="nav__link" href="/#skills">Skills</a></li>
+          <li><a class="nav__link" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li class="nav__mobile-cta"><a class="btn btn--teal" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn--teal btn--sm nav__cta" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a>
+    </div>
+  </header>
+  <main id="main">
+    <section class="report-hero">
+      <div class="container">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="/#analytics"><i data-lucide="arrow-left"></i>All dashboards and case studies</a></nav>
+        <p class="eyebrow">Report · AI assistant performance</p>
+        <h1>AI Support Analytics</h1>
+        <p>Four questions every team running an AI assistant should be able to answer: what are people asking, does it actually resolve them, are they satisfied, and is the model getting better?</p>
+        <div class="kpis"><div class="kpi"><div class="kpi__num">500</div><div class="kpi__label">conversations in the sample</div></div><div class="kpi"><div class="kpi__num">78%</div><div class="kpi__label">resolved overall</div></div><div class="kpi"><div class="kpi__num">0.87</div><div class="kpi__label">F1 score at v1.5, up from 0.67</div></div></div>
+      </div>
+    </section>
+    <div class="container report">
+      <aside class="report__toc" aria-label="On this page"><h2>On this page</h2><ol><li><a href="#intents">What people ask about</a></li><li><a href="#resolution">Resolution rate</a></li><li><a href="#satisfaction">Satisfaction</a></li><li><a href="#model">Model performance</a></li></ol></aside>
+      <article class="report__body">
+        <section id="intents" aria-labelledby="intents-h"><h2 id="intents-h">What people ask about</h2><div class="panel"><div class="panel__title"><h3>Conversations by intent</h3></div><div class="chart" id="c-int" style="min-height:380px" role="img" aria-label="Conversations by intent"></div><script type="application/json" data-chart="c-int">{"data":[{"type":"bar","x":["Order Status","Billing","Technical Support","Cancellation","Other","Feedback"],"y":[133,99,98,72,57,41],"marker":{"color":"#1e3a8a"},"text":[133,99,98,72,57,41],"textposition":"outside","cliponaxis":false,"hovertemplate":"%{x}: %{y} conversations<extra></extra>"}],"layout":{"yaxis":{"title":{"text":"Conversations"},"rangemode":"tozero"},"xaxis":{"title":{"text":"Intent"}}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>Order Status is the single largest intent (133 of 500), so it is the first place to invest in self-service.</p></div></div></section><section id="resolution" aria-labelledby="resolution-h"><h2 id="resolution-h">Resolution rate</h2><div class="panel"><div class="panel__title"><h3>Share of conversations resolved by intent</h3></div><div class="chart" id="c-res" style="min-height:380px" role="img" aria-label="Share of conversations resolved by intent"></div><script type="application/json" data-chart="c-res">{"data":[{"type":"bar","x":["Order Status","Billing","Technical Support","Cancellation","Other","Feedback"],"y":[0.7519,0.8182,0.7959,0.8194,0.6842,0.7561],"marker":{"color":["#0f766e","#0f766e","#0f766e","#0f766e","#be123c","#0f766e"]},"text":["75%","82%","80%","82%","68%","76%"],"textposition":"outside","cliponaxis":false,"hovertemplate":"%{x}: %{y:.1%}<extra></extra>"}],"layout":{"yaxis":{"title":{"text":"Resolved without a human"},"tickformat":".0%","range":[0,1]},"xaxis":{"title":{"text":"Intent"}}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>&ldquo;Other&rdquo; resolves least often (68%). Order Status, the biggest bucket, also sits below average at 75%.</p></div></div></section><section id="satisfaction" aria-labelledby="satisfaction-h"><h2 id="satisfaction-h">Satisfaction</h2><div class="panel"><div class="panel__title"><h3>Average satisfaction by intent</h3></div><div class="chart" id="c-sat" style="min-height:380px" role="img" aria-label="Average satisfaction by intent"></div><script type="application/json" data-chart="c-sat">{"data":[{"type":"bar","x":["Order Status","Billing","Technical Support","Cancellation","Other","Feedback"],"y":[3.0902,2.9697,3.0816,3.1667,2.7895,3.122],"marker":{"color":"#0369a1"},"text":["3.09","2.97","3.08","3.17","2.79","3.12"],"textposition":"outside","cliponaxis":false,"hovertemplate":"%{x}: %{y:.2f} / 5<extra></extra>"}],"layout":{"yaxis":{"title":{"text":"Average satisfaction (1 to 5)"},"range":[1,5]},"xaxis":{"title":{"text":"Intent"}}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>Scores cluster near 3 out of 5 for every intent, with &ldquo;Other&rdquo; lowest. There is no intent where the assistant clearly delights.</p></div></div></section><section id="model" aria-labelledby="model-h"><h2 id="model-h">Model performance</h2><div class="panel"><div class="panel__title"><h3>Precision, recall, F1 and misclassification by version</h3></div><div class="chart" id="c-mod" style="min-height:380px" role="img" aria-label="Precision, recall, F1 and misclassification by version"></div><script type="application/json" data-chart="c-mod">{"data":[{"type":"scatter","mode":"lines+markers","name":"Precision","x":["v1.0","v1.1","v1.2","v1.3","v1.4","v1.5"],"y":[0.7,0.76,0.8,0.83,0.85,0.88],"line":{"width":3,"dash":"solid"},"marker":{"size":8}},{"type":"scatter","mode":"lines+markers","name":"Recall","x":["v1.0","v1.1","v1.2","v1.3","v1.4","v1.5"],"y":[0.65,0.72,0.78,0.81,0.83,0.86],"line":{"width":3,"dash":"solid"},"marker":{"size":8}},{"type":"scatter","mode":"lines+markers","name":"F1 Score","x":["v1.0","v1.1","v1.2","v1.3","v1.4","v1.5"],"y":[0.674,0.74,0.79,0.82,0.84,0.87],"line":{"width":3,"dash":"solid"},"marker":{"size":8}},{"type":"scatter","mode":"lines+markers","name":"Misclassification Rate","x":["v1.0","v1.1","v1.2","v1.3","v1.4","v1.5"],"y":[0.3,0.24,0.2,0.17,0.15,0.12],"line":{"width":3,"dash":"dot"},"marker":{"size":8}}],"layout":{"yaxis":{"title":{"text":"Score / rate"},"range":[0,1]},"xaxis":{"title":{"text":"Model version"}}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>Across six versions F1 rose from 0.67 to 0.87 and misclassification fell from 30% to 12%.</p></div></div></section>
+        <div class="datanote"><p><strong>About the data.</strong> Values come from the four full Plotly dashboards on the old site (dashboard_*.html), which were generated from the underlying sample conversation log; resolution and satisfaction are averages per intent from that log. The old site also had smaller hand-typed versions of these charts with different numbers; those were not used because they did not match the generated dashboards.</p><p><strong>Rebuilt from:</strong></p><ul><li>dashboard_intent_distribution.html</li><li>dashboard_resolution_rate.html</li><li>dashboard_satisfaction.html</li><li>dashboard_model_performance.html</li><li>interactive_cases_refined/*_case.html (earlier hand-typed copies, superseded)</li></ul></div>
+        <section aria-labelledby="more-h"><h2 id="more-h">More reports</h2><div class="report-next"><a class="card" href="/reports/recruitment-funnel.html"><div class="card__body"><span class="card__kicker">Case study · Recruiting</span><h4>Recruitment Funnel Analytics</h4><p>Where candidates drop out of the hiring funnel, which stage takes the longest, and how time to hire trends as the process tightens.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a><a class="card" href="/reports/predictive-attrition.html"><div class="card__body"><span class="card__kicker">Case study · Machine learning</span><h4>Predicting Turnover: AI-Driven Attrition Risk</h4><p>A predictive attrition model that flags employees at risk of leaving, so HR can have the stay conversation early.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a><a class="card" href="/reports/early-attrition.html"><div class="card__body"><span class="card__kicker">Case study · Predictive and prescriptive analytics</span><h4>Reducing 90-Day Attrition</h4><p>Predictive and prescriptive analytics to decide where a limited onboarding budget does the most good for early retention.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a></div></section>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>&copy; <span data-year>2026</span> Tony Abdelmalak · Los Angeles</p>
+      <ul class="footer__links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#analytics">All reports</a></li>
+        <li><a href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+  <script src="/assets/js/site.js?v=20261113" defer></script>
+  <script src="/assets/js/report.js?v=20261113" defer></script>
+  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=20261113">
+  <script defer src="/chat-widget/assets/chat/widget.js?v=20261113" data-autostart></script>
+</body>
+</html>

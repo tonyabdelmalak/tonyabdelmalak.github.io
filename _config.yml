@@ -1,0 +1,13 @@
+# GitHub Pages (Jekyll) build settings.
+# Internal notes, build tools and the story brief live in the repo but are not published.
+exclude:
+  - docs
+  - tools
+  - chat-widget/docs
+  - chat-widget/worker.js
+  - knowledge
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+include:
+  - .well-known

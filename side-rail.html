@@ -1,163 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
-  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Side Rail with Links</title>
-  <style>
-    :root{
-      --rail-bg: #0f172a;
-      --rail-fg: #e5e7eb;
-      --rail-accent: #6366f1;
-      --rail-width-collapsed: 56px;
-      --rail-width-expanded: 200px;
-      --rail-radius: 16px;
-      --rail-gap: 8px;
-      --rail-item-h: 44px;
-    }
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f3f4f6;
-      padding-left: 80px;
-    }
-    .side-rail{
-      position: fixed;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: var(--rail-width-collapsed);
-      background: var(--rail-bg);
-      color: var(--rail-fg);
-      border-radius: var(--rail-radius);
-      padding: 12px 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.32);
-      transition: width .24s ease;
-      overflow: hidden;
-      z-index: 1000;
-    }
-    .side-rail:hover,
-    .side-rail.is-pinned{
-      width: var(--rail-width-expanded);
-    }
-    .side-rail ul{
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      gap: var(--rail-gap);
-    }
-    .side-rail a{
-      display: grid;
-      grid-template-columns: 28px 1fr;
-      align-items: center;
-      gap: 12px;
-      height: var(--rail-item-h);
-      padding: 0 10px;
-      border-radius: 12px;
-      color: inherit;
-      text-decoration: none;
-      position: relative;
-    }
-    .side-rail a svg{
-      width: 24px;
-      height: 24px;
-    }
-    .side-rail a span{
-      white-space: nowrap;
-      opacity: 0;
-      transform: translateX(-4px);
-      transition: opacity .18s ease, transform .18s ease;
-    }
-    .side-rail:hover a span,
-    .side-rail.is-pinned a span{
-      opacity: 1;
-      transform: translateX(0);
-    }
-    .side-rail a:hover{
-      background: rgba(255,255,255,.07);
-    }
-    .side-rail a.active{
-      background: rgba(99,102,241,.18);
-      color: #fff;
-      box-shadow: inset 0 0 0 1px rgba(99,102,241,.45);
-    }
-    .rail-pin{
-      margin-top: 10px;
-      width: 36px;
-      height: 36px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(255,255,255,.06);
-      color: var(--rail-fg);
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-    }
-    .rail-pin svg{ width: 18px; height: 18px; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>This page has moved | Tony Abdelmalak</title>
+  <meta name="robots" content="noindex">
+  <meta name="description" content="This page moved to /.">
+  <link rel="canonical" href="https://tonyabdelmalak.com/">
+  <meta http-equiv="refresh" content="0; url=/">
+  <script>location.replace("/" + (location.hash && "/".indexOf("#") < 0 ? location.hash : ""));</script>
+  <style>body{font:16px/1.6 Inter,system-ui,sans-serif;background:#f3f4f6;color:#111827;display:grid;place-items:center;min-height:100vh;margin:0}a{color:#0f766e;font-weight:600;display:inline-block;min-height:44px;line-height:44px}</style>
 </head>
 <body>
-
-  <!-- SIDE NAV RAIL -->
-  <nav class="side-rail" aria-label="Quick navigation">
-    <ul>
-      <li>
-        <a href="hr_attrition_dashboard_lite.html">
-          <!-- Chart icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 10v8M10 4v14M14 7v11M18 13v5"/></svg>
-          <span>Attrition Dashboard</span>
-        </a>
-      </li>
-      <li>
-        <a href="predictive_attrition_case_study.html">
-          <!-- Puzzle icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 10a2 2 0 114 0h2a2 2 0 114 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 114 0v-2z"/></svg>
-          <span>Predictive Case Study</span>
-        </a>
-      </li>
-      <li>
-        <a href="recruitment_case_study.html">
-          <!-- Users icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-3-3.87M9 21v-2a4 4 0 0 1 3-3.87M12 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM16 11c1.5 0 3 1 3 3v2"/></svg>
-          <span>Recruitment Case Study</span>
-        </a>
-      </li>
-      <li>
-        <a href="recruitment-funnel.html">
-          <!-- Funnel icon -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18L14 12v7l-4 2v-9L3 4z"/></svg>
-          <span>Recruitment Funnel</span>
-        </a>
-      </li>
-      <li>
-        <a href="sentiment.html">
-          <!-- Chat bubble -->
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>
-          <span>Sentiment Analysis</span>
-        </a>
-      </li>
-    </ul>
-    <button class="rail-pin" aria-pressed="false" aria-label="Pin side navigation">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3l7 7-4 1-4 4-3-3 4-4 1-4zM4 20l6-6"/></svg>
-    </button>
-  </nav>
-
-  <main>
-    <h1>Side Rail Navigation</h1>
-    <p>This side rail links directly to your dashboards and case studies.</p>
-  </main>
-
-  <script>
-    const rail = document.querySelector('.side-rail');
-    const pin  = rail.querySelector('.rail-pin');
-    pin.addEventListener('click', () => {
-      const pinned = rail.classList.toggle('is-pinned');
-      pin.setAttribute('aria-pressed', String(pinned));
-    });
-  </script>
+  <main><h1 style="font-size:1.4rem">This page has moved.</h1><p><a href="/">Continue to the new page</a></p></main>
 </body>
 </html>
