@@ -167,10 +167,10 @@ p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 .hero__proof li { font-size: .85rem; color: var(--on-navy-muted); padding: .35rem .75rem; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; }
 .portrait { position: relative; justify-self: center; width: min(420px, 100%); }
 .portrait__frame {
-  position: relative; border-radius: var(--radius-l); overflow: hidden; aspect-ratio: 4 / 5; background: #0b2c57;
+  position: relative; border-radius: var(--radius-l); overflow: hidden; aspect-ratio: 1 / 1; background: #f4f6f8;
   box-shadow: var(--shadow-3); border: 1px solid rgba(255,255,255,.12);
 }
-.portrait__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.portrait__frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
 .portrait__chip {
   position: absolute; left: -18px; bottom: 28px; display: flex; align-items: center; gap: .7rem; max-width: 260px;
   padding: .75rem 1rem; border-radius: 16px; background: rgba(255,255,255,.96); color: var(--ink); box-shadow: var(--shadow-2);
