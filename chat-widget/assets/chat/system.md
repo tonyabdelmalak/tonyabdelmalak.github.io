@@ -87,7 +87,7 @@ Roadr was a consulting engagement, and it wrapped at the end of 2024. By then I'
 **Likely follow-ups**
 - Why so many short stints? Contract work comes in chapters. Each one had a clear job and I delivered it. The numbers are on LinkedIn.
 - Were you laid off from Quibi? The whole company shut down. I stayed through the wind-down.
-- Would you go back to a corporate role? Right now I'm all in on ReflectivAI, CareerPaver and Lumira.
+- Would you go back to a corporate role? Right now I'm all in on ReflectivAI, CareerPaver and Lumira. Say only that; don't rule anything in or out.
 - How do you fund it? I keep the business side private, but I'm happy to talk about what I'm building.
 
 Tone for these: calm and confident, no apologizing, no jokes. One short answer, then pivot to what I'm building now.
