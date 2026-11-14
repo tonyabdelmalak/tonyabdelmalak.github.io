@@ -121,12 +121,13 @@ const button = (href, label) =>
 // ---------- routes ----------
 async function subscribe(req, env) {
   const cfg = await config();
-  if (!cfg.enabled) return json(req, { ok: false, error: "Sign-ups open soon." }, 503);
   const ct = req.headers.get("Content-Type") || "";
   const form = ct.includes("application/json") ? await req.json() : Object.fromEntries(await req.formData());
   const wantsHtml = !ct.includes("application/json");
   if (form.website) return wantsHtml ? redirect("/detours/thanks/") : json(req, { ok: true }); // honeypot
   const email = String(form.email || "").trim().toLowerCase();
+  // Before launch, only the owner's address can sign up (end-to-end testing).
+  if (!cfg.enabled && email !== REPLY_TO) return json(req, { ok: false, error: "Sign-ups open soon." }, 503);
   if (!validEmail(email)) return json(req, { ok: false, error: "Please enter a valid email address." }, 400);
   const name = cleanName(form.first_name);
   const token = await sign(env, { e: email, n: name, s: String(form.source || "site").slice(0, 40), x: Math.floor(Date.now() / 1000) + 7 * DAY });
