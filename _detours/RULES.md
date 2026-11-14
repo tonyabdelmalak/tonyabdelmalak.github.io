@@ -39,6 +39,10 @@ Never cheesy, corny, preachy or fluffy.
 - Close with one real question to the reader. No sign-off, no call to action.
 - Two or three `##` subheads. Lists only when they are steps.
 
+## Research brief
+
+Before drafting, read the newest file in `_detours/research/`. Prefer its verified figures. You may still add a figure you verify yourself the same way.
+
 ## Topics
 
 Take the next unused topic from `_detours/queue.md`, then mark it used with the post number.
