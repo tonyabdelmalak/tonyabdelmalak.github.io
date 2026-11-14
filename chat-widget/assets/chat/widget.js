@@ -14,10 +14,10 @@
     workerUrl: "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
     systemUrl: "/chat-widget/assets/chat/system.md",
     kbUrl: "/chat-widget/assets/chat/about-tony.md",
-    model: "llama-3.1-8b-instant",
+    model: "openai/gpt-oss-120b",
     temperature: 0.25,
     title: "Hi, I'm Tony. What's on your mind?",
-    subtitle: "",
+    subtitle: "AI version of me, built from what I share publicly",
     brand: { accent: "#2f3a4f", radius: "18px" },
     greeting:
       "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
@@ -148,7 +148,7 @@
     root.className = "cw-root";
     root.setAttribute("role","dialog");
     root.setAttribute("aria-modal","true");
-    root.setAttribute("aria-label","Tony Chat");
+    root.setAttribute("aria-label","Chat with an AI version of Tony");
     root.style.display = "none";
     document.body.appendChild(root);
     UI.root = root;
@@ -372,7 +372,7 @@
       saveHistory();
     } catch (err) {
       console.error(err);
-      addAssistant("Sorry — I ran into an error. Please try again.");
+      addAssistant("Sorry, I hit a snag on my end. Give it another try in a moment.");
     } finally {
       typing.remove();
       BUSY = false; UI.send.disabled = false;

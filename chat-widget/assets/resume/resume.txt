@@ -1,72 +1,69 @@
-TONY ABDELMALAK
-Los Angeles, CA | 323.203.5622 | Tony.Abdelmalak@yahoo.com | Portfolio | LinkedIn Profile
+Tony Abdelmalak
+Founder & Architect, ReflectivAI, CareerPaver and Lumira
+Los Angeles, CA | tony.abdelmalak@yahoo.com | linkedin.com/in/tony-abdelmalak | tonyabdelmalak.com
 
-PROFESSIONAL SUMMARY
-Data-driven analytics professional specializing in AI-enhanced workforce insights, HR technology, and business intelligence. Combines 10+ years of HR leadership with advanced analytics skills to design dashboards, predictive models, and AI-driven solutions that inform strategic decision-making. Skilled in Tableau, SQL, Python, and AI tools to deliver actionable insights across HR, operations, and sales. Recent projects include predictive attrition modeling, compensation equity analysis, workforce forecasting, and AI-powered assistants.
+SUMMARY
+I started my career selling pharmaceuticals to physicians, then spent more than a decade in recruiting and talent
+acquisition at NBCUniversal, HBO, Sony Pictures and Quibi. Across both careers I saw how much can turn on a
+single conversation. I taught myself to build with AI and designed and built three products that let people practice
+those conversations before they happen: ReflectivAI for life-sciences sales teams, CareerPaver for job seekers and
+Lumira for any two people who matter to each other.
 
-KEY STRENGTHS & ACHIEVEMENTS
-- Reduced voluntary turnover by 28% through AI-driven predictive attrition modeling and targeted retention strategies.
-- Accelerated time-to-hire by 24% by optimizing recruitment funnels and automating workflows with AI and analytics.
-- Increased employee satisfaction by 22% by identifying engagement drivers and implementing data-driven culture initiatives.
-- Built and deployed analytics dashboards and AI assistants to democratize workforce data, enabling executives to make faster decisions and achieve a 12x ROI on analytics investments.
+EXPERIENCE
+Founder & Architect, Applied AI Platform (Life Sciences) · ReflectivAI                              Jan 2025 – Present
+  Architected and built AI role-play and coaching for reps and commercial teams across pharma, medical device
+  and biotech: adaptive AI physicians that push back in real time, coaching built on Signal Intelligence (an eight-
+  dimension framework co-developed with Desiree Young), and agents that turn a territory report into a weekly
+  plan and a pre-call brief.
+  Designed and built the web platform, the Role Play Simulator and the iOS app. Live at reflectiv-ai.com.
+Founder & Architect, Agentic AI Platform · CareerPaver                                            Jan 2026 – Present
+  Built a platform for job seekers from analyst to VP that reads a posting the way a screener does, shows what is
+  costing the interview and tailors without inventing experience, then prepares candidates for the interview and
+  salary conversation.
+  Added agents that rank new roles and line up next steps, with nothing executed until the user approves.
+  Architected and built the web platform and iOS app. Live at careerpaverai.com.
+Founder & Architect · Lumira                                                                       Jan 2026 – Present
+  Designed and built, end to end, a private shared space for any two people with Mira, an AI coach grounded in
+  relationship science: guided check-ins, repair after a hard moment, rehearsal for difficult conversations and a
+  daily question sealed until both answer. Live at lumiraconnect.com.
+People Operations Specialist (Consultant) · Roadr                                                Oct 2022 – Dec 2024
+  Scaled HR operations to onboard 50 to 70 contractors quarterly; built predictive dashboards in Python and SQL
+  to forecast staffing needs.
+  Introduced AI-driven forecasting and data pipelines tracking time to hire, voluntary turnover and productivity.
+  Automated workflows to increase efficiency by 40% and reduced voluntary turnover by 28%.
+Human Resources Generalist (Contract) · Flowserve Corporation                                   Dec 2021 – Oct 2022
+  Integrated workforce data and built dashboards tracking satisfaction and retention trends; used analytics to
+  recommend improvements, boosting satisfaction by 22% and new hire productivity by 17%.
+Talent & Human Resources Advisor · Quibi                                                        Jun 2018 – May 2021
+  Led HR tech integration and streamlined recruitment with the Workday ATS, reducing time to hire by 24%.
+  Built Excel and Tableau reporting on hiring pipelines and recruiter performance; designed leadership programs
+  and dashboards that increased operational efficiency by 35%.
+Global Talent Acquisition (Consultant) · Sony Pictures Entertainment                            May 2017 – May 2018
+  Developed leadership-focused recruiting strategies and forecast leadership talent needs; launched DEI initiatives
+  that increased diverse hiring by 18%; built succession-planning models that cut senior time to fill by 14%.
+Human Resources & Talent Acquisition · HBO                                                       Oct 2012 – Jun 2017
+  Managed full-cycle recruitment for 200+ roles; built a central database tracking candidates, referrals and
+  diversity metrics with real-time insight for leadership.
+  Analyzed time to hire, offer acceptance and compensation equity with Excel, SQL and HRIS reporting; partnered
+  with legal and compensation on offers and visa processes.
+Recruiter · NBCUniversal                                                                   Jun 2009 – Sep 2012
+  Managed recruitment across multiple departments; redesigned onboarding to improve intern engagement by
+  25%; implemented structured leadership hiring.
+Pharmaceutical Sales Specialist · Sepracor Pharmaceuticals                                      Jan 2007 – Feb 2009
+  Called on physicians as a pharmaceutical sales specialist, the experience that later became the starting point for
+  ReflectivAI.
 
-AI & ANALYTICS PORTFOLIO PROJECTS
-- AI Sentiment Analysis on Employee Surveys — Applied NLP (spaCy, NLTK, transformers) to thousands of open-text responses, identifying sentiment trends and recurring themes by department. Enabled early detection of culture issues.
-- Recruitment Funnel Optimization Analysis — Analyzed ATS data to calculate conversion rates at each stage. Built a Tableau dashboard to identify bottlenecks, reducing time-to-fill by 12% and improving offer acceptance by 8%.
-- Workforce Demand Forecasting — Modeled staffing needs with Prophet and ARIMA using historical headcount data. Built scenario-based forecasts to guide 6–12 month hiring and budget planning.
-
-PROFESSIONAL EXPERIENCE
-AI & Analytics Career Transition — Freelance & Portfolio Projects (January 2023 – Present)
-- Designed and deployed an AI-powered predictive attrition model using HRIS sample datasets, identifying key retention drivers and reducing simulated turnover risk by 12%.
-- Built and published multiple Tableau dashboards analyzing workforce trends, compensation equity, and hiring funnel efficiency; shared on Tableau Public.
-- Developed an AI assistant prototype that generates real-time workforce insights from SQL queries and delivers natural language summaries to executives.
-- Conducted a compensation equity study using anonymized data, modeling adjustments across roles, tenure, and performance.
-
-People Operations Specialist (Consultant) — Roadr.com | Los Angeles, CA (October 2022 – Present)
-- Developed workforce forecasting tools that reduced early attrition by 28% and decreased onboarding time by 40% through AI-driven predictions and automated workflows.
-- Implemented data analytics dashboards in Tableau and Workday to monitor capacity planning, hiring demand, and productivity, improving time-to-hire by 24%.
-- Introduced generative AI tools for efficient reporting and insights, automating query summarization and executive dashboards.
-- Collaborated with finance and operations leaders to align workforce planning with strategic objectives, enabling a 15% reduction in staffing costs.
-
-Human Resources Generalist (Analytics Focus) — Flowserve Corporation | Vernon, CA (December 2021 – October 2022)
-- Created compliance and engagement dashboards using Python and Google Sheets, reducing manual processing by 40%.
-- Integrated HR data across multiple systems for compensation and attrition analysis, improving accuracy of workforce plans.
-- Partnered with HR leadership to design predictive models for attrition and performance, increasing retention by 18%.
-- Delivered training for managers on workforce intelligence tools to facilitate data-driven decisions.
-
-Talent & Operations Consultant — Quibi (Media/Tech Venture) | Los Angeles, CA (May 2018 – May 2021)
-- Built HR technology systems and analytics dashboards for rapid scale-up, enabling efficient hiring of 200+ roles.
-- Designed people analytics frameworks and predictive staffing models for content launches, aligning talent with forecasted demand.
-- Partnered with finance to create workforce budgeting models integrating payroll, headcount, and recruitment data.
-- Led cross-functional analytics initiatives, improving hiring velocity and employee retention.
-
-HRIS & Workforce Reporting Analyst — HBO (Time Warner/AT&T) | Los Angeles, CA (October 2012 – June 2017)
-- Developed real-time analytics dashboards tracking attrition and pipeline health across departments.
-- Led Workday implementation and migration, creating integrated reporting solutions.
-- Trained HR teams on analytics tools and built self-service dashboards.
-
-Recruiter — NBCUniversal/E! Entertainment Networks | Los Angeles, CA (June 2009 – September 2012)
-- Recruited for over 200 roles annually while providing talent analytics reports to executives.
-- Collaborated with workforce planning to forecast hiring needs based on data trends.
-- Implemented applicant tracking system enhancements to improve recruiting efficiency and reduce time-to-fill.
-
-EDUCATION
-Bachelor of Science in Management Science — University of California, San Diego
-
-CERTIFICATIONS
-- AI for HR: Workforce Planning & Talent Optimization (In progress)
-- Google Data Analytics Certificate — Coursera (2024)
-- Workday Reporting & HR Analytics — LinkedIn Learning (2021)
-- Effectively Leading Digital Transformation — LinkedIn Learning (2025)
-- Applied AI for Human Resources — LinkedIn Learning (2025)
-- Creating Interactive Tableau Dashboards — LinkedIn Learning (2025)
-- Using Generative AI Ethically at Work — LinkedIn Learning (2025)
-- Generative AI in HR — LinkedIn Learning (2025)
-- Actionable Insights and Business Data in Practice — LinkedIn Learning (2025)
-
-TECHNICAL SKILLS
-Data Analytics & Visualization: Tableau, Power BI, Excel, SQL, Python
-AI & Machine Learning: Predictive analytics, AI assistants, Natural Language Processing
-HRIS & Talent Systems: Workday, SuccessFactors, Greenhouse
-Data Storytelling & Visualization; Process Automation (Google Apps Script, JavaScript)
-Collaboration Tools: Google Workspace, Slack, Trello
+EDUCATION                                                  SKILLS
+University of California, San Diego                        Building: AI products and agents, product
+BS, Management Science                                     development, web and iOS platforms
+                                                           Domain: sales enablement, sales coaching, talent
+CERTIFICATIONS                                             acquisition, interviews, career development, HR
+Effectively Leading Digital Transformation (LinkedIn,      analytics, KPIs, process improvement
+                                                           Tools: Tableau, Power BI, Excel, SQL, Python, Workday
+2025)
+                                                           Recruiting and HCM, SAP HR and ERP, ADP Workforce,
+Using Generative AI Ethically at Work (LinkedIn, 2025)
+                                                           ATS, HRIS
+HR Certificate Program (AIHR)
+AIRS Certified Diversity Recruiter
+

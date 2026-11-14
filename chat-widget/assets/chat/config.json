@@ -1,24 +1,21 @@
 {
   "workerUrl": "https://my-chat-agent.tonyabdelmalak.workers.dev/chat",
-
   "systemUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/system.md",
   "kbUrl": "https://raw.githubusercontent.com/tonyabdelmalak/tonyabdelmalak.github.io/main/chat-widget/assets/chat/about-tony.md",
-
-  "model": "llama-3.1-8b-instant",
+  "model": "openai/gpt-oss-120b",
   "temperature": 0.275,
-  "stream": true,
-
+  "stream": false,
   "title": "Hi, I'm Tony. What's on your mind?",
-  "subtitle": "",
-  "greeting": "I'm happy to answer your questions about my background, specific projects/dashboards, or what I’m currently working towards.",
-
-  "brand": { "accent": "#2f3a4f", "radius": "18px" },
-
+  "subtitle": "AI version of me, built from what I share publicly",
+  "greeting": "Ask me about my background, ReflectivAI, CareerPaver, Lumira, or the analytics work on this site.",
+  "brand": {
+    "accent": "#2f3a4f",
+    "radius": "18px"
+  },
   "persistHistory": false,
   "storageKey": "tony-cw-history",
   "maxHistory": 16,
   "typingDelayMs": 0,
-
   "avatarUrl": "/assets/img/tony-chat-avatar-new.jpg",
   "launcherAnchor": "#about"
 }

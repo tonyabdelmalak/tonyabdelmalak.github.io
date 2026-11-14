@@ -1,2195 +1,412 @@
-
-
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tony Abdelmalak | Founder &amp; Architect of ReflectivAI, CareerPaver and Lumira</title>
+  <meta name="description" content="I spent years in pharma sales and more than a decade recruiting at NBCUniversal, HBO, Sony Pictures and Quibi. Now I design and build AI practice and coaching for the conversations that matter.">
+  <link rel="canonical" href="https://tonyabdelmalak.com/">
+  <meta name="theme-color" content="#001e42">
+  <meta property="og:type" content="profile">
+  <meta property="og:site_name" content="Tony Abdelmalak">
+  <meta property="og:title" content="Tony Abdelmalak | AI practice for the conversations that matter">
+  <meta property="og:description" content="Pharma sales, then a decade in recruiting. Now I design and build ReflectivAI, CareerPaver and Lumira.">
+  <meta property="og:url" content="https://tonyabdelmalak.com/">
+  <meta property="og:image" content="https://tonyabdelmalak.com/assets/img/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Tony Abdelmalak, founder and architect of ReflectivAI, CareerPaver and Lumira">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tony Abdelmalak | AI practice for the conversations that matter">
+  <meta name="twitter:description" content="Pharma sales, then a decade in recruiting. Now I design and build ReflectivAI, CareerPaver and Lumira.">
+  <meta name="twitter:image" content="https://tonyabdelmalak.com/assets/img/og-card.png">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/assets/img/favicon.png">
   <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tony Abdelmalak | AI‑Driven People & Business Insights Analyst</title>
-
-  <!-- External CSS and fonts -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Font Awesome 6.5.1 - Multiple CDN fallbacks for reliability -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Fallback: jsDelivr CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
-  <!-- Fallback: unpkg CDN -->
-  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.5.1/css/all.min.css" crossorigin="anonymous" />
-  <!-- Bootstrap Icons as ultimate fallback -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-
-  <!-- Modern Design Enhancements -->
-  <link rel="stylesheet" href="assets/css/modern-enhancements.css">
-  
-  <!-- Enterprise-Grade Design System -->
-  <link rel="stylesheet" href="assets/css/enterprise-design.css?v=2026-02-07">
-
-  <!-- Custom styles -->
-  <style>
-    :root {
-      --primary-color: #1E3A8A; /* deep blue */
-      --accent-color: #14B8A6;  /* teal */
-      --background-color: #F3F4F6; /* light gray */
-      --text-color: #111827;
-      --subtext-color: #374151;
-    }
-    body {
-      font-family: 'Inter', sans-serif;
-      color: var(--text-color);
-      background-color: var(--background-color);
-      scroll-behavior: smooth;
-    }
-
-    /* Navbar */
-    /* Navy blue navbar matching key results section */
-    .navbar {
-      background: #001e42;
-      
-    }
-    .navbar-brand {
-      color: #fff;
-      font-weight: 600;
-      font-size: 1.35rem; /* 21.6px - 20% larger for better visibility */
-    }
-    .navbar-nav .nav-link {
-      color: #fff;
-      font-weight: 400;
-      font-size: 0.9375rem; /* 15px - clean and professional */
-      margin: 0 1rem;
-    }
-    .navbar-nav .nav-link:hover { color: var(--accent-color); }
-    .navbar .btn-primary {
-      background-color: var(--accent-color);
-      border-color: var(--accent-color);
-      color: #fff;
-      margin-left: 0.5rem;
-      white-space: nowrap;
-      font-size: 0.875rem; /* 14px - less prominent */
-      padding: 0.375rem 0.875rem; /* smaller padding */
-      font-weight: 500;
-    }
-    .navbar .btn-outline-light {
-      border-color: #fff;
-      color: #fff;
-    }
-    .navbar .btn-outline-light:hover {
-      background-color: #fff;
-      color: var(--primary-color);
-    }
-
-    /* Hero */
-    #hero {
-      /* Use the plain hero image without embedded text */
-      background-image: url('assets/img/IMG_7850.jpeg');
-      background-size: cover;
-      background-position: center;
-      /* Fallback dark background colour in case image fails to load */
-
-      background-color: #001e42;
-      color: #fff;
-      text-align: center;
-      padding: 200px 20px;
-      position: relative;
-    }
-    #hero::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      /* Dark overlay to ensure text legibility over the hero image */
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 0;
-    }
-    #hero .hero-content {
-      position: relative;
-      z-index: 1;
-    }
-    .btn-cta {
-      background-color: var(--accent-color);
-      color: #fff;
-      border: none;
-    }
-    .btn-cta:hover { background-color: #0e9880; color: #fff; }
-
-    /* Sections */
-    section { padding: 80px 0; }
-    .section-title {
-      margin-bottom: 40px;
-      text-align: left; /* left align section headings for better readability */
-    }
-    .section-title h2 {
-      f
-        ont-weight: 700;
-      color: var(--primary-color);
-    }
-
-    /* Results cards */
-    .results-card {
-      background: #fff;
-      border-radius: 8px;
-      padding: 30px;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      transition: transform 0.3s;
-    }
-    .results-card:hover { transform: translateY(-5px); }
-    .results-icon { font-size: 48px; color: var(--accent-color); margin-bottom: 10px; }
-    .results-number {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      color: var(--primary-color);
-    }
-    .results-text { font-size: 16px; color: var(--subtext-color); }
-
-    /* Metrics section – dark blue with gradient numbers inspired by reference site */
-    .metrics-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      border-top: 1px solid rgba(255,255,255,0.2);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-      padding-top: 20px;
-      padding-bottom: 20px;
-    }
-    .metric-item {
-      text-align: center;
-      padding: 20px 10px;
-    }
-    .metric-item:not(:last-child) {
-      border-right: 1px solid rgba(255,255,255,0.3);
-    }
-    .metric-number {
-      font-size: 56px; /* enlarge metric numbers for emphasis, similar to reference site */
-      font-weight: 700;
-      background: linear-gradient(180deg, #0ea5e9, #22d3ee);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .metric-text {
-      font-size: 16px;
-      margin-top: 8px;
-    }
-
-    /* Project cards */
-    .project-card {
-      background: #fff;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      transition: transform 0.3s;
-    }
-    .project-card:hover { transform: translateY(-5px); }
-    .project-card img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
-    .project-card-body { padding: 20px; }
-    .project-card-title {
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 10px;
-    }
-    .project-card-text {
-      font-size: 14px;
-      color: var(--subtext-color);
-      margin-bottom: 15px;
-    }
-    .project-card .btn {
-      background-color: var(--accent-color);
-      color: #fff;
-      border: none;
-    }
-    .project-card .btn:hover { background-color: #0e9880; }
-
-    /* Skills icons with animations */
-    .skills-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
-    .skill-item {
-      text-align: center;
-      flex: 0 1 120px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-    }
-    .skill-item:hover {
-      transform: translateY(-8px);
-    }
-    .skill-icon {
-      font-size: 40px;
-      color: #06b6d4;
-      margin-bottom: 10px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-block;
-    }
-    .skill-item:hover .skill-icon {
-      color: #0891b2;
-      transform: scale(1.15) rotate(5deg);
-      filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.4));
-    }
-    .skill-item > div:last-child {
-      font-size: 14px;
-      font-weight: 500;
-      color: #1e293b;
-      transition: color 0.3s ease;
-    }
-    .skill-item:hover > div:last-child {
-      color: #06b6d4;
-      font-weight: 600;
-    }
-    /* Mobile: Significantly reduce icon size */
-    @media (max-width: 768px) {
-      .skill-icon { font-size: 24px !important; }
-      .skill-item { flex: 0 1 60px !important; }
-      .skills-grid { gap: 15px !important; }
-    }
-    /* Extra small mobile - UPDATED FEB 8 2026 */
-    @media (max-width: 480px) {
-      .skill-icon { font-size: 20px !important; }
-      .skill-item { flex: 0 1 50px !important; }
-      .skills-grid { gap: 12px !important; }
-    }
-    /* Debug indicator removed - CSS verified working */
-
-    /* Certifications */
-    .cert-list { list-style: none; padding: 0; }
-    .cert-list li { margin-bottom: 10px; color: var(--subtext-color); }
-    .cert-category {
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-
-    /* Resume section */
-    #resume-section .btn {
-      background-color: var(--accent-color);
-      border: none;
-      color: #fff;
-    }
-    #resume-section .btn:hover { background-color: #0e9880; }
-
-    /* Footer */
-    footer {
-      background-color: var(--primary-color);
-      color: #fff;
-      padding: 20px 0;
-      text-align: center;
-    }
-    footer a { color: var(--accent-color); text-decoration: none; }
-    footer a:hover { color: #fff; }
-
-  <!--  /* Chat widget
-       Repositioned just below the hero banner.  We use a larger top offset so it sits below the
-       hero image without overlapping, even on tall screens. */
-    #hf-chat-wrapper {
-      position: fixed;
-      bottom: 20px;    /* anchor chat widget near bottom so it doesn't cover content */
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 10001;
-    }
-    #hf-chat-toggle {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      border: 2px solid #ccc;
-      /* Use the actual profile image from the assets for the avatar */
-      background-image: url('assets/img/profile-img.jpg');
-      background-size: cover;
-      background-position: center;
-      cursor: pointer;
-    }
-    #hf-chat-label {
-      margin-top: 4px;
-      font-size: 12px;
-      color: var(--primary-color); /* navy blue for chat label */
-      font-weight: 600;
-    }
-    #hf-chat-container {
-      position: fixed;
-      bottom: 90px; /* anchor chat container above the chat toggle so it opens upward */
-      right: 20px;
-      width: 350px;
-      height: 480px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      display: none;
-      flex-direction: column;
-      z-index: 10000;
-    }
-    #hf-conversation { padding: 10px; flex: 1; overflow-y: auto; font-size: 14px; }
-    #hf-input-row { display: flex; border-top: 1px solid #ccc; }
-    #hf-input { flex: 1; border: none; padding: 10px; font-size: 14px; }
-    #hf-input:focus { outline: none; }
-    .hf-btn {
-      border: none;
-      background: #007BFF;
-      color: #fff;
-      padding: 8px 10px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-left: 4px;
-      border-radius: 4px;
-    }
-    -->
-  
-    /* Carousel styles for projects and AI dashboards */
-    .carousel-container {
-      position: relative;
-      margin-top: 1rem;
-    }
-    .carousel-track {
-      display: flex;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-    .carousel-track::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* Remove default padding on project carousel to ensure four cards fully visible */
-    #projects-track {
-          padding-left: 1rem;
-          padding-right: 1rem;
-      }
-
-
-      #projects-track .carousel-card {
-  margin-right: 1rem;
-  margin-left: 0;
-  padding-bottom: 0.75rem;
-}
-
-.carousel-card {
-  flex: 0 0 280px;
-  margin-right: 1rem;
-  scroll-snap-align: start;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background: #fff;
-  border-left: 4px solid var(--primary-color);
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-}
-    .carousel-card:hover {
-      transform: translateY(-5px);
-    }
-
-    /* Adjust typography for carousel cards to ensure four cards fit cleanly */
-    .carousel-card h4 {
-      font-size: 1.05rem;
-
-      
-    .carousel-card a {
-        margin-top: auto;
-        align-self: flex-start;
-    }
-font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--primary-color);
-    }
-    .carousel-card p {
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: var(--subtext-color);
-      margin-bottom: 1rem;
-    }
-    .carousel-arrow {
-      position: absolute;
-      /* Raise the arrows slightly so they are not cut off */
-      top: -2.8rem; /* raise the arrows slightly more so they are fully visible */
-      right: 0;
-      background: none;
-      border: none;
-      font-size: 2rem;
-      color: var(--primary-color);
-      cursor: pointer;
-    }
-    .carousel-arrow.left {
-      right: 2rem;
-    }
-    .carousel-arrow.right {
-      right: 0;
-    }
-
-    /* Collapse functionality for cards */
-    .card-details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-    }
-    .card-details.show {
-      max-height: 500px;
-      transition: max-height 0.4s ease-in;
-    }
-    .expand-btn {
-      cursor: pointer;
-      color: var(--accent-color);
-      font-weight: 600;
-      font-size: 0.875rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-      transition: all 0.2s;
-    }
-    .expand-btn:hover {
-      color: var(--primary-color);
-    }
-    .expand-btn i {
-      transition: transform 0.3s;
-    }
-    .expand-btn.expanded i {
-      transform: rotate(180deg);
-    }
-
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="/assets/img/tony-portrait.webp" type="image/webp">
+  <script>document.documentElement.classList.add("js")</script>
+  <link rel="stylesheet" href="/assets/css/site.css?v=20261113">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"Person","name":"Tony Abdelmalak","url":"https://tonyabdelmalak.com/","image":"https://tonyabdelmalak.com/assets/img/tony-portrait.jpg","jobTitle":"Founder & Architect","worksFor":[{"@type":"Organization","name":"ReflectivAI","url":"https://reflectiv-ai.com"},{"@type":"Organization","name":"CareerPaver","url":"https://careerpaverai.com"},{"@type":"Organization","name":"Lumira","url":"https://lumiraconnect.com"}],"alumniOf":{"@type":"CollegeOrUniversity","name":"University of California, San Diego"},"address":{"@type":"PostalAddress","addressLocality":"Los Angeles","addressRegion":"CA"},"sameAs":["https://www.linkedin.com/in/tony-abdelmalak"]}
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- Navigation Bar -->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="#hero">Tony Abdelmalak</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-              aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="#hero">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Projects</a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="#projects">All Projects</a></li>
-              <li><a class="dropdown-item" href="recruitment-funnel.html">Recruitment Funnel</a></li>
-            </ul>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Case Studies</a>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" href="predictive_attrition_case_study.html">Predictive Attrition</a></li>
-            </ul>
-          </li>
-          <li class="nav-item"><a class="nav-link" href="#skills">Skills</a></li>
-          <li class="nav-item"><a class="nav-link" href="#certifications">Certifications</a></li>
-          <li class="nav-item"><a class="nav-link" href="http://linkedin.com/in/tony-abdelmalak" target="_blank">LinkedIn</a></li>
+  <header class="nav" role="banner">
+    <div class="container nav__inner">
+      <a class="nav__brand" href="#top" aria-label="Tony Abdelmalak, back to top">Tony Abdelmalak</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      <nav aria-label="Primary">
+        <ul class="nav__links" id="nav-links">
+          <li><a class="nav__link" href="#about">About</a></li>
+          <li><a class="nav__link" href="#products">Products</a></li>
+          <li><a class="nav__link" href="#experience">Experience</a></li>
+          <li><a class="nav__link" href="#analytics">Analytics</a></li>
+          <li><a class="nav__link" href="#skills">Skills</a></li>
+          <li><a class="nav__link" href="#certifications">Certifications</a></li>
+          <li><a class="nav__link" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li class="nav__mobile-cta"><a class="btn btn--teal" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a></li>
         </ul>
-        <div class="d-flex">
-          <a href="assets/img/portfolio/TONY_ABDELMALAK_RESUME.pdf" class="btn btn-primary" target="_blank">Download Resume</a>
-        </div>
-      </div>
+      </nav>
+      <a class="btn btn--teal btn--sm nav__cta" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a>
     </div>
-  </nav>
+  </header>
 
-  <!-- Hero Section -->
-  <section id="hero">
-    <div class="hero-content">
-      <h1 data-aos="fade-up" data-aos-delay="100" class="mb-3">AI‑Driven People & Business Insights Analyst</h1>
-      <p data-aos="fade-up" data-aos-delay="200" class="lead">Turning workforce data into executive‑ready strategies through predictive analytics, AI, and storytelling.</p>
-      <div class="hero-cta" data-aos="fade-up" data-aos-delay="300">
-        <a href="#projects" class="btn-hero-primary">
-          <span>View Portfolio</span>
-          <i class="fas fa-arrow-right"></i>
-        </a>
-        <a href="mailto:tony.abdelmalak@yahoo.com" class="btn-hero-secondary">
-          <i class="fas fa-envelope"></i>
-          <span>Get In Touch</span>
-        </a>
-      </div>
-      <p data-aos="fade-up" data-aos-delay="400" class="mt-4">
-        <span class="typed"
-              data-typed-items="Advancing HR Tech Through Automation and Data Visualization; Shaping Workforce Strategies with Data‑Driven Insights; Leading with AI‑Driven Insights for Smarter Decisions; Elevating Culture, Performance, and People Success; Cultivating Diversity, Equity, and Inclusion; Empowering Growth Through Collaboration, Communication, and Coaching"></span>
-      </p>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>About Me</h2>
-      </div>
-      <div>
-      <div class="row justify-content-center">
-        <div class="col-lg-12">
-          <p><strong>People First, Data Second:</strong> I believe data is about people. My mission is to transform workforce analytics into human stories that empower decision‑makers to create fair, sustainable workplaces that value each person.</p>
-          <p>I turn workforce and business data into AI‑powered, decision‑ready insights that help organizations make smarter, faster and more ethical decisions. After leading HR operations for major brands and startups, I intentionally pivoted into AI‑driven analytics—combining people‑strategy expertise with technical skills in Tableau, SQL, Python and AI tools.</p>
-          <p>Today I design predictive models, interactive dashboards and AI‑powered assistants that translate complex datasets into clear, actionable strategies for executives. I thrive at the intersection of people, data and technology—where insight meets action. I’m based in Los Angeles and excited to connect and explore how data and technology can transform the workplace experience for everyone.</p>
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="container hero__grid">
+        <div>
+          <p class="eyebrow">Founder &amp; Architect &middot; Los Angeles</p>
+          <h1 id="hero-title">Practice the conversations that <em>matter</em>, before they happen.</h1>
+          <p class="hero__sub">I started out selling to physicians, then spent more than a decade recruiting at NBCUniversal, HBO, Sony Pictures and Quibi. Now I design and build AI products that let people rehearse sales calls, job interviews and hard relationship talks.</p>
+          <div class="hero__ctas">
+            <a class="btn btn--teal" href="#products">See what I&rsquo;ve built <i data-lucide="arrow-down"></i></a>
+            <a class="btn btn--ghost-light" href="#about" data-open-chat><i data-lucide="message-circle"></i>Ask the AI version of me</a>
+          </div>
+          <ul class="hero__proof" aria-label="Products">
+            <li>ReflectivAI</li><li>CareerPaver</li><li>Lumira</li>
+          </ul>
+        </div>
+        <div class="portrait">
+          <div class="portrait__frame">
+            <picture>
+              <source srcset="/assets/img/tony-portrait.webp" type="image/webp">
+              <img src="/assets/img/tony-portrait.jpg" width="800" height="1000" alt="Tony Abdelmalak, smiling, in a navy blazer">
+            </picture>
+          </div>
+          <button class="portrait__chip" type="button" data-open-chat>
+            <span class="dot" aria-hidden="true"></span>
+            <span><strong>Chat with AI Tony</strong>Built from what I share publicly</span>
+          </button>
         </div>
       </div>
-    </div>
-  </section>
-  
-  <!-- Results Section -->
-  <section id="results" style="background: #001e42; color: #fff;">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2 class="text-white">Key Results & Impact</h2>
-      </div>
-      <!-- Horizontal metrics styled like the reference site -->
-      <div class="row justify-content-center metrics-wrapper">
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">28%</div>
-          <p class="metric-text">Reduction in attrition</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">40%</div>
-          <p class="metric-text">Decrease in reporting effort</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">17%</div>
-          <p class="metric-text">Increase in ramp‑up speed</p>
-        </div>
-        <div class="col-12 col-md-6 col-lg-3 metric-item">
-          <div class="metric-number">25%</div>
-          <p class="metric-text">Reduction in time to hire</p>
-        </div>
-      </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- Projects Section -->
-  <section id="projects">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Portfolio Projects</h2>
-      </div>
-      
-      <!-- Portfolio projects carousel -->
-      <div class="carousel-container">
-        <button class="carousel-arrow left" id="projects-prev" aria-label="Scroll left">&#8249;</button>
-        <button class="carousel-arrow right" id="projects-next" aria-label="Scroll right">&#8250;</button>
-        <div class="carousel-track" id="projects-track">
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-1.jpg" alt="Yearly Turnover Rate Analysis" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Yearly Turnover Rate Analysis</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Understand long‑term turnover trends and retention challenges.<br><strong>Approach:</strong> Analyzed 9 years of HRIS data, segmented by department and tenure.<br><strong>Impact:</strong> Revealed critical turnover spikes in years 2–3, leading to targeted onboarding and development programs.</p>
-              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-2.jpg" alt="Workforce Analytics Overview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Workforce Analytics Overview</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into a Tableau dashboard with interactive filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
-              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-3.jpg" alt="Workforce Dynamics Deep Dive" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Workforce Dynamics Deep Dive</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Identify drivers of attrition and productivity variations across departments.<br><strong>Approach:</strong> Integrated survey, hiring and productivity data to uncover correlations and trends.<br><strong>Impact:</strong> Supported evidence‑based adjustments to workload distribution and manager training programs, improving engagement scores.</p>
-              <a href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-4.jpg" alt="Recruitment Funnel Optimization" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Recruitment Funnel Optimization</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Inefficient conversion at various stages of the recruitment funnel led to missed hiring targets and candidate drop‑off.<br><strong>Approach:</strong> Mapped the end‑to‑end recruitment pipeline—from applications to offers—tracking conversion rates at each stage by role, source and location.<br><strong>Impact:</strong> Revealed that most candidates dropped off after initial screening, prompting streamlined screening processes and improved candidate engagement.</p>
-              <a href="recruitment-funnel.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-8%203.jpg" alt="Diversity Metrics Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Diversity Metrics Dashboard</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Executives lacked a consolidated view of diversity, hiring and engagement metrics.<br><strong>Approach:</strong> Combined multiple HR data sources into an interactive dashboard with filters.<br><strong>Impact:</strong> Enabled real‑time monitoring of diversity goals and faster decisions in recruitment and engagement.</p>
-              <a href="diversity-metrics.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-6.JPG" alt="Workforce Forecasting" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Workforce Forecasting</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Inaccurate headcount forecasting caused staffing shortages during peak demand and excess labour during slow periods.<br><strong>Approach:</strong> Built a forecasting model using historical headcount, turnover and hiring data, with adjustable assumptions for growth and attrition. Provided scenario‑based projections over 3, 6 and 12 months.<br><strong>Impact:</strong> Delivered more reliable workforce projections that improved budgeting and capacity planning accuracy by 25%.</p>
-              <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-7.jpg" alt="Workforce Forecast Preview" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>Workforce Forecast Preview</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Stakeholders needed an at‑a‑glance summary of future workforce trends without diving into detailed modelling dashboards.<br><strong>Approach:</strong> Created a simplified preview dashboard that highlights projected headcount, anticipated hiring needs and attrition rates.<br><strong>Impact:</strong> Offered executives a quick, intuitive snapshot of workforce projections.</p>
-              <a href="workforce-forecast.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <img src="assets/img/portfolio/dashboard-9.jpg" alt="HR Attrition Dashboard" style="width:100%; height:150px; object-fit:cover; border-radius:6px;">
-            <h4>HR Attrition Dashboard</h4>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> High employee turnover was impacting team stability and increasing training costs.<br><strong>Approach:</strong> Analyzed HR data to uncover attrition drivers and create interactive visualizations.<br><strong>Impact:</strong> Provided actionable insights to reduce attrition and improve employee engagement.</p>
-              <a href="hr_attrition_dashboard_lite.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">View Dashboard</a>
-            </div>
+    <!-- About -->
+    <section class="section section--white" id="about" aria-labelledby="about-title">
+      <div class="container about">
+        <div class="reveal">
+          <p class="eyebrow">About</p>
+          <h2 id="about-title">A lot can turn on one conversation.</h2>
+          <div class="about__story">
+            <p>I started my career selling pharmaceuticals to physicians. Then I moved into recruiting and talent acquisition, spending more than a decade at NBCUniversal, HBO, Sony Pictures and Quibi.</p>
+            <p>Across both careers, I saw how much can turn on a conversation. An interview. A meeting with a physician. A salary negotiation. Preparation matters, but researching what to say and practicing saying it are two different things.</p>
+            <p>So I taught myself to build with AI and founded ReflectivAI, CareerPaver and Lumira to give people more chances to practice before those conversations happen.</p>
           </div>
         </div>
+        <ol class="thread reveal" aria-label="How each product connects to my career">
+          <li><span class="ico"><i data-lucide="stethoscope"></i></span><div><h3>Pharma sales &rarr; ReflectivAI</h3><p>The only place to practice a hard conversation was in front of the physician. Now reps can practice with an AI physician that pushes back.</p></div></li>
+          <li><span class="ico"><i data-lucide="users"></i></span><div><h3>Recruiting &rarr; CareerPaver</h3><p>I was the recruiter on the other side of the table, so I know why strong candidates never hear back.</p></div></li>
+          <li><span class="ico"><i data-lucide="heart-handshake"></i></span><div><h3>HR &rarr; Lumira</h3><p>The relationships that last are the ones where someone notices the friction early and says something.</p></div></li>
+        </ol>
       </div>
+    </section>
 
-    </div>
-  </section>
-
-  <!-- Insights & Articles Section - AI-Powered -->
-  <section id="insights" class="py-5">
-    <div class="container">
-      <div class="d-flex align-items-center mb-3" style="gap: 1rem;">
-        <h2 class="section-title mb-0">Insights &amp; Articles</h2>
-        <button id="refresh-articles" class="btn btn-sm d-flex align-items-center gap-2" style="white-space: nowrap; background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; border: none; border-radius: 50px; padding: 0.5rem 1.25rem; font-weight: 600; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); transition: all 0.25s ease;">
-          <i class="fas fa-sync-alt"></i>
-          <span>Refresh Articles</span>
-        </button>
-      </div>
-      <p class="mb-3">AI-curated thought leadership on analytics, HR, and workforce strategy.</p>
-      <div class="carousel-container">
-        <button class="carousel-arrow left" id="insights-prev" aria-label="Scroll left">&#8249;</button>
-        <button class="carousel-arrow right" id="insights-next" aria-label="Scroll right">&#8250;</button>
-        <div class="carousel-track" id="insights-track">
-          <!-- Articles will be dynamically loaded by AI -->
-          <div class="carousel-card">
-            <div class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading articles...</span>
-              </div>
-              <p class="mt-3 text-muted">Loading fresh insights...</p>
-            </div>
-          </div>
+    <!-- Results -->
+    <section class="section section--tight results" id="results" aria-labelledby="results-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Results</p>
+          <h2 id="results-title">Before the products, the people work.</h2>
+        </div>
+        <div class="metrics reveal">
+          <div class="metric"><div class="metric__num">3</div><p class="metric__label">AI products designed and built myself</p><p class="metric__src">ReflectivAI, CareerPaver, Lumira</p></div>
+          <div class="metric"><div class="metric__num">24<span>%</span></div><p class="metric__label">Faster time to hire</p><p class="metric__src">Quibi, Workday ATS integration</p></div>
+          <div class="metric"><div class="metric__num">28<span>%</span></div><p class="metric__label">Lower voluntary turnover</p><p class="metric__src">Roadr, predictive staffing dashboards</p></div>
+          <div class="metric"><div class="metric__num">200<span>+</span></div><p class="metric__label">Roles recruited full cycle</p><p class="metric__src">HBO</p></div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- AI Dashboards Section -->
-  
-  <section id="ai-dashboards" class="py-5">
-    <div class="container">
-      <h2 class="section-title">AI Dashboards</h2>
-      <p>Interactive analytics dashboards showcasing AI data analysis projects.</p>
-      <div class="carousel-container">
-        <button class="carousel-arrow left" id="ai-prev" aria-label="Scroll left">&#8249;</button>
-        <button class="carousel-arrow right" id="ai-next" aria-label="Scroll right">&#8250;</button>
-        <div class="carousel-track" id="ai-track">
-          <div class="carousel-card">
-            <h4>Intent Distribution</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Analyze customer interaction patterns and coverage gaps</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
+    <!-- Products -->
+    <section class="section" id="products" aria-labelledby="products-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">What I&rsquo;ve built</p>
+          <h2 id="products-title">Three products, one idea: practice first.</h2>
+          <p>Each one comes from a chapter of my career. I designed and built all three, end to end.</p>
+        </div>
+        <div class="products">
+          <article class="product reveal" id="reflectivai" aria-labelledby="p-reflectivai">
+            <div class="product__media"><picture><source srcset="/assets/img/products/reflectivai.webp" type="image/webp"><img src="/assets/img/products/reflectivai.jpg" width="1200" height="750" loading="lazy" alt="ReflectivAI home page: AI practice and coaching for life-sciences commercial teams"></picture></div>
+            <div class="product__body">
+              <span class="product__tag"><i data-lucide="stethoscope"></i>Life-sciences sales &middot; since 2025</span>
+              <h3 id="p-reflectivai">ReflectivAI</h3>
+              <p>AI role-play and coaching for reps and commercial teams in pharma, medical device and biotech. Adaptive AI physicians push back in real time, coaching is built on Signal Intelligence, the eight-dimension framework I co-developed with Desiree Young, and agents turn a territory report into a plan for the week and a pre-call brief.</p>
+              <p class="product__why">I designed and built the web platform, the Role Play Simulator and the iOS app.</p>
+              <div class="product__links"><a class="btn btn--navy" href="https://reflectiv-ai.com" target="_blank" rel="noopener">Visit ReflectivAI <i data-lucide="arrow-up-right"></i></a></div>
             </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Identify which intents dominate customer interactions and where coverage gaps exist.<br><strong>Approach:</strong> Labelled chat transcripts by intent category and visualised the counts as a bar chart.<br><strong>Impact:</strong> Revealed dominant and underrepresented intents, guiding prioritisation of training data and customer‑support resources.</p>
-              <a href="interactive_cases_refined/intent_distribution_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
+          </article>
+          <article class="product reveal" id="careerpaver" aria-labelledby="p-careerpaver">
+            <div class="product__media"><picture><source srcset="/assets/img/products/careerpaver.webp" type="image/webp"><img src="/assets/img/products/careerpaver.jpg" width="1200" height="750" loading="lazy" alt="CareerPaver home page: a team of AI agents for your job search"></picture></div>
+            <div class="product__body">
+              <span class="product__tag"><i data-lucide="briefcase"></i>Job seekers, analyst to VP &middot; since 2026</span>
+              <h3 id="p-careerpaver">CareerPaver</h3>
+              <p>It reads a posting the way a screener does, shows what&rsquo;s costing you the interview, and tailors without inventing experience. Then it gets you ready for the conversation itself, with interview rehearsal in the Pressure Room and salary practice. Agents rank new roles and line up next steps, and nothing happens until you approve it.</p>
+              <p class="product__note">Looking for the AI Interview Practice demo or the Resume Optimizer that used to live here? Those ideas grew into CareerPaver. Start with the free Debrief.</p>
+              <div class="product__links"><a class="btn btn--navy" href="https://careerpaverai.com" target="_blank" rel="noopener">Visit CareerPaver <i data-lucide="arrow-up-right"></i></a></div>
             </div>
+          </article>
+          <article class="product reveal" id="lumira" aria-labelledby="p-lumira">
+            <div class="product__media"><picture><source srcset="/assets/img/products/lumira.webp" type="image/webp"><img src="/assets/img/products/lumira.jpg" width="1200" height="750" loading="lazy" alt="Lumira home page: understand each other, grow closer on purpose"></picture></div>
+            <div class="product__body">
+              <span class="product__tag"><i data-lucide="heart-handshake"></i>Any two people &middot; since 2026</span>
+              <h3 id="p-lumira">Lumira</h3>
+              <p>A private space for any two people who matter to each other: partners, family, friends or colleagues. Mira, an AI coach grounded in relationship science, helps each person say the hard thing before it turns into a fight, with guided check-ins, repair after a hard moment, rehearsal for difficult conversations and a daily question that stays sealed until both have answered.</p>
+              <p class="product__why">I designed and built it end to end.</p>
+              <div class="product__links"><a class="btn btn--navy" href="https://lumiraconnect.com" target="_blank" rel="noopener">Visit Lumira <i data-lucide="arrow-up-right"></i></a></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="section section--white" id="experience" aria-labelledby="experience-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Experience</p>
+          <h2 id="experience-title">From the sales floor to the hiring table to building.</h2>
+        </div>
+        <ol class="timeline reveal">
+          <li class="role"><div class="role__when">2025 &ndash; Present</div><div><h3>Founder &amp; Architect</h3><p class="role__org">ReflectivAI, CareerPaver, Lumira</p><p>Taught myself to build with AI and designed and built three products: ReflectivAI for life-sciences sales teams (since January 2025), and CareerPaver and Lumira (since January 2026).</p></div></li>
+          <li class="role"><div class="role__when">2022 &ndash; 2024</div><div><h3>People Operations Specialist (Consultant)</h3><p class="role__org">Roadr</p><p>Scaled HR operations to onboard 50 to 70 contractors a quarter and built predictive staffing dashboards in Python and SQL. Created pipelines to track time to hire, voluntary turnover and productivity.</p><ul class="role__wins"><li>Voluntary turnover &minus;28%</li><li>Workflow efficiency +40%</li></ul></div></li>
+          <li class="role"><div class="role__when">2021 &ndash; 2022</div><div><h3>Human Resources Generalist (Contract)</h3><p class="role__org">Flowserve</p><p>Integrated workforce data and built dashboards to track satisfaction and retention trends, then used the patterns to recommend improvements.</p><ul class="role__wins"><li>Satisfaction +22%</li><li>New hire productivity +17%</li></ul></div></li>
+          <li class="role"><div class="role__when">2018 &ndash; 2021</div><div><h3>Talent &amp; Human Resources Advisor</h3><p class="role__org">Quibi</p><p>Led HR tech integration with the Workday ATS and built Excel and Tableau reporting on hiring pipelines and recruiter performance. Designed leadership programs and dashboards.</p><ul class="role__wins"><li>Time to hire &minus;24%</li><li>Operational efficiency +35%</li></ul></div></li>
+          <li class="role"><div class="role__when">2017 &ndash; 2018</div><div><h3>Global Talent Acquisition (Consultant)</h3><p class="role__org">Sony Pictures Entertainment</p><p>Built leadership-focused recruiting strategies, launched DEI initiatives based on workforce demographics, and built succession-planning models.</p><ul class="role__wins"><li>Diverse hiring +18%</li><li>Senior time to fill &minus;14%</li></ul></div></li>
+          <li class="role"><div class="role__when">2012 &ndash; 2017</div><div><h3>Human Resources &amp; Talent Acquisition</h3><p class="role__org">HBO</p><p>Managed full-cycle recruiting for 200+ roles and built a central database tracking candidates, referrals and diversity metrics. Reported on time to hire, offer acceptance and compensation equity with Excel, SQL and HRIS data.</p></div></li>
+          <li class="role"><div class="role__when">2009 &ndash; 2012</div><div><h3>Recruiter</h3><p class="role__org">NBCUniversal</p><p>Recruited across departments and redesigned onboarding programs.</p><ul class="role__wins"><li>Intern engagement +25%</li></ul></div></li>
+          <li class="role"><div class="role__when">2007 &ndash; 2009</div><div><h3>Pharmaceutical Sales Specialist</h3><p class="role__org">Sepracor Pharmaceuticals</p><p>Called on physicians. That&rsquo;s where the idea for ReflectivAI started.</p></div></li>
+        </ol>
+        <div class="edu reveal">
+          <p><strong>UC San Diego</strong> &middot; BS, Management Science</p>
+          <a class="btn btn--outline" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume (PDF)</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- People analytics -->
+    <section class="section" id="analytics" aria-labelledby="analytics-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">People analytics</p>
+          <h2 id="analytics-title">Dashboards and case studies.</h2>
+          <p>Portfolio work from my HR years: turnover, recruiting funnels, attrition models and workforce planning. Built on sample data, never client data.</p>
+        </div>
+
+        <div class="rail reveal" data-rail>
+          <div class="rail__head">
+            <div><h3>Portfolio dashboards</h3><p>Tableau and interactive report pages.</p></div>
+            <div class="rail__controls"><button class="rail__btn" type="button" data-prev aria-label="Previous dashboards"><i data-lucide="chevron-left"></i></button><button class="rail__btn" type="button" data-next aria-label="Next dashboards"><i data-lucide="chevron-right"></i></button></div>
           </div>
-          <div class="carousel-card">
-            <h4>Resolution Rate</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Track AI system effectiveness across different intents</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Understand how effectively different intents are resolved by the AI system.<br><strong>Approach:</strong> Calculated resolution percentages for each intent and displayed them in a bar chart.<br><strong>Impact:</strong> Highlighted low‑performing intents, enabling targeted improvements to conversational flows and intent models.</p>
-              <a href="interactive_cases_refined/resolution_rate_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
+          <div class="rail__track" role="list">
+            <a class="card" role="listitem" href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/TurnoverRate_17415848630420/YearlyTurnoverRate" target="_blank" rel="noopener">
+              <div class="card__img"><img src="/assets/img/reports/tableau-turnover.webp" width="800" height="500" loading="lazy" alt="Yearly Turnover Rate dashboard in Tableau"></div>
+              <div class="card__body"><span class="card__kicker">Tableau</span><h4>Yearly Turnover Rate</h4><p>Nine years of HRIS data by department and tenure, showing where turnover spikes.</p><span class="card__foot">Open on Tableau Public <i data-lucide="arrow-up-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/WorkforceAnalytics_17415847804200/WorkforceAnalytics" target="_blank" rel="noopener">
+              <div class="card__img"><img src="/assets/img/reports/tableau-workforce.webp" width="800" height="500" loading="lazy" alt="Workforce Analytics Overview dashboard in Tableau"></div>
+              <div class="card__body"><span class="card__kicker">Tableau</span><h4>Workforce Analytics Overview</h4><p>Diversity, hiring and engagement metrics in one view with interactive filters.</p><span class="card__foot">Open on Tableau Public <i data-lucide="arrow-up-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="https://public.tableau.com/app/profile/tony.abdelmalak/viz/EXAMPLEDashboard/Dashboard2" target="_blank" rel="noopener">
+              <div class="card__img"><img src="/assets/img/reports/tableau-example.webp" width="800" height="500" loading="lazy" alt="Workforce Dynamics dashboard in Tableau"></div>
+              <div class="card__body"><span class="card__kicker">Tableau</span><h4>Workforce Dynamics Deep Dive</h4><p>Attrition risk, engagement, time to fill and productivity by department in one dashboard.</p><span class="card__foot">Open on Tableau Public <i data-lucide="arrow-up-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/recruitment-funnel.html">
+              <div class="card__img"><img src="/assets/img/reports/recruitment-funnel.webp" width="800" height="500" loading="lazy" alt="Recruitment funnel report preview"></div>
+              <div class="card__body"><span class="card__kicker">Report</span><h4>Recruitment Funnel</h4><p>Where candidates drop off, how long each stage takes and how time to hire trends.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/workforce-planning.html">
+              <div class="card__img"><img src="/assets/img/reports/workforce-planning.webp" width="800" height="500" loading="lazy" alt="Workforce planning report preview"></div>
+              <div class="card__body"><span class="card__kicker">Report</span><h4>Workforce Planning &amp; Forecast</h4><p>Twelve-month headcount scenarios by department under different attrition and hiring rates.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/diversity-metrics.html">
+              <div class="card__img"><img src="/assets/img/reports/diversity-metrics.webp" width="800" height="500" loading="lazy" alt="Diversity metrics report preview"></div>
+              <div class="card__body"><span class="card__kicker">Report</span><h4>Diversity Metrics</h4><p>Representation by department across race, gender and job level.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/hr-attrition.html">
+              <div class="card__img"><img src="/assets/img/reports/hr-attrition.webp" width="800" height="500" loading="lazy" alt="HR attrition report preview"></div>
+              <div class="card__body"><span class="card__kicker">Report</span><h4>HR Attrition</h4><p>Attrition rate, who left, when, and where satisfaction is lowest.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
           </div>
-          <div class="carousel-card">
-            <h4>Customer Satisfaction</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Measure satisfaction scores across intent categories</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Assess customer satisfaction across intents to uncover areas needing improvement.<br><strong>Approach:</strong> Aggregated satisfaction scores from feedback and visualised them by intent in a bar chart.<br><strong>Impact:</strong> Pinpointed intents with lower satisfaction, informing product updates and training interventions.</p>
-              <a href="interactive_cases_refined/customer_satisfaction_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
+        </div>
+
+        <div class="rail reveal" data-rail style="margin-top: var(--space-7)">
+          <div class="rail__head">
+            <div><h3>AI and machine learning</h3><p>Predictive models and AI support analytics.</p></div>
+            <div class="rail__controls"><button class="rail__btn" type="button" data-prev aria-label="Previous AI dashboards"><i data-lucide="chevron-left"></i></button><button class="rail__btn" type="button" data-next aria-label="Next AI dashboards"><i data-lucide="chevron-right"></i></button></div>
           </div>
-          <div class="carousel-card">
-            <h4>Model Performance</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Monitor precision, recall, and F1 scores over time</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;"><strong>Problem:</strong> Track precision, recall, F1 score and misclassification rates across successive model versions.<br><strong>Approach:</strong> Collected performance metrics after each model iteration and plotted them as a multi‑line chart.<br><strong>Impact:</strong> Enabled data‑driven decisions on when to deploy new models and where to focus optimisation efforts.</p>
-              <a href="interactive_cases_refined/model_performance_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
+          <div class="rail__track" role="list">
+            <a class="card" role="listitem" href="/reports/predictive-attrition.html">
+              <div class="card__img"><img src="/assets/img/reports/predictive-attrition.webp" width="800" height="500" loading="lazy" alt="Predictive attrition report preview"></div>
+              <div class="card__body"><span class="card__kicker">Machine learning</span><h4>Predict Employee Attrition</h4><p>Which factors drive attrition risk, and how risk is spread across the workforce.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/early-attrition.html">
+              <div class="card__img"><img src="/assets/img/reports/early-attrition.webp" width="800" height="500" loading="lazy" alt="90-day attrition report preview"></div>
+              <div class="card__body"><span class="card__kicker">Prescriptive analytics</span><h4>Reducing 90-Day Attrition</h4><p>Which onboarding and manager interventions moved early attrition, and by how much.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/engagement-impact.html">
+              <div class="card__img"><img src="/assets/img/reports/engagement-impact.webp" width="800" height="500" loading="lazy" alt="Engagement impact report preview"></div>
+              <div class="card__body"><span class="card__kicker">Analysis</span><h4>Engagement Impact</h4><p>How engagement relates to productivity and turnover, department by department.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/ai-support-analytics.html">
+              <div class="card__img"><img src="/assets/img/reports/ai-support-analytics.webp" width="800" height="500" loading="lazy" alt="AI support analytics report preview"></div>
+              <div class="card__body"><span class="card__kicker">AI support analytics</span><h4>Intents, Resolution &amp; Satisfaction</h4><p>What customers ask an AI assistant about, how often it resolves them and how they rate it.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
+            <a class="card" role="listitem" href="/reports/ai-support-analytics.html#model">
+              <div class="card__img"><img src="/assets/img/reports/model-performance.webp" width="800" height="500" loading="lazy" alt="Model performance chart preview"></div>
+              <div class="card__body"><span class="card__kicker">Model monitoring</span><h4>Model Performance</h4><p>Precision, recall, F1 and misclassification across six model versions.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div>
+            </a>
           </div>
-          <div class="carousel-card">
-            <h4>Predict Employee Attrition</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Visualize attrition risk by department and key drivers</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;">Explore an improved dashboard that visualises attrition risk by department, overtime status and key drivers. Filter by department and discover the top factors influencing turnover.</p>
-              <a href="interactive_cases_refined/attrition_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <h4>Optimize Workforce Planning</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Simulate attrition and hiring strategies impact</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;">Interact with enhanced simulations to see how different attrition and hiring strategies impact headcount over time. Compare scenarios and review a polished workforce summary.</p>
-              <a href="interactive_cases_refined/workforce_planning_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
-          </div>
-          <div class="carousel-card">
-            <h4>Engagement Impact</h4>
-            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Correlate engagement with productivity and turnover</p>
-            <div class="expand-btn" onclick="toggleDetails(this)">
-              <span>Expand for Details</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="card-details">
-              <p style="margin-top: 0.75rem;">Discover how engagement correlates with productivity and turnover across more departments. Filter and analyse trends, and uncover insights about your workforce.</p>
-              <a href="interactive_cases_refined/engagement_impact_case.html" target="_blank" class="btn btn-sm" style="background-color: var(--accent-color); color:#fff;">Explore Dashboard</a>
-            </div>
+        </div>
+
+        <div style="margin-top: var(--space-8)">
+          <div class="rail__head reveal"><div><h3>Featured case studies</h3><p>The full write-ups, with the numbers from the original analyses.</p></div></div>
+          <div class="cases">
+            <article class="case reveal"><div class="case__stat">24%</div><div class="case__stat-label">faster time to hire</div><h4>Recruitment Funnel Analytics</h4><p>Finding the stage where candidates stall, and what shortening it does to time to hire.</p><a class="text-link" href="/reports/recruitment-funnel.html">Read the case study <i data-lucide="arrow-right"></i></a></article>
+            <article class="case reveal"><div class="case__stat">28%</div><div class="case__stat-label">lower voluntary attrition</div><h4>AI-Powered Attrition Model</h4><p>A predictive model that flags who may leave so HR can have the stay conversation early.</p><a class="text-link" href="/reports/predictive-attrition.html">Read the case study <i data-lucide="arrow-right"></i></a></article>
+            <article class="case reveal"><div class="case__stat">28%</div><div class="case__stat-label">lower 90-day attrition</div><h4>Reducing 90-Day Attrition</h4><p>Predictive plus prescriptive analytics to decide where onboarding money does the most good.</p><a class="text-link" href="/reports/early-attrition.html">Read the case study <i data-lucide="arrow-right"></i></a></article>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-<!-- Featured Case Studies Section -->
-<section id="featured-case-studies" class="py-5">
-  <div class="container">
-    <h2 class="section-title">Featured Case Studies</h2>
-    <div class="row g-4">
-      
-      <!-- Recruitment Funnel card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>Recruitment Funnel Analytics</h3>
-          <p>Discover how data-driven funnel analytics cut time-to-hire by 24% and boosted offer acceptance by 8%.</p>
-          <div class="cta-buttons">
-            <a href="interactive_cases_refined/recruitment_funnel_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-            <a href="recruitment_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
+    <!-- Writing -->
+    <section class="section section--white" id="writing" aria-labelledby="writing-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Recent writing</p>
+          <h2 id="writing-title">What I&rsquo;m posting about.</h2>
+          <p>Short takes on sales, interviews and relationships, from what I saw in pharma, recruiting and HR.</p>
+        </div>
+        <div class="posts">
+          <a class="post reveal" href="https://www.linkedin.com/in/tony-abdelmalak/recent-activity/all/" target="_blank" rel="noopener"><span class="post__topic">Interviews</span><blockquote>&ldquo;Leaving an interview early is almost never the right call.&rdquo;</blockquote><span class="text-link">Read on LinkedIn <i data-lucide="arrow-up-right"></i></span></a>
+          <a class="post reveal" href="https://www.linkedin.com/in/tony-abdelmalak/recent-activity/all/" target="_blank" rel="noopener"><span class="post__topic">Sales</span><blockquote>&ldquo;You get maybe three minutes with a buyer who matters. Less, some weeks.&rdquo;</blockquote><span class="text-link">Read on LinkedIn <i data-lucide="arrow-up-right"></i></span></a>
+          <a class="post reveal" href="https://www.linkedin.com/in/tony-abdelmalak/recent-activity/all/" target="_blank" rel="noopener"><span class="post__topic">Relationships</span><blockquote>&ldquo;Three relationships usually get the least attention: the coworker, the friend, the sibling.&rdquo;</blockquote><span class="text-link">Read on LinkedIn <i data-lucide="arrow-up-right"></i></span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills & Tools (kept: Lucide icon grid) -->
+    <section class="section" id="skills" aria-labelledby="skills-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Skills &amp; tools</p>
+          <h2 id="skills-title">What I work with.</h2>
+        </div>
+        <div class="skills-group reveal">
+          <h3>Building and selling</h3>
+          <div class="skills">
+            <div class="skill"><span class="skill__icon"><i data-lucide="sparkles"></i></span><span>Artificial Intelligence</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="layers"></i></span><span>Product Development</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="presentation"></i></span><span>Sales Enablement</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="message-square-quote"></i></span><span>Sales Coaching</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="user-search"></i></span><span>Talent Acquisition</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="mic"></i></span><span>Interviews</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="compass"></i></span><span>Career Development</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="line-chart"></i></span><span>Strategic Data Analysis</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="gauge"></i></span><span>KPIs</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="workflow"></i></span><span>Process Improvement</span></div>
+          </div>
+        </div>
+        <div class="skills-group reveal">
+          <h3>Tools and systems</h3>
+          <div class="skills">
+            <div class="skill"><span class="skill__icon"><i data-lucide="bar-chart-3"></i></span><span>Tableau</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="pie-chart"></i></span><span>Power BI</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="sheet"></i></span><span>Microsoft Excel</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="database"></i></span><span>SQL</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="code-2"></i></span><span>Python</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="briefcase-business"></i></span><span>Workday Recruiting &amp; HCM</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="boxes"></i></span><span>SAP HR &amp; ERP</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="wallet"></i></span><span>ADP Workforce</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="id-card"></i></span><span>Applicant Tracking Systems</span></div>
+            <div class="skill"><span class="skill__icon"><i data-lucide="network"></i></span><span>HRIS</span></div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- AI-Powered Attrition card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>AI-Powered Attrition Model</h3>
-          <p>Learn how a predictive model helped identify employees at risk and reduced voluntary attrition by 28%.</p>
-          <div class="cta-buttons">
-            <a href="interactive_cases_refined/ai_attrition_model_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-            <a href="predictive_attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
+    <!-- Certifications -->
+    <section class="section section--white" id="certifications" aria-labelledby="certs-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Certifications</p>
+          <h2 id="certs-title">Always learning.</h2>
+        </div>
+        <div class="certs reveal">
+          <a class="cert" href="/assets/img/portfolio/certifications/effectively-leading-digital-transformation.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="rocket"></i></span><div><h4>Effectively Leading Digital Transformation</h4><p>LinkedIn &middot; Feb 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/certifications/using-generative-ai-ethically-at-work.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="shield-check"></i></span><div><h4>Using Generative AI Ethically at Work</h4><p>LinkedIn &middot; Feb 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/certifications/applied-ai-for-human-resources.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="cpu"></i></span><div><h4>Applied AI for Human Resources</h4><p>LinkedIn Learning &middot; 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/certifications/generative-ai-in-hr.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="sparkles"></i></span><div><h4>Generative AI in HR</h4><p>LinkedIn Learning &middot; 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/certifications/creating-interactive-tableau-dashbaords.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="bar-chart-3"></i></span><div><h4>Creating Interactive Tableau Dashboards</h4><p>LinkedIn Learning &middot; 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/certifications/actionable-insights-and-business-data-in-practice.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="lightbulb"></i></span><div><h4>Actionable Insights &amp; Business Data in Practice</h4><p>LinkedIn Learning &middot; 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <a class="cert" href="/assets/img/portfolio/RAG%20Certification.pdf" target="_blank" rel="noopener"><span class="ico"><i data-lucide="search-code"></i></span><div><h4>RAG Course for Beginners</h4><p>Simplilearn SkillUp &middot; 2025</p><span class="cert__view">View certificate <i data-lucide="arrow-up-right"></i></span></div></a>
+          <div class="cert"><span class="ico"><i data-lucide="graduation-cap"></i></span><div><h4>HR Certificate Program</h4><p>AIHR, Academy to Innovate HR</p></div></div>
+          <div class="cert"><span class="ico"><i data-lucide="badge-check"></i></span><div><h4>AIRS Certified Diversity Recruiter</h4><p>AIRS</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reading list (kept) -->
+    <section class="section section--tight" id="reading" aria-labelledby="reading-title">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Reading list</p>
+          <h2 id="reading-title">Where I keep up.</h2>
+          <p>Free sources on AI, work and people. No login needed.</p>
+        </div>
+        <div class="reading reveal">
+          <a href="https://www.technologyreview.com" target="_blank" rel="noopener">MIT Technology Review <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://hbr.org" target="_blank" rel="noopener">Harvard Business Review <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.mckinsey.com/featured-insights" target="_blank" rel="noopener">McKinsey Insights <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.pewresearch.org" target="_blank" rel="noopener">Pew Research Center <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.brookings.edu" target="_blank" rel="noopener">Brookings Institution <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.gsb.stanford.edu/insights" target="_blank" rel="noopener">Stanford GSB Insights <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.nature.com/news" target="_blank" rel="noopener">Nature News <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.ibm.com/think" target="_blank" rel="noopener">IBM Think <i data-lucide="arrow-up-right"></i></a>
+          <a href="https://www.weforum.org/stories" target="_blank" rel="noopener">World Economic Forum <i data-lucide="arrow-up-right"></i></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section section--tight" id="contact" aria-labelledby="contact-title">
+      <div class="container">
+        <div class="contact reveal">
+          <div>
+            <h2 id="contact-title">Let&rsquo;s talk.</h2>
+            <p>The fastest way to reach me is LinkedIn or email. Or ask the AI version of me a question right now.</p>
+          </div>
+          <div class="contact__actions">
+            <a class="btn btn--teal" href="mailto:tony.abdelmalak@yahoo.com"><i data-lucide="mail"></i>Email me</a>
+            <a class="btn btn--ghost-light" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>LinkedIn</a>
           </div>
         </div>
       </div>
+    </section>
+  </main>
 
-      <!-- 90-Day Attrition card -->
-      <div class="col-md-4">
-        <div class="case-study-card">
-          <h3>Reducing 90-Day Attrition</h3>
-          <p>See how predictive and prescriptive analytics can cut early attrition through targeted interventions.</p>
-          <div class="cta-buttons">
-            <a href="interactive_cases_refined/ninety_day_attrition_case.html" class="btn btn-sm btn-primary">Explore Dashboard</a>
-            <a href="attrition_case_study.html" class="btn btn-sm btn-outline-primary">Read Case Study</a>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- Styles for Featured Case Studies -->
-<style>
-.case-study-card {
-  background: #fff;
-  border-left: 4px solid var(--accent-color);
-  padding: 1.25rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  height: 100%;
-}
-.case-study-card h3 {  margin-top: 0;
-  font-size: 1.25rem;
-  color: var(--primary-color);
-}
-.case-study-card p {
-  font-size: 0.9rem;
-  color: var(--subtext-color);
-}
-.case-study-card .cta-buttons {
-  margin-top: 1rem;
-  display: flex;
-  gap: 0.5rem;
-}
-.case-study-card .btn {
-  flex: 1;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  padding: 0.4rem;
-}
-</style>
-
-  <!-- Skills Section -->
- <section id="skills">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Skills &amp; Tools</h2>
-      </div>
-      <div class="skills-grid">
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-bar-chart-fill"></i></div>
-          <div>Tableau</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-table"></i></div>
-          <div>Power BI</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-database-fill"></i></div>
-          <div>SQL</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-code-slash"></i></div>
-          <div>Python</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-robot"></i></div>
-          <div>AI Tools</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-people-fill"></i></div>
-          <div>HRIS (Workday)</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-graph-up"></i></div>
-          <div>Analytics</div>
-        </div>
-        <div class="skill-item">
-          <div class="skill-icon"><i class="bi bi-pie-chart-fill"></i></div>
-          <div>Data Visualization</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AI Interview Practice Demo - ENTERPRISE LAYOUT -->
-  <section id="interview-demo" class="interview-demo-section">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>AI Interview Practice Demo</h2>
-        <p>Enterprise-grade AI coaching with real-world feedback. Select from 23 behavioral questions or create your own.</p>
-      </div>
-
-      <div class="interview-row">
-        <!-- LEFT: Question Library Carousel (60%) -->
-        <div class="question-library-panel">
-          <div class="panel-header">
-            <i class="bi bi-collection"></i>
-            <span>Question Library</span>
-            <button class="refresh-btn" onclick="refreshRandomQuestion()" title="Random Question">
-              <i class="bi bi-arrow-clockwise"></i>
-            </button>
-          </div>
-
-          <div class="panel-content">
-            <!-- Category Selector -->
-            <div class="input-group">
-              <label for="categorySelect">
-                <i class="bi bi-folder"></i>
-                <span>Category</span>
-              </label>
-              <select id="categorySelect" class="form-select" onchange="loadQuestionsForCategory()">
-                <option value="">-- Choose category --</option>
-                <option value="data-analysis">Data Analysis & Insights</option>
-                <option value="stakeholder">Stakeholder Management</option>
-                <option value="leadership">Project Leadership</option>
-                <option value="technical">Technical Skills</option>
-                <option value="ethics-governance">Ethics & Governance</option>
-                <option value="change-management">Change Management</option>
-                <option value="business-impact">Business Impact & ROI</option>
-                <option value="innovation">Innovation & Best Practices</option>
-              </select>
-            </div>
-
-            <!-- Question Selector -->
-            <div class="input-group" id="questionSelectorGroup" style="display: none;">
-              <label for="questionSelect">
-                <i class="bi bi-chat-quote"></i>
-                <span>Question</span>
-              </label>
-              <select id="questionSelect" class="form-select" onchange="useSelectedQuestion()">
-                <option value="">-- Choose question --</option>
-              </select>
-            </div>
-
-            <!-- Populate Button -->
-            <button class="populate-btn" id="populateBtn" onclick="useSelectedQuestion()" style="display: none;">
-              <i class="bi bi-arrow-right-circle"></i>
-              Populate Question
-            </button>
-
-            <!-- Custom Question Builder -->
-            <div class="custom-section">
-              <div class="custom-header">
-                <i class="bi bi-pencil-square"></i>
-                <span>Create Your Own</span>
-              </div>
-              <textarea 
-                id="customQuestionInput" 
-                class="custom-textarea" 
-                placeholder="Write your own scenario...\n\nExample: Describe a time when you had to present conflicting insights to executives."
-                rows="3"
-              ></textarea>
-              <button class="use-custom-btn" onclick="useCustomQuestion()">
-                <i class="bi bi-check-circle"></i>
-                Use Custom Question
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT: AI Coaching Panel (40%) -->
-        <div class="coaching-panel">
-          <div class="panel-header">
-            <i class="bi bi-robot"></i>
-            <span>AI Coach</span>
-          </div>
-
-          <div class="panel-content">
-            <!-- Selected Question Display -->
-            <div class="question-display">
-              <div class="question-label">
-                <i class="bi bi-chat-left-quote"></i>
-                <span>Practice Question</span>
-              </div>
-              <div class="question-text" id="interviewQuestion">
-                Tell me about a time when you had to analyze data to solve a business problem. What was your approach and what was the outcome?
-              </div>
-            </div>
-
-            <!-- Answer Textarea -->
-            <div class="answer-group">
-              <label for="userAnswer">
-                <i class="bi bi-pencil"></i>
-                <span>Your Answer</span>
-              </label>
-              <textarea 
-                id="userAnswer" 
-                class="answer-textarea" 
-                placeholder="Type your STAR response here...\n\nSituation: Context\nTask: Challenge\nAction: What you did\nResult: Measurable outcome"
-                rows="6"
-              ></textarea>
-              <div class="char-counter">
-                <span id="charCount">0 characters</span>
-              </div>
-            </div>
-
-            <!-- Get Feedback Button -->
-            <button class="feedback-btn" id="getFeedbackBtn" onclick="getInterviewFeedback()">
-              <i class="bi bi-stars"></i>
-              Get AI Feedback
-            </button>
-
-            <!-- Loading Indicator -->
-            <div class="loading-indicator" id="loadingIndicator" style="display: none;">
-              <div class="spinner"></div>
-              <span>Analyzing your answer...</span>
-            </div>
-
-            <!-- Feedback Results -->
-            <div class="feedback-results" id="feedbackSection" style="display: none;">
-              <div class="results-header">
-                <i class="bi bi-lightbulb-fill"></i>
-                <span>Robust Real-World Feedback</span>
-              </div>
-              <div class="results-content" id="feedbackContent">
-                <!-- AI feedback appears here -->
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="demo-footer">
-        <p><i class="bi bi-info-circle"></i> Enterprise-grade AI coaching demo. Full platform coming soon with session tracking and advanced analytics.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Resume Optimizer - ENTERPRISE LAYOUT -->
-  <section id="resume-optimizer" class="resume-optimizer-section">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Resume Optimizer</h2>
-        <p>Enterprise-grade ATS analysis with robust optimization recommendations. Upload or paste your resume and target job description.</p>
-      </div>
-
-      <div class="optimizer-row">
-        <!-- LEFT: Input Panel (50%) -->
-        <div class="input-panel">
-          <div class="panel-header">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Resume & Job Description</span>
-          </div>
-
-          <div class="panel-content">
-            <!-- Resume Input -->
-            <div class="input-group">
-              <label for="resumeInput">
-                <i class="bi bi-person-badge"></i>
-                <span>Your Resume</span>
-                <button class="modal-btn" onclick="openResumeModal()" title="Open in full window">
-                  <i class="bi bi-arrows-fullscreen"></i>
-                </button>
-              </label>
-              <div class="upload-row">
-                <input type="file" id="resumeFileInput" accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleResumeUpload(event)">
-                <button class="upload-btn" onclick="document.getElementById('resumeFileInput').click()">
-                  <i class="bi bi-upload"></i>
-                  Upload Resume (PDF/DOCX/TXT)
-                </button>
-                <span class="upload-hint">or paste text below</span>
-              </div>
-              <textarea 
-                id="resumeInput" 
-                class="input-textarea" 
-                placeholder="Paste your resume text here or upload a file above...\n\nExample:\nSenior HR Analytics Manager\nFlowserve | 2022-2024\n\n• Led predictive attrition modeling\n• Built executive dashboards in Tableau\n• Implemented data governance framework"
-                rows="8"
-              ></textarea>
-            </div>
-
-            <!-- Job Description Input -->
-            <div class="input-group">
-              <label for="jobDescInput">
-                <i class="bi bi-briefcase"></i>
-                <span>Target Job Description</span>
-                <button class="modal-btn" onclick="openJobDescModal()" title="Open in full window">
-                  <i class="bi bi-arrows-fullscreen"></i>
-                </button>
-              </label>
-              <div class="upload-row">
-                <input type="file" id="jobDescFileInput" accept=".pdf,.doc,.docx,.txt" style="display: none;" onchange="handleJobDescUpload(event)">
-                <button class="upload-btn" onclick="document.getElementById('jobDescFileInput').click()">
-                  <i class="bi bi-upload"></i>
-                  Upload Job Description
-                </button>
-                <span class="upload-hint">or paste text below</span>
-              </div>
-              <textarea 
-                id="jobDescInput" 
-                class="input-textarea" 
-                placeholder="Paste job description here or upload a file above...\n\nExample:\nSenior People Analytics Manager\n\nRequired:\n• 5+ years HR analytics\n• SQL, Python, Tableau\n• Predictive modeling\n• Stakeholder management"
-                rows="8"
-              ></textarea>
-            </div>
-
-            <!-- Analyze Button -->
-            <button class="analyze-btn" onclick="analyzeResume()">
-              <i class="bi bi-search"></i>
-              Analyze Resume
-            </button>
-
-            <!-- Loading Indicator -->
-            <div class="loading-indicator" id="optimizerLoading" style="display: none;">
-              <div class="spinner"></div>
-              <span>Running enterprise-grade analysis...</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT: Analysis Panel (50%) -->
-        <div class="analysis-panel">
-          <div class="panel-header">
-            <i class="bi bi-graph-up-arrow"></i>
-            <span>Analysis Results</span>
-          </div>
-
-          <div class="panel-content">
-            <div id="optimizerResults" style="display: none;">
-              <div class="results-header">
-                <i class="bi bi-check-circle"></i>
-                <span>Enterprise-Grade Analysis Complete</span>
-              </div>
-              <div class="results-content" id="optimizerResultsContent">
-                <!-- AI analysis appears here -->
-              </div>
-            </div>
-
-            <!-- Placeholder when no results -->
-            <div class="results-placeholder" id="resultsPlaceholder">
-              <i class="bi bi-clipboard-data"></i>
-              <h3>Awaiting Analysis</h3>
-              <p>Paste your resume and job description, then click "Analyze Resume" to receive:</p>
-              <ul>
-                <li><strong>Overall Match Score</strong> - Alignment with job requirements</li>
-                <li><strong>ATS Compatibility</strong> - Format and keyword optimization</li>
-                <li><strong>Missing Keywords</strong> - Critical terms to add</li>
-                <li><strong>Action Verb Recommendations</strong> - Strengthen your impact</li>
-                <li><strong>Metrics Identification</strong> - Quantify achievements</li>
-                <li><strong>Skills Alignment</strong> - Hard and soft skills analysis</li>
-                <li><strong>Top Recommendations</strong> - Prioritized improvements</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="demo-footer">
-        <p><i class="bi bi-shield-check"></i> Your data is processed securely and never stored. Enterprise-grade analysis performed in real-time.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Modal for Full-Screen Resume Input -->
-  <div id="resumeModal" class="text-modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="bi bi-person-badge"></i> Your Resume</h3>
-        <button class="modal-close" onclick="closeResumeModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <textarea id="resumeModalText" class="modal-textarea" rows="20"></textarea>
-      <div class="modal-footer">
-        <button class="modal-save-btn" onclick="saveResumeModal()">
-          <i class="bi bi-check-circle"></i>
-          Save & Close
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal for Full-Screen Job Description Input -->
-  <div id="jobDescModal" class="text-modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="bi bi-briefcase"></i> Target Job Description</h3>
-        <button class="modal-close" onclick="closeJobDescModal()">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <textarea id="jobDescModalText" class="modal-textarea" rows="20"></textarea>
-      <div class="modal-footer">
-        <button class="modal-save-btn" onclick="saveJobDescModal()">
-          <i class="bi bi-check-circle"></i>
-          Save & Close
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Certifications Section -->
-  <section id="certifications">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Professional Certifications</h2>
-        <p>Continuously advancing expertise in AI, analytics, and workforce strategy through industry-leading certifications.</p>
-      </div>
-      
-      <div class="certifications-grid">
-        <!-- Applied AI for HR -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="certification-icon">
-            <i class="bi bi-cpu"></i>
-          </div>
-          <h3>Applied AI for Human Resources</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">AI Strategy</span>
-            <span class="skill-badge">HR Tech</span>
-            <span class="skill-badge">Automation</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/applied-ai-for-human-resources.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Tableau Dashboards -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="certification-icon">
-            <i class="bi bi-graph-up-arrow"></i>
-          </div>
-          <h3>Creating Interactive Tableau Dashboards</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Tableau</span>
-            <span class="skill-badge">Data Viz</span>
-            <span class="skill-badge">Analytics</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/creating-interactive-tableau-dashboards.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Generative AI Ethics -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="certification-icon">
-            <i class="bi bi-shield-check"></i>
-          </div>
-          <h3>Using Generative AI Ethically at Work</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">AI Ethics</span>
-            <span class="skill-badge">Governance</span>
-            <span class="skill-badge">Compliance</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/using-generative-ai-ethically-at-work.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Generative AI in HR -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="certification-icon">
-            <i class="bi bi-robot"></i>
-          </div>
-          <h3>Generative AI in HR</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Gen AI</span>
-            <span class="skill-badge">HR Innovation</span>
-            <span class="skill-badge">Transformation</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/generative-ai-in-hr.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Business Data Insights -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="certification-icon">
-            <i class="bi bi-lightbulb"></i>
-          </div>
-          <h3>Actionable Insights & Business Data in Practice</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Data Analysis</span>
-            <span class="skill-badge">Insights</span>
-            <span class="skill-badge">Strategy</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/actionable-insights-business-data-in-practice.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- RAG Course -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="certification-icon">
-            <i class="bi bi-database-fill-gear"></i>
-          </div>
-          <h3>RAG Course for Beginners</h3>
-          <div class="certification-issuer">Simplilearn SkillUp</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">RAG</span>
-            <span class="skill-badge">LLMs</span>
-            <span class="skill-badge">AI Systems</span>
-          </div>
-          <a href="assets/img/portfolio/RAG Certification.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Digital Transformation -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="certification-icon">
-            <i class="bi bi-rocket-takeoff"></i>
-          </div>
-          <h3>Effectively Leading Digital Transformation</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2025</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Leadership</span>
-            <span class="skill-badge">Change Mgmt</span>
-            <span class="skill-badge">Innovation</span>
-          </div>
-          <a href="assets/img/portfolio/certifications/effectively-leading-digital-transformation.pdf" target="_blank" class="certification-link">
-            <span>View Certificate</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- In Progress -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="200" style="border: 2px dashed var(--accent-primary); opacity: 0.9;">
-          <div class="certification-icon" style="background: linear-gradient(135deg, var(--navy-700), var(--navy-600));">
-            <i class="bi bi-hourglass-split"></i>
-          </div>
-          <h3>AI for HR: Workforce Planning & Talent Optimization</h3>
-          <div class="certification-issuer">In Progress</div>
-          <div class="certification-date">Expected 2026</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Workforce Planning</span>
-            <span class="skill-badge">Talent Strategy</span>
-            <span class="skill-badge">AI Optimization</span>
-          </div>
-        </div>
-
-        <!-- Workday Analytics -->
-        <div class="certification-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="certification-icon">
-            <i class="fas fa-users-cog"></i>
-          </div>
-          <h3>Workday Reporting & HR Analytics</h3>
-          <div class="certification-issuer">LinkedIn Learning</div>
-          <div class="certification-date">2021</div>
-          <div class="certification-skills">
-            <span class="skill-badge">Workday</span>
-            <span class="skill-badge">HR Analytics</span>
-            <span class="skill-badge">Reporting</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Recommended Reading Section -->
-  <section id="reading" class="reading-section">
-    <div class="container" data-aos="fade-up">
-      <div class="section-title">
-        <h2>Recommended Open-Access Reading</h2>
-        <p>Curated sources for AI, analytics, and workforce insights—all free and accessible without login.</p>
-      </div>
-      
-      <div class="reading-grid">
-        <!-- MIT Technology Review -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="100">
-          <div class="reading-icon">
-            <i class="bi bi-newspaper"></i>
-          </div>
-          <h3>MIT Technology Review</h3>
-          <p class="reading-description">Leading source for emerging technology and AI research</p>
-          <div class="reading-focus">AI, emerging technology, science</div>
-          <a href="https://www.technologyreview.com" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Harvard Business Review -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="150">
-          <div class="reading-icon">
-            <i class="bi bi-briefcase"></i>
-          </div>
-          <h3>Harvard Business Review</h3>
-          <p class="reading-description">Trusted insights on leadership and business strategy</p>
-          <div class="reading-focus">Leadership, management, business strategy</div>
-          <a href="https://hbr.org" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- McKinsey Insights -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="200">
-          <div class="reading-icon">
-            <i class="bi bi-graph-up"></i>
-          </div>
-          <h3>McKinsey Insights</h3>
-          <p class="reading-description">Global consulting perspectives on business and analytics</p>
-          <div class="reading-focus">Business, operations, analytics, leadership</div>
-          <a href="https://www.mckinsey.com/insights" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Pew Research Center -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="250">
-          <div class="reading-icon">
-            <i class="bi bi-bar-chart"></i>
-          </div>
-          <h3>Pew Research Center</h3>
-          <p class="reading-description">Nonpartisan data on social trends and technology adoption</p>
-          <div class="reading-focus">Social trends, technology adoption, workforce</div>
-          <a href="https://www.pewresearch.org" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Brookings Institution -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="300">
-          <div class="reading-icon">
-            <i class="bi bi-building"></i>
-          </div>
-          <h3>Brookings Institution</h3>
-          <p class="reading-description">Independent research on policy and economics</p>
-          <div class="reading-focus">Policy, economics, technology, workforce</div>
-          <a href="https://www.brookings.edu" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Stanford GSB Insights -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="350">
-          <div class="reading-icon">
-            <i class="bi bi-lightbulb"></i>
-          </div>
-          <h3>Stanford GSB Insights</h3>
-          <p class="reading-description">Academic research on leadership and organizational behavior</p>
-          <div class="reading-focus">Leadership, decision-making, organizational behavior</div>
-          <a href="https://www.gsb.stanford.edu/insights" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- Nature News -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="400">
-          <div class="reading-icon">
-            <i class="bi bi-journal-text"></i>
-          </div>
-          <h3>Nature News & Commentary</h3>
-          <p class="reading-description">Peer-reviewed science and technology impacts</p>
-          <div class="reading-focus">Science, research, technology impacts</div>
-          <a href="https://www.nature.com/news" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- IBM Think Blog -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="450">
-          <div class="reading-icon">
-            <i class="bi bi-cpu-fill"></i>
-          </div>
-          <h3>IBM Think Blog</h3>
-          <p class="reading-description">Enterprise perspectives on AI and data</p>
-          <div class="reading-focus">AI, data, enterprise technology</div>
-          <a href="https://www.ibm.com/think" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- OpenAI Blog -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="500">
-          <div class="reading-icon">
-            <i class="bi bi-robot"></i>
-          </div>
-          <h3>OpenAI Blog</h3>
-          <p class="reading-description">Latest developments in applied AI research</p>
-          <div class="reading-focus">Applied AI, research, responsible AI</div>
-          <a href="https://openai.com/blog" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-
-        <!-- World Economic Forum -->
-        <div class="reading-card" data-aos="fade-up" data-aos-delay="550">
-          <div class="reading-icon">
-            <i class="bi bi-globe"></i>
-          </div>
-          <h3>World Economic Forum Agenda</h3>
-          <p class="reading-description">Global perspectives on technology and workforce trends</p>
-          <div class="reading-focus">Global trends, technology, workforce, economics</div>
-          <a href="https://www.weforum.org/agenda" target="_blank" rel="noopener noreferrer" class="reading-link">
-            <span>Visit Site</span>
-            <i class="bi bi-box-arrow-up-right"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Tony Abdelmalak. All Rights Reserved.</p>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>&copy; <span data-year>2026</span> Tony Abdelmalak &middot; Los Angeles</p>
+      <ul class="footer__links">
+        <li><a href="https://reflectiv-ai.com" target="_blank" rel="noopener">ReflectivAI</a></li>
+        <li><a href="https://careerpaverai.com" target="_blank" rel="noopener">CareerPaver</a></li>
+        <li><a href="https://lumiraconnect.com" target="_blank" rel="noopener">Lumira</a></li>
+        <li><a href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
     </div>
   </footer>
 
-  <!-- JavaScript Files -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/dist/typed.umd.js"></script>
-  
-  <!-- AI-Powered Articles -->
-  <script src="assets/js/ai-articles.js"></script>
-  <script>
-    AOS.init({ duration: 800, easing: 'ease-in-out', once: true });
-    
-    // Wait for Typed.js to load before initializing
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof Typed !== 'undefined') {
-        const typedElement = document.querySelector('.typed');
-        if (typedElement) {
-          const typedStrings = typedElement.getAttribute('data-typed-items').split(';');
-          const typed = new Typed('.typed', {
-            strings: typedStrings,
-            typeSpeed: 40,
-            backSpeed: 30,
-            backDelay: 2000,
-            loop: true
-          });
-        }
-      }
-    });
-  </script>
-
-  <!-- Carousel logic -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      function setupCarousel(trackId, prevId, nextId) {
-        const track = document.getElementById(trackId);
-        document.getElementById(prevId).addEventListener('click', function() {
-          track.scrollBy({ left: -320, behavior: 'smooth' });
-        });
-        document.getElementById(nextId).addEventListener('click', function() {
-          track.scrollBy({ left: 320, behavior: 'smooth' });
-        });
-      }
-      setupCarousel('projects-track', 'projects-prev', 'projects-next');
-      setupCarousel('ai-track', 'ai-prev', 'ai-next');
-      setupCarousel('insights-track', 'insights-prev', 'insights-next');
-    });
-
-    // Toggle card details
-    function toggleDetails(btn) {
-      const details = btn.nextElementSibling;
-      const isExpanded = details.classList.contains('show');
-      
-      if (isExpanded) {
-        details.classList.remove('show');
-        btn.classList.remove('expanded');
-        btn.querySelector('span').textContent = 'Expand for Details';
-      } else {
-        details.classList.add('show');
-        btn.classList.add('expanded');
-        btn.querySelector('span').textContent = 'Collapse Details';
-      }
-    }
-  </script>
-
-
-<!-- === Icon Loading Verification === -->
-<script>
-  // Check if Font Awesome loaded successfully
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      const testIcon = document.querySelector('.fas, .fab');
-      if (testIcon) {
-        const computedStyle = window.getComputedStyle(testIcon, ':before');
-        const content = computedStyle.getPropertyValue('content');
-        
-        // If content is 'none' or empty, Font Awesome didn't load
-        if (!content || content === 'none' || content === '""') {
-          console.error('❌ Font Awesome icons failed to load!');
-          
-          // Add a visual indicator
-          const skillsSection = document.querySelector('#skills');
-          if (skillsSection) {
-            const alert = document.createElement('div');
-            alert.style.cssText = 'background: #ef4444; color: white; padding: 12px; text-align: center; font-size: 14px; border-radius: 8px; margin: 16px 0;';
-            alert.innerHTML = '⚠️ Icons not loading from CDN. Please check your internet connection or try a different browser.';
-            skillsSection.insertBefore(alert, skillsSection.firstChild);
-          }
-        } else {
-          console.log('✅ Font Awesome icons loaded successfully!');
-        }
-      }
-    }, 1000);
-  });
-</script>
-
-<!-- === Interview Demo JavaScript === -->
-<script>
-  // Question Library Data
-  const questionLibrary = {
-    'data-analysis': [
-      'Describe a time when you used predictive modeling to solve a workforce challenge. What was your approach, what data did you analyze, and what were the measurable results?',
-      'Tell me about a situation where you had to analyze turnover data and present actionable recommendations to leadership. How did you identify the root causes and what was the outcome?',
-      'Walk me through a complex data analysis project where you had to combine data from multiple HR systems. What challenges did you face and how did you ensure data quality?'
-    ],
-    'stakeholder': [
-      'How did you handle a situation where your data-driven recommendations conflicted with a senior leader\'s intuition or assumptions? What was your approach to influencing the decision?',
-      'Describe a time when you had to explain complex HR analytics to non-technical stakeholders. How did you make the data accessible and what was the impact?',
-      'Tell me about a time when you had to gain buy-in from multiple stakeholders for an analytics initiative. What was your strategy?'
-    ],
-    'leadership': [
-      'Tell me about the most challenging HR analytics project you\'ve led. What obstacles did you face, how did you overcome them, and what did you learn?',
-      'Describe how you prioritized multiple analytics requests from different departments with competing deadlines. What framework did you use and how did you manage expectations?',
-      'Share an example of when you had to make a difficult decision on an analytics project with incomplete data. How did you approach it?'
-    ],
-    'technical': [
-      'Walk me through a time when you built a dashboard that significantly improved decision-making. What metrics did you include, why, and how did you measure its impact?',
-      'Describe a situation where you had to clean and transform messy HR data from multiple systems. What tools did you use and what challenges did you encounter?',
-      'Tell me about a time when you automated a manual HR process using analytics or scripting. What was the business impact?'
-    ],
-    'ethics-governance': [
-      'Describe a situation where you had to balance data transparency with employee privacy concerns. How did you navigate this ethical dilemma and what policies did you implement?',
-      'Tell me about a time when you discovered data quality issues that could have led to biased decisions. How did you address it and what governance practices did you put in place?',
-      'Share an example of how you ensured fairness and compliance in your HR analytics work, particularly around sensitive topics like compensation or performance evaluations.'
-    ],
-    'change-management': [
-      'Walk me through a time when you introduced a new analytics tool or process that faced resistance from HR teams. How did you drive adoption and measure success?',
-      'Describe a situation where your analytics revealed the need for significant organizational change. How did you present the findings and support the transition?',
-      'Tell me about a time when you had to shift from reactive reporting to proactive analytics. What challenges did you face and how did you change the culture?'
-    ],
-    'business-impact': [
-      'Share a specific example where your HR analytics work directly influenced a major business decision. What was the ROI and how did you measure long-term impact?',
-      'Describe a time when you identified a workforce trend that saved the company significant costs or improved efficiency. How did you quantify the business value?',
-      'Tell me about your most impactful analytics project. What made it successful and how did it change the way leadership viewed HR data?'
-    ],
-    'innovation': [
-      'Describe a time when you experimented with a new analytical technique or technology in HR. What was the outcome and what did you learn from the experience?',
-      'Tell me about a situation where you had to solve an HR problem with limited tools or data. How did you get creative and what innovative approach did you take?',
-      'Share an example of how you stayed ahead of industry trends in people analytics. How did you apply emerging best practices to your organization?'
-    ]
-  };
-
-  // Load questions for selected category
-  function loadQuestionsForCategory() {
-    const categorySelect = document.getElementById('categorySelect');
-    const questionSelect = document.getElementById('questionSelect');
-    const questionGroup = document.getElementById('questionSelectorGroup');
-    const category = categorySelect.value;
-    
-    if (!category) {
-      questionGroup.style.display = 'none';
-      return;
-    }
-    
-    // Clear previous questions
-    questionSelect.innerHTML = '<option value="">-- Choose a question --</option>';
-    
-    // Add questions for this category
-    const questions = questionLibrary[category] || [];
-    questions.forEach((question, index) => {
-      const option = document.createElement('option');
-      option.value = question;
-      // Show first 65 characters of question with ellipsis
-      const preview = question.length > 65 ? question.substring(0, 65) + '...' : question;
-      option.textContent = preview;
-      questionSelect.appendChild(option);
-    });
-    
-    // Show question selector
-    questionGroup.style.display = 'flex';
-  }
-
-  // Use selected question from dropdown
-  function useSelectedQuestion() {
-    const questionSelect = document.getElementById('questionSelect');
-    const question = questionSelect.value;
-    
-    if (question) {
-      updateInterviewQuestion(question);
-    }
-  }
-
-  // Use custom question
-  function useCustomQuestion() {
-    const customInput = document.getElementById('customQuestionInput');
-    const question = customInput.value.trim();
-    
-    if (!question) {
-      alert('Please enter a custom question first.');
-      return;
-    }
-    
-    updateInterviewQuestion(question);
-    customInput.value = ''; // Clear after use
-  }
-
-  // Refresh with random question
-  function refreshRandomQuestion() {
-    // Get all questions from all categories
-    const allQuestions = Object.values(questionLibrary).flat();
-    
-    // Pick random question
-    const randomQuestion = allQuestions[Math.floor(Math.random() * allQuestions.length)];
-    
-    // Update display
-    updateInterviewQuestion(randomQuestion);
-    
-    // Visual feedback on refresh button
-    const refreshBtn = document.querySelector('.refresh-question-btn');
-    refreshBtn.style.transform = 'rotate(360deg) scale(1.1)';
-    setTimeout(() => {
-      refreshBtn.style.transform = '';
-    }, 300);
-  }
-
-  // Helper function to update interview question
-  function updateInterviewQuestion(question) {
-    const questionDisplay = document.getElementById('interviewQuestion');
-    const textarea = document.getElementById('userAnswer');
-    
-    // Update the displayed question
-    questionDisplay.textContent = question;
-    
-    // Clear any previous answer
-    textarea.value = '';
-    textarea.focus();
-    
-    // Scroll to the answer section
-    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  // Character counter
-  const textarea = document.getElementById('userAnswer');
-  const charCount = document.getElementById('charCount');
-  
-  if (textarea && charCount) {
-    textarea.addEventListener('input', function() {
-      const count = this.value.length;
-      charCount.textContent = count + ' character' + (count !== 1 ? 's' : '');
-    });
-  }
-
-  // Get AI Feedback Function
-  async function getInterviewFeedback() {
-    const answer = document.getElementById('userAnswer').value.trim();
-    const feedbackSection = document.getElementById('feedbackSection');
-    const feedbackContent = document.getElementById('feedbackContent');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const getFeedbackBtn = document.getElementById('getFeedbackBtn');
-    
-    // Validate answer (no minimum length requirement!)
-    if (!answer) {
-      alert('Please type your answer before getting feedback.');
-      return;
-    }
-    
-    // Show loading, hide feedback, disable button
-    loadingIndicator.style.display = 'flex';
-    feedbackSection.style.display = 'none';
-    getFeedbackBtn.disabled = true;
-    
-    try {
-      // Call your existing Cloudflare Worker (non-streaming mode)
-      const response = await fetch('https://my-chat-agent.tonyabdelmalak.workers.dev/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert interview coach providing constructive feedback on behavioral interview answers. 
-
-START your response with a score: "I would rate this answer X/10" where X is 1-10.
-
-Then provide:
-
-1. **Overall Assessment** (2-3 sentences explaining the score)
-2. **Strengths** (2-3 bullet points with specific examples)
-3. **Areas for Improvement** (2-3 bullet points with specific gaps)
-4. **Actionable Tips** (2-3 concrete suggestions to improve)
-
-Be encouraging but honest. Focus on the STAR method (Situation, Task, Action, Result). Use bullet points with dashes (-) for lists.`
-            },
-            {
-              role: 'user',
-              content: `Interview Question: "Tell me about a time when you had to analyze data to solve a business problem. What was your approach and what was the outcome?"
-
-Candidate's Answer:
-${answer}
-
-Please provide detailed coaching feedback.`
-            }
-          ]
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get feedback');
-      }
-      
-      const data = await response.json();
-      // Worker returns { role: 'assistant', content: '...', provider: 'groq' }
-      const feedback = data.content || data.response || 'Unable to generate feedback. Please try again.';
-      
-      // Extract score if present (look for patterns like "7/10", "7 out of 10", "rate: 7")
-      let score = null;
-      const scoreMatch = feedback.match(/(\d+)\s*\/\s*10|rate.*?(\d+)|score.*?(\d+)/i);
-      if (scoreMatch) {
-        score = parseInt(scoreMatch[1] || scoreMatch[2] || scoreMatch[3]);
-      }
-      
-      // Format feedback with enhanced display
-      let formattedFeedback = feedback
-        .replace(/\n/g, '<br>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^- /gm, '• ');
-      
-      // Add score visualization if score detected
-      if (score && score >= 1 && score <= 10) {
-        const scoreColor = score >= 8 ? '#22c55e' : score >= 6 ? '#f59e0b' : '#ef4444';
-        const scoreLabel = score >= 8 ? 'Excellent' : score >= 6 ? 'Good' : 'Needs Work';
-        formattedFeedback = `
-          <div class="score-display">
-            <div class="score-number" style="color: ${scoreColor};">${score}/10</div>
-            <div class="score-label">${scoreLabel}</div>
-            <div class="score-bar">
-              <div class="score-fill" style="width: ${score * 10}%; background: ${scoreColor};"></div>
-            </div>
-          </div>
-          <div class="feedback-text">${formattedFeedback}</div>
-        `;
-      }
-      
-      // Display feedback
-      feedbackContent.innerHTML = formattedFeedback;
-      feedbackSection.style.display = 'block';
-      
-      // Scroll to feedback
-      feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      
-    } catch (error) {
-      console.error('Error getting feedback:', error);
-      feedbackContent.innerHTML = '<p style="color: #dc2626;"><strong>Error:</strong> Unable to connect to AI coaching service. Please try again later.</p>';
-      feedbackSection.style.display = 'block';
-    } finally {
-      loadingIndicator.style.display = 'none';
-      getFeedbackBtn.disabled = false;
-    }
-  }
-
-  // ============================================
-  // RESUME OPTIMIZER FUNCTIONALITY
-  // ============================================
-
-  async function analyzeResume() {
-    const resumeText = document.getElementById('resumeInput').value.trim();
-    const jobDescText = document.getElementById('jobDescInput').value.trim();
-    const loadingIndicator = document.getElementById('optimizerLoading');
-    const resultsContainer = document.getElementById('optimizerResults');
-    const resultsContent = document.getElementById('optimizerResultsContent');
-    const resultsPlaceholder = document.getElementById('resultsPlaceholder');
-    const analyzeBtn = document.querySelector('.analyze-btn');
-
-    // Validation
-    if (!resumeText || !jobDescText) {
-      alert('Please paste both your resume and the job description.');
-      return;
-    }
-
-    // Show loading, hide results and placeholder
-    loadingIndicator.style.display = 'flex';
-    resultsContainer.style.display = 'none';
-    if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
-    analyzeBtn.disabled = true;
-
-    try {
-      // Call Cloudflare Worker
-      const response = await fetch('https://my-chat-agent.tonyabdelmalak.workers.dev/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: `You are an expert resume optimization AI with deep knowledge of ATS systems, HR best practices, and industry standards. Analyze resumes against job descriptions and provide actionable recommendations.
-
-Your analysis should cover:
-1. **Overall Match Score** (0-100): How well the resume aligns with the job requirements
-2. **ATS Compatibility** (0-100): Format, keywords, structure for Applicant Tracking Systems
-3. **Keyword Analysis**: Missing keywords from job description, keyword density issues
-4. **Content Quality**: Action verbs, quantification, impact statements
-5. **Skills Alignment**: Hard skills match, soft skills presence, certifications
-6. **Formatting**: Structure, consistency, readability
-7. **Top Recommendations**: 5-7 specific, actionable improvements
-
-Provide scores, specific examples, and clear recommendations. Be direct and constructive.`
-            },
-            {
-              role: 'user',
-              content: `Analyze this resume against the job description and provide a detailed optimization report.
-
-**RESUME:**
-${resumeText}
-
-**JOB DESCRIPTION:**
-${jobDescText}
-
-Provide:
-1. Overall Match Score (0-100)
-2. ATS Compatibility Score (0-100)
-3. Missing Keywords (list 5-8 critical ones)
-4. Weak Action Verbs to Replace (3-5 examples)
-5. Achievements Lacking Metrics (2-3 examples)
-6. Skills Alignment Analysis
-7. Top 5-7 Actionable Recommendations
-
-Format with clear headings and bullet points.`
-            }
-          ]
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const analysis = data.content || data.message || 'Analysis completed.';
-
-      // Format and display results
-      resultsContent.innerHTML = formatAnalysisResults(analysis);
-      resultsContainer.style.display = 'block';
-      if (resultsPlaceholder) resultsPlaceholder.style.display = 'none';
-
-      // Smooth scroll to results
-      setTimeout(() => {
-        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
-
-    } catch (error) {
-      console.error('Resume analysis error:', error);
-      resultsContent.innerHTML = `
-        <div style="color: #dc2626; padding: 20px; background: #fee2e2; border-radius: 8px;">
-          <strong>Analysis Error</strong><br>
-          Unable to analyze resume. Please try again or check your internet connection.
-        </div>
-      `;
-      resultsContainer.style.display = 'block';
-    } finally {
-      loadingIndicator.style.display = 'none';
-      analyzeBtn.disabled = false;
-    }
-  }
-
-  function formatAnalysisResults(text) {
-    // Convert markdown-style formatting to HTML
-    let formatted = text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') // Bold
-      .replace(/\*(.+?)\*/g, '<em>$1</em>') // Italic
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>') // H3 headings
-      .replace(/^## (.+)$/gm, '<h3>$1</h3>') // H2 as H3
-      .replace(/^# (.+)$/gm, '<h3>$1</h3>') // H1 as H3
-      .replace(/^- (.+)$/gm, '<li>$1</li>') // List items
-      .replace(/^\* (.+)$/gm, '<li>$1</li>') // List items
-      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>'); // Numbered lists
-
-    // Wrap consecutive list items in <ul>
-    formatted = formatted.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
-      return '<ul>' + match + '</ul>';
-    });
-
-    // Add line breaks for paragraphs
-    formatted = formatted.replace(/\n\n/g, '<br><br>');
-
-    return formatted;
-  }
-
-  // ============================================
-  // MODAL FUNCTIONS FOR RESUME OPTIMIZER
-  // ============================================
-
-  function openResumeModal() {
-    const modal = document.getElementById('resumeModal');
-    const modalText = document.getElementById('resumeModalText');
-    const resumeInput = document.getElementById('resumeInput');
-    
-    modalText.value = resumeInput.value;
-    modal.style.display = 'flex';
-    modalText.focus();
-  }
-
-  function closeResumeModal() {
-    document.getElementById('resumeModal').style.display = 'none';
-  }
-
-  function saveResumeModal() {
-    const modalText = document.getElementById('resumeModalText');
-    const resumeInput = document.getElementById('resumeInput');
-    
-    resumeInput.value = modalText.value;
-    closeResumeModal();
-  }
-
-  function openJobDescModal() {
-    const modal = document.getElementById('jobDescModal');
-    const modalText = document.getElementById('jobDescModalText');
-    const jobDescInput = document.getElementById('jobDescInput');
-    
-    modalText.value = jobDescInput.value;
-    modal.style.display = 'flex';
-    modalText.focus();
-  }
-
-  function closeJobDescModal() {
-    document.getElementById('jobDescModal').style.display = 'none';
-  }
-
-  function saveJobDescModal() {
-    const modalText = document.getElementById('jobDescModalText');
-    const jobDescInput = document.getElementById('jobDescInput');
-    
-    jobDescInput.value = modalText.value;
-    closeJobDescModal();
-  }
-
-  // Close modals on ESC key
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeResumeModal();
-      closeJobDescModal();
-    }
-  });
-
-  // ============================================
-  // FILE UPLOAD HANDLERS
-  // ============================================
-
-  async function handleResumeUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const resumeInput = document.getElementById('resumeInput');
-    const modalResumeInput = document.getElementById('modalResumeInput');
-    
-    try {
-      const text = await extractTextFromFile(file);
-      resumeInput.value = text;
-      if (modalResumeInput) modalResumeInput.value = text;
-      
-      // Show success feedback
-      alert(`✓ Resume uploaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB\n\nText extracted and ready for analysis.`);
-    } catch (error) {
-      alert(`Error reading file: ${error.message}\n\nPlease try:\n• PDF files (text-based, not scanned images)\n• DOCX files\n• TXT files\n\nOr paste your resume text directly into the textarea.`);
-    }
-  }
-
-  async function handleJobDescUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const jobDescInput = document.getElementById('jobDescInput');
-    const modalJobDescInput = document.getElementById('modalJobDescInput');
-    
-    try {
-      const text = await extractTextFromFile(file);
-      jobDescInput.value = text;
-      if (modalJobDescInput) modalJobDescInput.value = text;
-      
-      // Show success feedback
-      alert(`✓ Job Description uploaded successfully!\n\nFile: ${file.name}\nSize: ${(file.size / 1024).toFixed(1)} KB\n\nText extracted and ready for analysis.`);
-    } catch (error) {
-      alert(`Error reading file: ${error.message}\n\nPlease try:\n• PDF files (text-based, not scanned images)\n• DOCX files\n• TXT files\n\nOr paste the job description directly into the textarea.`);
-    }
-  }
-
-  async function extractTextFromFile(file) {
-    const fileType = file.name.split('.').pop().toLowerCase();
-    
-    if (fileType === 'txt') {
-      // Simple text file
-      return await file.text();
-    } else if (fileType === 'pdf') {
-      // For PDF, we'll use a simple approach - read as text
-      // Note: This works for text-based PDFs, not scanned images
-      const arrayBuffer = await file.arrayBuffer();
-      const text = new TextDecoder().decode(arrayBuffer);
-      
-      // Basic PDF text extraction (removes PDF markup)
-      const cleanText = text
-        .replace(/\0/g, '')
-        .replace(/[^\x20-\x7E\n\r\t]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (cleanText.length < 50) {
-        throw new Error('Could not extract text from PDF. It may be a scanned image or encrypted.');
-      }
-      
-      return cleanText;
-    } else if (fileType === 'doc' || fileType === 'docx') {
-      // For DOCX, we need to inform user to use PDF or TXT
-      throw new Error('DOCX files require conversion. Please save as PDF or TXT, or copy-paste the text directly.');
-    } else {
-      throw new Error(`Unsupported file type: .${fileType}`);
-    }
-  }
-</script>
-
-<!-- === Chat Widget (Single Instance) === -->
-<link rel="stylesheet" href="/chat-widget/assets/chat/widget.css">
-<script defer src="/chat-widget/assets/chat/widget.js" data-autostart></script>
-   
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+  <script src="/assets/js/site.js?v=20261113" defer></script>
+  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=20261113">
+  <script defer src="/chat-widget/assets/chat/widget.js?v=20261113" data-autostart></script>
 </body>
 </html>

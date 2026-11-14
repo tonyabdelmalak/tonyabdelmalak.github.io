@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reducing 90-Day Attrition | Tony Abdelmalak</title>
+  <meta name="description" content="Predictive and prescriptive analytics to decide where a limited onboarding budget does the most good for early retention.">
+  <link rel="canonical" href="https://tonyabdelmalak.com/reports/early-attrition.html">
+  <meta name="theme-color" content="#001e42">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Tony Abdelmalak">
+  <meta property="og:title" content="Reducing 90-Day Attrition">
+  <meta property="og:description" content="Predictive and prescriptive analytics to decide where a limited onboarding budget does the most good for early retention.">
+  <meta property="og:url" content="https://tonyabdelmalak.com/reports/early-attrition.html">
+  <meta property="og:image" content="https://tonyabdelmalak.com/assets/img/reports/early-attrition-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Reducing 90-Day Attrition">
+  <meta name="twitter:description" content="Predictive and prescriptive analytics to decide where a limited onboarding budget does the most good for early retention.">
+  <meta name="twitter:image" content="https://tonyabdelmalak.com/assets/img/reports/early-attrition-og.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/assets/img/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add("js")</script>
+  <link rel="stylesheet" href="/assets/css/site.css?v=20261113">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="nav" role="banner">
+    <div class="container nav__inner">
+      <a class="nav__brand" href="/">Tony Abdelmalak</a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu"><i data-lucide="menu"></i></button>
+      <nav aria-label="Primary">
+        <ul class="nav__links" id="nav-links">
+          <li><a class="nav__link" href="/#about">About</a></li>
+          <li><a class="nav__link" href="/#products">Products</a></li>
+          <li><a class="nav__link" href="/#experience">Experience</a></li>
+          <li><a class="nav__link is-active" href="/#analytics">Analytics</a></li>
+          <li><a class="nav__link" href="/#skills">Skills</a></li>
+          <li><a class="nav__link" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+          <li class="nav__mobile-cta"><a class="btn btn--teal" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn--teal btn--sm nav__cta" href="/assets/resume/Tony_Abdelmalak_Resume.pdf" target="_blank" rel="noopener"><i data-lucide="file-down"></i>Download Resume</a>
+    </div>
+  </header>
+  <main id="main">
+    <section class="report-hero">
+      <div class="container">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="/#analytics"><i data-lucide="arrow-left"></i>All dashboards and case studies</a></nav>
+        <p class="eyebrow">Case study · Predictive and prescriptive analytics</p>
+        <h1>Reducing 90-Day Attrition</h1>
+        <p>After a stretch of fast hiring, early attrition spiked. Leadership had a limited budget and a real question: redesign onboarding, train managers, offer incentives, or some mix?</p>
+        <div class="kpis"><div class="kpi"><div class="kpi__num">28%</div><div class="kpi__label">lower early attrition</div></div><div class="kpi"><div class="kpi__num">~40%</div><div class="kpi__label">less manual reporting</div></div><div class="kpi"><div class="kpi__num">17%</div><div class="kpi__label">faster new-hire ramp-up</div></div></div>
+      </div>
+    </section>
+    <div class="container report">
+      <aside class="report__toc" aria-label="On this page"><h2>On this page</h2><ol><li><a href="#impact">What changed</a></li><li><a href="#levers">Which levers worked</a></li><li><a href="#method">Data and method</a></li><li><a href="#outputs">Model outputs</a></li><li><a href="#results">Results</a></li></ol></aside>
+      <article class="report__body">
+        <section id="impact" aria-labelledby="impact-h"><h2 id="impact-h">What changed</h2><div class="panel"><div class="panel__title"><h3>Before and after the interventions</h3></div><div class="chart" id="c-ea-cmp" style="min-height:380px" role="img" aria-label="Before and after the interventions"></div><script type="application/json" data-chart="c-ea-cmp">{"data":[{"type":"bar","name":"Before","x":["Early attrition rate","Reporting effort","New-hire ramp-up"],"y":[35,100,100],"marker":{"color":"#94a3b8"},"hovertemplate":"Before: %{y}<extra></extra>"},{"type":"bar","name":"After","x":["Early attrition rate","Reporting effort","New-hire ramp-up"],"y":[25,60,117],"marker":{"color":"#0f766e"},"hovertemplate":"After: %{y}<extra></extra>"}],"layout":{"barmode":"group","yaxis":{"title":{"text":"Value"},"rangemode":"tozero"}}}</script><p class="note" data-caption-for="c-ea-cmp">Early attrition is shown in percent; reporting effort and ramp-up are indexed so that before = 100.</p></div><div class="panel"><div class="panel__title"><h3>90-day attrition after rollout</h3></div><div class="chart" id="c-ea-line" style="min-height:380px" role="img" aria-label="90-day attrition after rollout"></div><script type="application/json" data-chart="c-ea-line">{"data":[{"type":"scatter","mode":"lines+markers","x":["Month 0","Month 1","Month 2","Month 3","Month 4","Month 5","Month 6"],"y":[35,32,30,28,27,26,25],"line":{"color":"#1e3a8a","width":3},"marker":{"size":9},"hovertemplate":"%{x}: %{y}%<extra></extra>"}],"layout":{"xaxis":{"title":{"text":"Months since interventions"}},"yaxis":{"title":{"text":"90-day attrition rate (%)"},"range":[0,40]}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>Attrition fell from 35% to 25% within six months of the onboarding redesign and manager enablement.</p></div></div></section><section id="levers" aria-labelledby="levers-h"><h2 id="levers-h">Which levers worked</h2><div class="panel"><div class="panel__title"><h3>Estimated uplift by intervention</h3></div><div class="chart" id="c-ea-uplift" style="min-height:380px" role="img" aria-label="Estimated uplift by intervention"></div><script type="application/json" data-chart="c-ea-uplift">{"data":[{"type":"bar","orientation":"h","y":["Manager training","Structured day-1 plan","Mentor assignment"],"x":[8,12,18],"marker":{"color":["#94a3b8","#0369a1","#0f766e"]},"text":["8%","12%","18%"],"textposition":"outside","cliponaxis":false,"hovertemplate":"%{y}: %{x}% uplift<extra></extra>"}],"layout":{"xaxis":{"title":{"text":"Estimated retention uplift (%)"},"range":[0,22]},"margin":{"l":150}}}</script><div class="insight"><i data-lucide="lightbulb"></i><p>Mentor assignment and a structured first day did the most for early-career cohorts; manager training mattered most where specific managers were the issue.</p></div></div></section><section id="method" aria-labelledby="method-h"><h2 id="method-h">Data and method</h2><ul><li><strong>Data foundation:</strong> HRIS, ATS, LMS, survey and scheduling data joined into one governed dataset with PII masking, role-based access and small-cell suppression.</li><li><strong>Predictive:</strong> survival analysis (Cox proportional hazards) to see when risk peaks, and gradient boosting with SHAP values to surface drivers such as first-week schedule adherence, mentor assignment and pay-band misalignment.</li><li><strong>Uplift:</strong> a T-learner estimated the causal effect of each intervention by segment.</li><li><strong>Prescriptive:</strong> a linear program allocated budget across sites and cohorts to maximize retained days within cost and fairness limits. It recommended about 60% to onboarding redesign for the highest-risk cohorts and 40% to manager training.</li></ul></section><section id="outputs" aria-labelledby="outputs-h"><h2 id="outputs-h">Model outputs</h2><p>The original analysis outputs, shown as published (synthetic data).</p><figure class="panel" style="margin:1rem 0"><img src="/assets/img/reports/ea-shap_summary.webp" width="1200" height="800" loading="lazy" alt="SHAP feature importance: first-week schedule adherence, mentor assigned and LMS completion rate lead; offer salary band mismatch and manager span push risk up"><figcaption class="note">SHAP drivers of early attrition. Green features lower risk when present; red features raise it.</figcaption></figure><figure class="panel" style="margin:1rem 0"><img src="/assets/img/reports/ea-survival_curve.webp" width="1200" height="800" loading="lazy" alt="Survival curves over 90 days: mentored cohort stays near 47 percent at day 90 versus about 23 percent without a mentor"><figcaption class="note">Survival analysis: probability of staying over the first 90 days, mentored versus not.</figcaption></figure><figure class="panel" style="margin:1rem 0"><img src="/assets/img/reports/ea-optimization_allocation.webp" width="1200" height="800" loading="lazy" alt="Bar chart of optimal budget share: Cohort A 50 percent, Cohort B 30 percent, Cohort C 20 percent"><figcaption class="note">Prescriptive optimization: recommended budget share by cohort.</figcaption></figure></section><section id="results" aria-labelledby="results-h"><h2 id="results-h">Results</h2><p>Within one quarter of launch, early attrition fell 28% across the pilot groups, manual reporting time dropped about 40% thanks to automated pipelines and scorecards, and new-hire ramp-up improved 17% on productivity KPIs. Leaders got a clear answer on where to invest.</p></section>
+        <div class="datanote"><p><strong>About the data.</strong> Charts use the sample data from the original interactive dashboard (the old site had two near-identical copies; this uses the version that also includes the uplift chart). Outcome figures are carried over unchanged from the original case study.</p><p><strong>Rebuilt from:</strong></p><ul><li>attrition_case_study.html (write-up, outcomes)</li><li>assets/img/shap_summary.png, survival_curve.png, optimization_allocation.png (original model outputs)</li><li>interactive_dashboards/reducing_90_day_attrition_dashboard.html (all three charts)</li><li>interactive_cases_refined/ninety_day_attrition_case.html and prescriptive_attrition_case.html (earlier copies)</li></ul></div>
+        <section aria-labelledby="more-h"><h2 id="more-h">More reports</h2><div class="report-next"><a class="card" href="/reports/workforce-planning.html"><div class="card__body"><span class="card__kicker">Report · Workforce planning</span><h4>Workforce Planning & Forecast</h4><p>Twelve-month headcount scenarios by department under different attrition and hiring rates, plus a live Tableau forecast.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a><a class="card" href="/reports/engagement-impact.html"><div class="card__body"><span class="card__kicker">Analysis · Engagement</span><h4>Measuring Engagement Impact</h4><p>Does engagement move productivity and turnover? A department-by-department look at the data, with the honest answer.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a><a class="card" href="/reports/diversity-metrics.html"><div class="card__body"><span class="card__kicker">Report · Workforce composition</span><h4>Diversity Metrics</h4><p>Representation by department across race, gender and job level, in one consistent view.</p><span class="card__foot">Open report <i data-lucide="arrow-right"></i></span></div></a></div></section>
+      </article>
+    </div>
+  </main>
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>&copy; <span data-year>2026</span> Tony Abdelmalak · Los Angeles</p>
+      <ul class="footer__links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/#analytics">All reports</a></li>
+        <li><a href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+  </footer>
+  <script src="https://cdn.plot.ly/plotly-cartesian-2.35.2.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
+  <script src="/assets/js/site.js?v=20261113" defer></script>
+  <script src="/assets/js/report.js?v=20261113" defer></script>
+  <link rel="stylesheet" href="/chat-widget/assets/chat/widget.css?v=20261113">
+  <script defer src="/chat-widget/assets/chat/widget.js?v=20261113" data-autostart></script>
+</body>
+</html>
