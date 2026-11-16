@@ -236,6 +236,9 @@ p { margin: 0 0 var(--space-4); max-width: var(--measure); }
 .product__why { font-size: .95rem; color: var(--muted); border-left: 3px solid var(--teal); padding-left: var(--space-4); margin: var(--space-2) 0 var(--space-5); }
 .product__note { font-size: .9rem; color: var(--slate); background: var(--teal-soft); border-radius: 12px; padding: .75rem 1rem; margin: 0 0 var(--space-5); }
 .product__links { margin-top: auto; display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.appstore-badge { display: inline-flex; line-height: 0; border-radius: 9px; }
+.appstore-badge img { height: 44px; width: auto; display: block; }
+.appstore-badge:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .product.is-flash { box-shadow: 0 0 0 3px var(--teal), var(--shadow-2); }
 @media (max-width: 900px) {
   .product { grid-template-columns: 1fr; }
