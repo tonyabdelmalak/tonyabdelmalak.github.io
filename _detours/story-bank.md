@@ -33,6 +33,10 @@ funding, revenue, user numbers, internal product decisions, anything said in pri
 - C8. He believes a nonlinear path is normal, and that the journey, though discouraging and frustrating at times, can be rewarding if you trust it.
 - C9. He taught himself to build with AI and designed and built all three products himself.
 
+## Confirmed by Tony (Nov 15, 2026)
+
+- A1. Apple approved ReflectivAI and CareerPaver for the App Store in November 2026. Both are iPhone apps he built himself. Lumira is still in Apple's review and is not to be described as available.
+
 ## The throughline (site copy, approved)
 
 - T1. Across both careers, a lot turned on a single conversation: an interview, a meeting with a physician, a salary negotiation.
