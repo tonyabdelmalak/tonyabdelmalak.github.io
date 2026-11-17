@@ -3,6 +3,7 @@
   python3 tools/detours/publish.py _detours/posts/04-....md [--date 2026-11-19]
 
 1. Sets status: published, the publish date and the next post number.
+0. Refuses any draft without a passing second review (tools/detours/review_gate.py).
 2. Runs the guardrail audit and builds the column (pages, RSS, link-preview images).
 3. Adds the Detours link to the nav of the home page and report pages (once).
 4. Refreshes the "Latest from Detours" list on the home page.
@@ -49,6 +50,14 @@ def main():
         args = [a for a in args if a != date]
     if not args:
         sys.exit(__doc__)
+    sys.path.insert(0, str(ROOT / "tools/detours"))
+    import review_gate
+    for a in args:
+        f = (ROOT / a) if not pathlib.Path(a).is_absolute() else pathlib.Path(a)
+        if front(f)[0].get("status") != "published":
+            ok, why = review_gate.check(f)
+            if not ok:
+                sys.exit(f"Not published: {a}: {why}. See _detours/REVIEW.md.")
     nums = [p["number"] for p in published()]
     nxt = max(nums, default=0) + 1
     for a in args:

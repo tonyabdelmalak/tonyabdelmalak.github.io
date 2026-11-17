@@ -57,6 +57,9 @@ Never repeat an angle already published; read the existing posts first.
 - `auto`: draft, audit, publish, then send Tony the link. Hold and notify him instead if the audit
   fails twice, a source cannot be verified, or a needed fact is missing from the story bank.
 
+Every post needs a passing second review first (`_detours/REVIEW.md`); publish.py refuses a post
+without one, or one whose text changed after its review.
+
 Publish with `python3 tools/detours/publish.py <post-file>`, then deploy as one merge with the
 tested revert, and run `python3 tools/audit/audit.py https://tonyabdelmalak.com` after it is live.
 
