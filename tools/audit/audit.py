@@ -60,6 +60,7 @@ PAGE_JS = r"""() => {
   document.querySelectorAll('a[href], button, select, input, textarea, [role=button], summary').forEach(el => {
     if (!vis(el) || inModebar(el)) return;
     const r = el.getBoundingClientRect();
+    if (r.right <= 0 || r.bottom <= 0) return;  // off-screen (e.g. spam-trap fields), never tapped
     const inline = el.tagName === 'A' && !!el.closest('p, li') && getComputedStyle(el).display === 'inline';
     if (r.width < 44 || r.height < 44) targets.push({ tag: el.tagName.toLowerCase(), text: (el.innerText || el.getAttribute('aria-label') || el.id || '').trim().slice(0, 50), w: Math.round(r.width), h: Math.round(r.height), inline });
   });
