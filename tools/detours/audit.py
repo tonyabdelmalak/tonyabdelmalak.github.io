@@ -5,7 +5,7 @@ off-limits topics. Run on every draft before it can be published."""
 import re, sys, glob, pathlib, yaml
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 BANK = (ROOT / "_detours/story-bank.md").read_text()
-BANK_IDS = set(re.findall(r"^- ([SCT]\d+)\.", BANK, re.M))
+BANK_IDS = set(re.findall(r"^- ([A-Z]\d+)\.", BANK, re.M))
 BANNED = ["leverage", "unlock", "delve", "fast-paced", "game-changer", "game changer", "tapestry", "testament to",
           "navigate the landscape", "in today's", "let's dive", "dive in", "buckle up", "here's the kicker",
           "it's not just", "not only that", "embark", "journey of a lifetime", "synergy", "in my years recruiting",
