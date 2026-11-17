@@ -37,6 +37,18 @@ funding, revenue, user numbers, internal product decisions, anything said in pri
 
 - A1. Apple approved ReflectivAI and CareerPaver for the App Store in November 2026. Both are iPhone apps he built himself. Lumira is still in Apple's review and is not to be described as available.
 
+## Confirmed by Tony (Nov 17, 2026)
+
+- C10. The pivot to building was not planned. He dipped a toe in, dabbled a little, and before long was fully in, excited to learn more and build better.
+- C11. He built ReflectivAI, CareerPaver and Lumira to be the resources he wished he had in his various roles: a private, safe place to practice, get feedback and coaching without judgment, practice the right questions and likely objections, ask questions without fear of judgment, get unbiased feedback, and get coaching that fits the person's situation, including the nudge that it is time to stop researching and start rehearsing, rather than learning the hard way in front of a client, customer, interviewer, partner, friend or colleague. The coaching is grounded in real data, published research and science from each field, and he uses AI responsibly.
+- C12. His path made him more adaptable and more confident walking into hard conversations, knowing he is prepared to pivot if one does not go the way he planned or rehearsed.
+
+## From his LinkedIn profile (shared by Tony, Nov 17, 2026)
+
+- L1. Headline: AI practice and coaching for the conversations that matter: sales calls, job interviews and relationships.
+- L2. "One idea runs through everything I build: people get better at hard conversations by practicing them." Lumira is for any two people who matter to each other: partners, family, friends or colleagues.
+- L3. On building ReflectivAI: "I learned as I went and kept reworking it as AI changed." Summary: the work now is helping people practice the high-stakes conversations before they happen, so they walk in ready.
+
 ## The throughline (site copy, approved)
 
 - T1. Across both careers, a lot turned on a single conversation: an interview, a meeting with a physician, a salary negotiation.
