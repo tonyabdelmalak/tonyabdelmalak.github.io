@@ -4,7 +4,7 @@ mode: approval
 
 # Newsletter (email). Sign-up forms appear only when newsletter_enabled is true.
 # Weekly emails also need a CAN-SPAM postal address (PO box or virtual mailbox, never a home address).
-newsletter_enabled: false
+newsletter_enabled: true
 weekly_send: false
 kit_live: true
 postal_address: "1550 Wilson Blvd, Ste 700 PMB 829, Arlington, VA 22209"

@@ -57,17 +57,31 @@
         <h1>Detours</h1>
         <p class="detours-hero__tag">Notes from a career that didn't go in a straight line.</p>
         <p>Pharma sales, then more than a decade in recruiting and HR, then building AI products. None of it went in a straight line. These are the lessons from the turns, with the data that says a path like this is more normal than it feels.</p>
-        <p class="detours-hero__actions"><a class="btn btn--ghost-light btn--sm" href="/detours/feed.xml"><i data-lucide="rss"></i>RSS feed</a><a class="btn btn--ghost-light btn--sm" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>Follow on LinkedIn</a></p>
+        <p class="detours-hero__actions"><a class="btn btn--teal btn--sm" href="#subscribe"><i data-lucide="mail"></i>Get it by email</a><a class="btn btn--ghost-light btn--sm" href="/detours/feed.xml"><i data-lucide="rss"></i>RSS feed</a><a class="btn btn--ghost-light btn--sm" href="https://www.linkedin.com/in/tony-abdelmalak" target="_blank" rel="noopener"><i data-lucide="linkedin"></i>Follow on LinkedIn</a></p>
       </div>
     </section>
     <section class="section section--white">
       <div class="container detours-list">
         <h2 class="sr-only">All posts</h2>
         <ol class="entries">
+        <li><a class="entry" href="/detours/teaching-yourself-the-next-craft/"><span class="entry__no">No. 4</span><span class="entry__main"><span class="entry__title">Teaching yourself the next craft</span><span class="entry__dek">I spent most of my career in sales and HR before I taught myself to build with AI, and this is what I&#x27;d tell anyone learning a new craft on their own.</span><span class="entry__meta"><time datetime="2026-11-17">November 17, 2026</time> · 3 min read</span></span><i data-lucide="arrow-right"></i></a></li>
         <li><a class="entry" href="/detours/follow-the-work-not-the-title/"><span class="entry__no">No. 3</span><span class="entry__main"><span class="entry__title">Follow the work, not the title</span><span class="entry__dek">Why I left full-time roles for consulting, and how each contract pulled me closer to building.</span><span class="entry__meta"><time datetime="2026-11-13">November 13, 2026</time> · 2 min read</span></span><i data-lucide="arrow-right"></i></a></li>
         <li><a class="entry" href="/detours/the-question-i-used-to-dread/"><span class="entry__no">No. 2</span><span class="entry__main"><span class="entry__title">The question I used to dread</span><span class="entry__dek">What were you doing between May and December 2021? For years I had no good answer. Here&#x27;s the one I&#x27;d give now.</span><span class="entry__meta"><time datetime="2026-11-13">November 13, 2026</time> · 2 min read</span></span><i data-lucide="arrow-right"></i></a></li>
         <li><a class="entry" href="/detours/same-conversation-other-side-of-the-table/"><span class="entry__no">No. 1</span><span class="entry__main"><span class="entry__title">Same conversation, other side of the table</span><span class="entry__dek">I went from selling to physicians to recruiting for NBCUniversal and HBO. It took me years to see it was one job.</span><span class="entry__meta"><time datetime="2026-11-13">November 13, 2026</time> · 2 min read</span></span><i data-lucide="arrow-right"></i></a></li>
         </ol>
+      <section class="subscribe" id="subscribe" aria-labelledby="sub-detours-index">
+        <div class="subscribe__copy"><h2 id="sub-detours-index">Get Detours by email</h2><p>One email a week: a real moment from my path, one published number, and one thing you can use. Free. Unsubscribe anytime.</p>
+          <p class="subscribe__gift"><i data-lucide="gift"></i>Sign up and get the Detour Kit: my two-sentence gap answer, how to talk about contract roles, and my rules for using AI honestly.</p></div>
+        <form class="subscribe__form" action="https://detours-mail.tonyabdelmalak.workers.dev/subscribe" method="post" data-subscribe>
+          <input type="hidden" name="source" value="detours-index">
+          <div class="subscribe__hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+          <label class="subscribe__field"><span>First name</span><input type="text" name="first_name" autocomplete="given-name" maxlength="40"></label>
+          <label class="subscribe__field"><span>Email</span><input type="email" name="email" autocomplete="email" required maxlength="254"></label>
+          <button class="btn btn--teal" type="submit"><i data-lucide="mail"></i>Subscribe</button>
+          <p class="subscribe__msg" role="status" aria-live="polite"></p>
+          <p class="subscribe__fine">I'll send a quick email to confirm. No spam, and I never share your address.</p>
+        </form>
+      </section>
       <aside class="author" aria-label="About the author">
         <picture><source srcset="/assets/img/tony-headshot.webp" type="image/webp"><img src="/assets/img/tony-headshot.jpg" width="96" height="96" alt="Tony Abdelmalak" loading="lazy"></picture>
         <div>
