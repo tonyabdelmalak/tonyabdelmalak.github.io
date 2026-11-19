@@ -13,7 +13,7 @@ const REPLY_TO = "tony.abdelmalak@yahoo.com";
 const SEGMENT_ID = "786f2488-8996-4781-8737-3dc8fe23a0ec"; // "General"; delivery is scoped by the Detours topic
 const TOPIC_ID = "5fa72284-4c44-4853-84d0-6c060c1ecc3b";   // "Detours" (opt-in)
 const API = "https://api.resend.com";
-const ORIGINS = ["https://tonyabdelmalak.com", "https://www.tonyabdelmalak.com"];
+const ORIGINS = ["https://tonyabdelmalak.com", "https://www.tonyabdelmalak.com", "https://careerpaverai.com", "https://www.careerpaverai.com"];
 const DAY = 86400;
 
 export default {

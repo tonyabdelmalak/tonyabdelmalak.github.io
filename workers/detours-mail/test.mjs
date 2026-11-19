@@ -55,3 +55,10 @@ await worker.scheduled({}, env, ctx); await new Promise(s => setTimeout(s, 10));
 ok("weekly blocked without postal address", broadcasts.length === 0);
 cfg = { enabled: false };
 r = await worker.fetch(post({ email: "x@y.com" }), env); ok("signups closed when disabled", r.status === 503);
+
+// CareerPaver site can sign readers up for Detours
+cfg = { enabled: true, postal_address: "123 Test St, Los Angeles, CA 90000", weekly_send: true };
+r = await worker.fetch(new Request(W + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://careerpaverai.com" }, body: JSON.stringify({ email: "cp@example.com", source: "careerpaver-home" }) }), env);
+ok("CareerPaver origin allowed (CORS)", r.status === 200 && r.headers.get("Access-Control-Allow-Origin") === "https://careerpaverai.com");
+r = await worker.fetch(new Request(W + "/subscribe", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://evil.example" }, body: JSON.stringify({ email: "x@example.com" }) }), env);
+ok("unknown origin gets no CORS header", !r.headers.get("Access-Control-Allow-Origin"));
