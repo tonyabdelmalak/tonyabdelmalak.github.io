@@ -408,7 +408,7 @@ def main():
         latest = max(posts, key=lambda p: p["no"])
         (base / "email").mkdir(exist_ok=True)
         (base / "email" / "latest.json").write_text(json.dumps({
-            "number": latest["no"], "slug": latest["slug"], "subject": f"Detours No. {latest['no']}: {latest['title']}",
+            "number": latest["no"], "slug": latest["slug"], "date": str(latest["date"]), "subject": f"Detours No. {latest['no']}: {latest['title']}",
             "dek": latest["dek"], "html": email_html(latest), "text": email_text(latest)}))
     refresh_home(posts)
     if "--og" in sys.argv:
