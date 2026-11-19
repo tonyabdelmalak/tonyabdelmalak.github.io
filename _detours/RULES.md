@@ -33,20 +33,42 @@ Never cheesy, corny, preachy or fluffy.
 
 - 450 to 750 words. A title of 2 to 8 words. A one-sentence dek.
 - Open with the moment or question, not with a definition or a statistic.
-- One personal turn from the story bank, told honestly.
-- One or two published figures that show the path is normal, with the fair counterpoint.
+- One or two published figures, with the fair counterpoint.
 - One practical takeaway the reader can use this week.
 - Close with one real question to the reader. No sign-off, no call to action.
 - Two or three `##` subheads. Lists only when they are steps.
+- Every post sounds like Tony and carries his view. Only the "Turn" format is built on a new
+  story-bank fact; the others use his experience as a lens in one or two lines at most.
 
-## Research brief
+## Formats (rotate; the queue line names the format)
 
-Before drafting, read the newest file in `_detours/research/`. Prefer its verified figures. You may still add a figure you verify yourself the same way.
+The column rotates four formats so Tony's personal story lasts and the column stays fresh:
+
+1. **Turn.** One real turn from the story bank, told honestly, with the data that says it is normal.
+   At most one Turn in any three consecutive posts. A story-bank fact may lead only one Turn ever.
+2. **The headline and the data.** Start from a published headline people are anxious about (AI and
+   jobs, layoffs, ghosting, long searches). Show what the fuller data says, fairly: say what is real
+   in the headline, then what it leaves out. Optimistic, never dismissive. Tony's view as a lens.
+3. **Other side of the table.** Practical advice from the recruiter's chair on one common problem
+   (never hearing back, the first minutes of an interview, a gap, a career change on paper). His
+   experience is the credential (S2 to S7, T4); the advice is framed as his view, not as anecdotes.
+4. **Practice it.** One hard conversation a reader will face this month (the gap question, a
+   counteroffer, telling a manager you want to move), the research on why rehearsing out loud beats
+   re-reading notes, and a short script to practice. This is the natural place, once, for a product
+   mention when it fits (RULES voice section).
+
+## Research brief and source bank
+
+Before drafting, read the newest file in `_detours/research/`, then `_detours/source-bank.md`.
+Prefer the brief's verified figures for the topic; use the bank for the headline-and-data pairs and
+for context. A source may lead a post once every 90 days; mark it `used: No. N lead` in the bank.
+Never reuse a figure a published post already used unless a newer edition replaces it.
 
 ## Topics
 
 Take the next unused topic from `_detours/queue.md`, then mark it used with the post number.
-Never repeat an angle already published; read the existing posts first.
+Never repeat an angle already published; read the existing posts first. If the next line is a Turn
+and one of the last two posts was a Turn, take the next non-Turn line instead.
 
 ## Publishing
 

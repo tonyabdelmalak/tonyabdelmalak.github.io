@@ -52,7 +52,8 @@ headings that don't say what the section is about, and a closing question that r
 from the paragraph above or does not follow from the post.
 
 G. **Shape.** 450 to 750 words; title 2 to 8 words; dek is one sentence; opens with a moment or a
-question, not a statistic or definition; two or three `##` subheads; one personal turn; one practical
+question, not a statistic or definition; two or three `##` subheads; follows the format named in its queue line (only a Turn is built on
+a new story-bank fact; other formats use his experience in one or two lines at most); one practical
 takeaway usable this week; ends with one real question; no sign-off or call to action; lists only
 for steps.
 
