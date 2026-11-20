@@ -64,6 +64,18 @@ Prefer the brief's verified figures for the topic; use the bank for the headline
 for context. A source may lead a post once every 90 days; mark it `used: No. N lead` in the bank.
 Never reuse a figure a published post already used unless a newer edition replaces it.
 
+## Detours and CareerPaver Insights (one job each)
+
+CareerPaver Insights (careerpaverai.com/insights) is the brand's evergreen how-to library,
+written to answer a search. Detours is Tony's weekly column: his view, the data, one thing to
+practice. They must not compete.
+- Before drafting, open https://career-craft-ai-worker.tonyabdelmalak.workers.dev/api/insights
+  (the live list of Insights articles: title, slug).
+- Never write a step-by-step how-to that an Insights article already answers. Write the column's
+  angle (the moment, the data, the view, the practice) and link the Insights article once for the
+  full steps: https://careerpaverai.com/insights/<slug>.
+- Never reuse an Insights article's title or its main search phrase as a Detours title.
+
 ## Topics
 
 Take the next unused topic from `_detours/queue.md`, then mark it used with the post number.
