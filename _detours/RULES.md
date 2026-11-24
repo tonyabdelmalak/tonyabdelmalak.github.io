@@ -33,7 +33,8 @@ Never cheesy, corny, preachy or fluffy.
 
 - 450 to 750 words. A title of 2 to 8 words. A one-sentence dek.
 - Open with the moment or question, not with a definition or a statistic.
-- One or two published figures, with the fair counterpoint.
+- One or two published figures, with the fair counterpoint. A "Headline and data" post may use up
+  to five (Tony, Nov 23, 2026), so the headline and the fuller data both fit.
 - One practical takeaway the reader can use this week.
 - Close with one real question to the reader. No sign-off, no call to action.
 - Two or three `##` subheads. Lists only when they are steps.

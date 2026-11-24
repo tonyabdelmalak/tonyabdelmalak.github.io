@@ -9,7 +9,7 @@ Keep at most one Turn in any three consecutive lines.
 - [Turn] The question I used to dread: telling the 2021 gap honestly (C4, C5, C7). used: No. 2
 - [Turn] Follow the work, not the title: why consulting and contract roles (C1 to C3, C6). used: No. 3
 - [Turn] Teaching yourself a new craft mid-career: learning to build with AI (C9, S8, S9, A1). Launch week issue. used: No. 4
-- [Headline and data] "AI is now the top reason for layoffs": what the layoff announcements say, what the jobs data say, and what to do with the worry (B09, B10, B11; lens T4).
+- [Headline and data] "AI is now the top reason for layoffs": what the layoff announcements say, what the jobs data say, and what to do with the worry (B09, B10, B11; lens T4). used: No. 5
 - [Practice it] Researching what to say vs practicing saying it: why rehearsal beats preparation, with a short script to try out loud (T2, T3; B23, B24).
 - [Other side of the table] Why strong candidates never hear back, and what you can still control (T4; B18, B19, B20).
 - [Turn] Staying through a shutdown: what a wind-down teaches that a launch can't (C4).
